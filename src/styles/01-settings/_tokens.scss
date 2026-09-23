@@ -1,4 +1,9 @@
 @use 'sass:math';
+// Settings importa tools solo para redefinir tokens por breakpoint con el
+// mixin, que es la única fuente del criterio del breakpoint. No invierte
+// ITCSS: `@use` resuelve módulos en compilación; el orden de capas gobierna el
+// CSS emitido, y este :root sigue saliendo primero (DESIGN.md § Breakpoints).
+@use '../02-tools' as tools;
 
 // =============================================================================
 // Tokens CSS — ÚNICO archivo de settings que emite CSS.
@@ -205,4 +210,28 @@
   --text-caption-size: var(--font-size-sm);
   --text-caption-line-height: var(--line-height-sm);
   --text-caption-tracking: var(--letter-spacing-normal);
+
+  // page-title — el h1 de toda vista. Paso DERIVADO, no es un estilo de Figma:
+  // heading/lg por debajo de lg y display desde lg (DESIGN.md § Tipografía).
+  // Apunta a los grupos, no a los primitivos: si cambian, los sigue.
+  --text-page-title-family: var(--text-heading-lg-family);
+  --text-page-title-weight: var(--text-heading-lg-weight);
+  --text-page-title-size: var(--text-heading-lg-size);
+  --text-page-title-line-height: var(--text-heading-lg-line-height);
+  --text-page-title-tracking: var(--text-heading-lg-tracking);
+}
+
+// =============================================================================
+// Tokens por breakpoint. Solo se reapuntan grupos; el componente no sabe nada
+// del breakpoint (tools.text(page-title)).
+// =============================================================================
+
+@include tools.respond-to(lg) {
+  :root {
+    --text-page-title-family: var(--text-display-family);
+    --text-page-title-weight: var(--text-display-weight);
+    --text-page-title-size: var(--text-display-size);
+    --text-page-title-line-height: var(--text-display-line-height);
+    --text-page-title-tracking: var(--text-display-tracking);
+  }
 }

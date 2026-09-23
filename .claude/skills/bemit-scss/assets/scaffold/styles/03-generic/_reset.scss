@@ -39,8 +39,10 @@
 }
 
 // Listas usadas como layout: semantic-markup añade role="list" para
-// conservar la semántica en Safari al quitar los marcadores.
-:where(ul, ol)[role='list'] {
+// conservar la semántica en Safari al quitar los marcadores. El atributo va
+// dentro de :where() para que el reset no sume especificidad: fuera, el
+// selector pesa (0,1,0) en una capa que debe estar en (0,0,0).
+:where(ul[role='list'], ol[role='list']) {
   list-style: none;
   padding: 0;
 }

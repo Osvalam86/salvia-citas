@@ -18,6 +18,11 @@ const steps = [
     figma: 'caption',
     sample: 'Te enviaremos la confirmación a karla.sanchez@ejemplo.com.',
   },
+  {
+    step: 'page-title',
+    figma: 'page-title (derivado): heading/lg; display desde lg',
+    sample: 'Tu cita está reservada',
+  },
 ]
 
 export default function Kit() {

@@ -12,7 +12,7 @@
   padding: var(--space-5);
 
   &__title {
-    @include tools.text(heading-lg);
+    @include tools.text(page-title);
   }
 
   &__section {

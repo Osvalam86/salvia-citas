@@ -6,5 +6,16 @@
 $space-keys: (1, 2, 3, 4, 5, 6, 7);
 
 // Pasos tipográficos que acepta tools.text() (D10). DEBEN coincidir con los
-// grupos --text-<paso>-* de _tokens.scss (DESIGN.md, decisión 3: son 8).
-$text-steps: (display, heading-lg, heading-md, heading-sm, body-md, body-strong, label, caption);
+// grupos --text-<paso>-* de _tokens.scss: los 8 de Figma (DESIGN.md,
+// decisión 3) y page-title, derivado de heading-lg y display por breakpoint.
+$text-steps: (
+  display,
+  heading-lg,
+  heading-md,
+  heading-sm,
+  body-md,
+  body-strong,
+  label,
+  caption,
+  page-title,
+);

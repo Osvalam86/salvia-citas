@@ -17,7 +17,7 @@ compilado.
 | Color · Primitives | 33 | 20 | 13 que ningún rol consume (decisión 2) |
 | Color · Roles | 26 | 25 | `color-surface-elevated` (decisión 1) |
 | Layout & Spacing | 13 | 13 | — |
-| Estilos de texto | 12 | 8 grupos | `link/md`, `link/sm`, `strike/md`, `strike/heading-sm` (decisión 3) |
+| Estilos de texto | 12 | 8 grupos + 1 derivado | `link/md`, `link/sm`, `strike/md`, `strike/heading-sm` (decisión 3). `page-title` no es un estilo de Figma: compone `heading/lg` y `display` por breakpoint |
 | Estilos de efecto | 0 | 0 | El sistema no tiene sombras |
 | Modos | 1 | — | Sin dark mode (decisión 5) |
 
@@ -150,6 +150,7 @@ Cada grupo emite `-family`, `-weight`, `-size`, `-line-height` y `-tracking`.
 | `--text-body-strong-*` | `body/strong` | base | semibold | base | base | normal |
 | `--text-label-*` | `label` | base | semibold | sm | sm | normal |
 | `--text-caption-*` | `caption` | base | regular | sm | sm | normal |
+| `--text-page-title-*` | — (derivado) | → grupo `heading-lg` por debajo de `lg`; → grupo `display` desde `lg` | | | | h1 de vista; reapuntado en `tools.respond-to(lg)` |
 | — | `link/md` | = body/md + `underline` | | | | regla base de `a` |
 | — | `link/sm` | = caption + `underline` | | | | regla base de `a` |
 | — | `strike/md` | = body/md + `line-through` | | | | en el estado |

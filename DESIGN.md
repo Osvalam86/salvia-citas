@@ -52,7 +52,9 @@ Figma; un primitivo entra a código cuando un rol lo necesita.
 **3 · La escala tipográfica son 8 pasos, no 12.** `link/md`, `link/sm`,
 `strike/md` y `strike/heading-sm` son el mismo paso con decoración: los cubren
 la regla base de `a` y el estado que tacha. Crear tokens para ellos duplicaría
-la escala con cuatro entradas que nadie puede recorrer.
+la escala con cuatro entradas que nadie puede recorrer. (`page-title` no
+contradice esta decisión: es un paso derivado de dos de los 8, no un estilo
+nuevo; ver «Tipografía».)
 
 **4 · Los roles que hoy comparten valor no se fusionan.** `color-success` /
 `color-success-text` (ambos `success/700`), `color-error` / `color-error-text`
@@ -91,7 +93,30 @@ Fontsource registra las versiones variables (D11). La familia sin sufijo va
 detrás como respaldo por si alguien la tiene instalada. No es un error de
 transcripción desde Figma.
 
+### Paso derivado `page-title`
+
+No es un estilo de Figma. Todo `h1` de vista es `heading/lg` en móvil y
+`display` en escritorio (§5.1–5.4: «Encuentra a tu especialista», el nombre
+del médico, «Tus datos», «Tu cita está reservada», «Mis citas»; comprobado
+por MCP en las 851 capas de texto de Mobile y las 842 de Desktop). Es el
+**único** elemento que cambia de paso en su sitio: el resto de diferencias
+entre páginas son componentes distintos (Back Link frente a breadcrumb, barra
+inferior frente a header), y el avatar cambia de paso con su variante `Size`,
+no con el breakpoint.
+
+| Paso | Por debajo de `lg` | Desde `lg` |
+|---|---|---|
+| `page-title` | `heading/lg` (31/36, −1 %) | `display` (39/44, −1 %) |
+
+El grupo `--text-page-title-*` apunta a los grupos `--text-heading-lg-*` y se
+reapunta a `--text-display-*` dentro de `tools.respond-to(lg)` en
+`_tokens.scss`. El componente hace `tools.text(page-title)` y no sabe nada del
+breakpoint: es el uso de `@media` para «redefinir tokens por breakpoint» que
+permite `bemit-scss`, y evita una media query dentro de cada componente.
+
 ### Encabezados
+
+El `h1` de vista usa `page-title`. El resto:
 
 `h1`–`h6` no llevan paso tipográfico en `04-elements`: el mismo elemento cambia
 de paso según el contexto (`h2` es `heading/md` en las secciones de Mis citas,
@@ -115,6 +140,16 @@ que el diseño sí declara.
 | Nombre | Valor | Razón |
 |---|---|---|
 | `lg` | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
+
+**Tokens por breakpoint: `_tokens.scss` importa `02-tools`.** Para redefinir
+tokens bajo `lg` (hoy solo `page-title`) se usa `tools.respond-to(lg)`, así
+que settings hace `@use '../02-tools' as tools`. Parece invertir ITCSS y no lo
+hace: el orden de las capas gobierna la cascada del CSS **emitido**, no las
+dependencias de compilación. `@use` es resolución de módulos en Sass, no
+orden de salida; `_tokens.scss` sigue emitiendo su `:root` primero. No hay
+ciclo: tools no importa `_tokens`. La alternativa, una `@media` escrita a mano
+con `map.get` del mapa de breakpoints, duplicaría el criterio del breakpoint en
+dos sitios, que es peor.
 
 **Gutter de escritorio:** `space-5` (24) a cada lado del contenedor. De ahí,
 con aside 320 y gap 32: **columna principal = viewport − 400** hasta que el
@@ -333,7 +368,8 @@ vista 3 no.
 |---|---|
 | 3 | **Cadena de alto de página.** El `#root` de React queda entre `body` y `main` y rompe `body { min-block-size: 100dvh }` → `main { flex: 1 }` (§3.5 del documento de diseño). No se estila con un ID: el shell de la app recibe una clase (`c-app-layout` o similar) al montarlo y recupera ahí la cadena |
 | 7 | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido |
-| Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Ya corregido en este proyecto; lo aplica el usuario a la skill |
+| Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Aplicado en `src/styles` y en la copia de la skill en `.claude/skills/`; falta instalar la versión empaquetada (`bemit-scss.skill`) |
+| Skill | **Parche para `bemit-scss`: tokens por breakpoint.** Dos reglas de la skill chocan y no dice cuál gana: «media queries siempre por mixin» (`layout-responsive.md`) y «settings = valores, tools = lo que los usa» (`arquitectura.md`), cuando `_tokens.scss` redefine tokens por breakpoint (uso de `@media` que la propia skill permite). Gana el mixin: `_tokens.scss` hace `@use '../02-tools' as tools`. Razón: el orden ITCSS gobierna el CSS emitido, no las dependencias de compilación; `@use` no altera el orden de salida y no hay ciclo porque tools no importa `_tokens`. Escribir la `@media` a mano duplicaría el criterio del breakpoint. Añadirlo a `arquitectura.md` (regla settings/tools) y a `layout-responsive.md` (media queries) |
 | — | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo |
 | 7 | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales |
 | 7 | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon |
