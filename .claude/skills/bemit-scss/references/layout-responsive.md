@@ -76,7 +76,28 @@ Si el bloque necesita cambiar su propio layout según su ancho, se declara el co
 | Redefinir tokens por breakpoint | Tipografía que cambia en desktop: se redefine `--text-*` en `:root` dentro de la media query (en `_tokens.scss`, lo hace `theme-tokens`). El componente no cambia |
 | Preferencias del usuario | `prefers-reduced-motion`, `prefers-color-scheme`, `hover`, `pointer`, `forced-colors` |
 
-Siempre mobile-first (`min-width`), en rem, con el mixin. Nunca un valor en px ni una media query escrita a mano.
+Siempre mobile-first (`min-width`), en rem, con el mixin. Nunca un valor en px ni una media query escrita a mano. Esto incluye `_tokens.scss` cuando redefine tokens por breakpoint: importa `02-tools` y usa el mixin (ver «Regla settings/tools» en `arquitectura.md`).
+
+### Un paso tipográfico que cambia entre móvil y escritorio
+
+No se resuelve con una media query en el componente, que está prohibida, ni creando un estilo nuevo que el diseño no tiene. Se resuelve con un **grupo de tokens derivado** que compone dos pasos existentes:
+
+```scss
+// 01-settings/_tokens.scss
+@use '../02-tools' as tools;
+
+:root {
+  --text-page-title-size: var(--text-heading-lg-size);
+  --text-page-title-line-height: var(--text-heading-lg-line-height);
+
+  @include tools.respond-to(lg) {
+    --text-page-title-size: var(--text-display-size);
+    --text-page-title-line-height: var(--text-display-line-height);
+  }
+}
+```
+
+El derivado apunta a los **grupos** de cada paso, no a valores literales: si uno de los dos cambia, el derivado lo sigue. El componente hace `tools.text(page-title)` y no sabe nada del breakpoint. Se documenta como paso derivado, no como estilo nuevo, indicando de qué dos pasos se compone y en qué tramo va cada uno.
 
 ## Dimensiones
 

@@ -30,6 +30,8 @@ styles/
 
 **Regla settings/tools:** settings = valores; tools = lo que usa esos valores. Un mapa va en settings; el mixin que lo lee, en tools.
 
+**Excepción: tokens que cambian por breakpoint.** Cuando `_tokens.scss` redefine tokens dentro de una media query, importa la capa de herramientas (`@use '../02-tools' as tools`) y usa `tools.respond-to()`, como cualquier otra capa. Parece invertir el orden ITCSS, y no lo hace: el número de capa gobierna el orden del **CSS emitido**, no las dependencias de compilación — `@use` es resolución de módulos en Sass. No hay ciclo, porque tools no importa settings, y `_tokens.scss` sigue emitiendo su `:root` primero. La alternativa, escribir la media query a mano leyendo el mapa de breakpoints, duplicaría el criterio del breakpoint en dos sitios.
+
 **Regla de settings:** solo `_tokens.scss` emite CSS. Ningún otro archivo de settings produce salida.
 
 ## Importación

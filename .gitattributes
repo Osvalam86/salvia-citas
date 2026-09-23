@@ -1,0 +1,8 @@
+# LF en todo el repo, independientemente de core.autocrlf de cada máquina.
+* text=auto eol=lf
+
+# Binarios: sin conversión ni diff de texto.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
