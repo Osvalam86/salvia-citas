@@ -251,14 +251,29 @@ Medidas en los maestros, no son tokens del archivo:
 - Trazo normal 1px; trazo fuerte 2px (campo en error, marcador de casilla y
   radio).
 - **Anillo de foco, uno solo para todo el sistema:** 2px de grosor, 2px de
-  desfase, radio = radio del control + 4 (10 sobre `radius/sm`). Dentro del
-  header y en controles de icono, desfase −4.
+  desfase, radio = radio del control + 4 (10 sobre `radius/sm`). Desfase −4
+  dentro del header, en la barra inferior y en los ítems del menú de cuenta.
 - Alto de control de texto: 50, por construcción (borde 1 + 12 + interlineado
   24 + 12 + borde 1). No es un alto fijo: es el resultado del padding.
 - Fila de casilla y radio: 48 en las dos plataformas, también por padding.
 - Velo de hojas y diálogos: `color-scrim` al 45 %
   (`color-mix(in srgb, var(--color-scrim) 45%, transparent)`), nunca en la
   variable.
+
+---
+
+## Controles con icono y etiqueta
+
+**`flex-wrap: wrap` en todo control que pone iconos y etiqueta en fila: los
+iconos bajan de línea antes de que la etiqueta parta palabras.** Con el texto
+ampliado, el padding y los iconos crecen también (van en rem) y dejan a la
+etiqueta sin ancho: al 200 % a 320, un botón con dos iconos le dejaba 46 px y
+«Ver mes completo» salía letra a letra. Con la regla solo parte una palabra
+más ancha que el interior del control entero. A tamaño normal no cambia nada:
+todo cabe en una línea.
+
+Hoy aplica a `UI/Button` y `UI/Back Link`; todo componente nuevo con icono y
+etiqueta en fila la hereda.
 
 ---
 
@@ -433,8 +448,8 @@ vista 3 no.
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible |
-| 4     | **Modificadores obligatorios de `o-stack` y `o-cluster`, sin control automático.** La regla «todo `o-stack`/`o-cluster` lleva siempre modificador de gap (también `--gap-0`), y `o-cluster` además uno de alineación» hoy solo es un comentario en sus parciales. Hacerla cumplir con una regla de ESLint sobre `className` en JSX cuando existan los primeros consumidores: probarla fallando con un caso sin modificador y pasando con los legítimos |
-| 4     | **Enlaces sueltos del kit bajo 24 px de alto.** En `/kit` y `/kit/layout`, los enlaces fuera de una frase («Ir a Enlaces», los dos de la sección Layout, «Volver al kit») miden 20 de alto. Hoy cumplen 2.5.8 por la excepción de espaciado (medido a 320 y 1440: margen mínimo de 8 px sin cortar otro objetivo), no por tamaño. Se resuelven al pasar a `UI/Link`, que por diseño lleva padding vertical 12; volver a medir entonces |
+| 4     | **Anillo de `UI/Menu Item` y `UI/Nav Item` (4.4).** Medido en las variantes Focus: anillo hacia dentro (x = y = 2, tamaño − 4, trazo 2) con **radio 0**, en `UI/Menu Item` y en las dos de `UI/Nav Item`. Es el desfase −4 de § Constantes; el control no tiene radio, así que el outline sale recto sin declarar nada más. Comprobarlo al construir los dos |
+| 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
 | 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |

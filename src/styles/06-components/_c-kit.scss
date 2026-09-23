@@ -2,9 +2,10 @@
 @use '../02-tools' as tools;
 
 // Catálogo del sistema (/kit, D9). Muestra los pasos tipográficos, los
-// enlaces base, el anillo de foco global sobre las dos superficies y la demo
-// del shell con o-layout (/kit/layout; su barra es c-kit-bar). El ancho y el
-// gutter los pone el shell (o-wrapper dentro de c-app-layout).
+// enlaces base, el anillo de foco global sobre las dos superficies, los
+// componentes del kit y la demo del shell con o-layout (/kit/layout; su barra
+// es c-kit-bar). El ancho y el gutter los pone el shell (o-wrapper dentro de
+// c-app-layout).
 .c-kit {
   display: flex;
   flex-direction: column;
@@ -22,6 +23,17 @@
 
   &__heading {
     @include tools.text(heading-md);
+  }
+
+  // Un componente dentro de una sección del catálogo.
+  &__subheading {
+    @include tools.text(heading-sm);
+  }
+
+  // Instancia a ancho completo (FILL de Figma): la decide el padre, no el
+  // componente, por mezcla BEM.
+  &__fill {
+    inline-size: 100%;
   }
 
   &__specimens {

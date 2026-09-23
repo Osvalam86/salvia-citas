@@ -6,5 +6,10 @@
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
 // contenido no controlado y _states solo con un estado genérico sin ARIA.
 @use 'c-app-layout';
+@use 'c-back-link';
+@use 'c-button';
+@use 'c-icon';
+@use 'c-icon-button';
 @use 'c-kit';
 @use 'c-kit-bar';
+@use 'c-link';

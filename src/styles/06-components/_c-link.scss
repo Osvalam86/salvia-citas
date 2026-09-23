@@ -1,0 +1,21 @@
+@use '../02-tools' as tools;
+
+// UI/Link (Figma 236:6856). Color y subrayado los da la regla base de `a`;
+// este bloque aporta la caja: alto 48 por construcción (padding 12 +
+// interlineado 24), padding lateral 0 para alinear con la columna.
+// border-radius sin fondo ni borde: solo para que el anillo de foco tenga
+// radio 10 (radius-sm + desfase + grosor).
+.c-link {
+  @include tools.text(body-md);
+
+  --_fg: var(--color-text-link);
+
+  display: inline-flex;
+  padding-block: var(--space-3);
+  color: var(--_fg);
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_fg: var(--color-text-primary);
+  }
+}

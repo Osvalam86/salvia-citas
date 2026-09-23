@@ -127,7 +127,8 @@ Un único anillo para todo el sistema: `color-focus-ring`, 2 px, desfase 2 px.
 Se mide contra el fondo real que lo rodea.
 
 - El radio del anillo es el del control + 4 (10 sobre `radius-sm`).
-- Dentro del header y en controles de icono, `outline-offset: -4px`.
+- `outline-offset: -4px` dentro del header, en la barra inferior y en los ítems
+  del menú de cuenta.
 - En `UI/Time Slot` seleccionada el anillo cae sobre la superficie, no sobre el
   ámbar (6.02:1 frente a 2.09:1): el desfase positivo **no se reduce** ahí.
 - `outline`, nunca `box-shadow`: el outline sobrevive en `forced-colors`.
@@ -210,7 +211,8 @@ opcionales, 20 px, mismo rol que la etiqueta. Alto 50 por construcción:
 borde 1 + 12 + interlineado 24 + 12 + borde 1.
 
 **`UI/Icon Button`** — 48 × 48, icono de 24 centrado en tinta, sin borde
-visible, `radius-sm`, hover `color-action-subtle`, anillo en −4 con radio 10.
+visible, `radius-sm`, hover `color-action-subtle`, anillo con el desfase
+general (2 px) y radio 10.
 Nombre accesible con `aria-label`. Solo variante Ghost.
 
 **`UI/Link`** — `link/md` en `color-text-link`, hover a `color-text-primary`,

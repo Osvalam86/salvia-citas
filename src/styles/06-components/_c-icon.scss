@@ -1,0 +1,16 @@
+// Icon (diseño §2.3): Phosphor Regular, decorativo, color heredado del texto
+// (fill="currentColor" en el path). Dos tamaños: 20 junto a texto de 16 y 24 en
+// la barra inferior y en los botones de icono. En rem: crece con el texto.
+.c-icon {
+  flex-shrink: 0;
+  inline-size: var(--_size);
+  block-size: var(--_size);
+
+  &--20 {
+    --_size: 1.25rem;
+  }
+
+  &--24 {
+    --_size: 1.5rem;
+  }
+}

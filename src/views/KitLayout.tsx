@@ -1,5 +1,6 @@
-import { Link, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import AppLayout from '../components/AppLayout.tsx'
+import BackLink from '../components/BackLink.tsx'
 
 // Demo del shell y de o-layout en el catálogo (D9). Parámetros:
 // - aside=inicio|fin: el aside va antes o después en el DOM, que es también el
@@ -65,7 +66,7 @@ export default function KitLayout() {
           Layout · aside al {side === 'start' ? 'inicio' : 'final'}
         </h1>
         <p>
-          <Link to="/kit">Volver al kit</Link>
+          <BackLink href="/kit">Kit del sistema</BackLink>
         </p>
         <div className={`o-layout o-layout--aside-${side}`}>
           {side === 'start' ? aside : column}

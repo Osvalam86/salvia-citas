@@ -1,0 +1,25 @@
+@use '../02-tools' as tools;
+
+// UI/Back Link (Figma 223:4917). UI/Link más caret-left de 20. El icono va en
+// currentColor, así que cambia con la etiqueta en hover; el subrayado de la
+// regla base de `a` solo alcanza al texto. Alto 48 por construcción y padding
+// lateral 0 para que el icono alinee con la columna. border-radius: solo para
+// el radio 10 del anillo de foco. flex-wrap: el icono baja de línea antes de
+// que la etiqueta parta palabras (DESIGN.md § Controles con icono y etiqueta).
+.c-back-link {
+  @include tools.text(body-md);
+
+  --_fg: var(--color-text-link);
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+  padding-block: var(--space-3);
+  color: var(--_fg);
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_fg: var(--color-text-primary);
+  }
+}

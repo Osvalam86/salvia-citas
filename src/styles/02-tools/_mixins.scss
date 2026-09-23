@@ -46,7 +46,8 @@
 }
 
 /// Anillo de foco, uno solo para todo el sistema (DESIGN.md § Constantes):
-/// 2px, desfase 2px; −4px dentro del header y en controles de icono.
+/// 2px, desfase 2px; −4px dentro del header, en la barra inferior y en los
+/// ítems del menú de cuenta.
 /// Outline (no box-shadow): sobrevive a forced-colors. El radio lo sigue el
 /// propio outline desde el border-radius del control.
 @mixin focus-ring($offset: 2px) {

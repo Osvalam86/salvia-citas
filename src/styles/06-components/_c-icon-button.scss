@@ -1,0 +1,24 @@
+@use '../02-tools' as tools;
+
+// UI/Icon Button (Figma 180:2868). 48 × 48 fijo: la proporción es la decisión
+// de diseño. Sin borde visible, pero con border transparente para conservar el
+// contorno en forced-colors. Foco: el anillo global con su desfase de 2
+// (radio 10 desde radius-sm). No depende de data-* de RAC: el mismo bloque
+// estila las flechas del Calendar (Button de RAC) en 4.6.
+.c-icon-button {
+  --_bg: transparent;
+
+  display: inline-grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  padding: 0;
+  color: var(--color-text-primary);
+  background-color: var(--_bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_bg: var(--color-action-subtle);
+  }
+}

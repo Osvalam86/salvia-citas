@@ -1,0 +1,60 @@
+@use '../02-tools' as tools;
+
+// UI/Button (Figma 127:3959). Una sola clase para <button>, el enlace de
+// React Router y <a download>. Primary es la base.
+//
+// Alto 50 por construcción, sin alto fijo ni mínimo: borde 1 + padding 12 +
+// interlineado 24 + 12 + 1. Una etiqueta larga o el texto ampliado hacen
+// crecer el botón en vez de desbordarlo. Borde en los tres estilos: en Primary
+// y Destructive es del color del relleno, así mide lo mismo que Secondary y
+// conserva el contorno en forced-colors. Foco: el anillo global; el radio 10
+// sale de radius-sm + desfase + grosor.
+//
+// flex-wrap: con el texto ampliado, padding e iconos crecen también (rem) y
+// dejan a la etiqueta sin ancho; los iconos bajan de línea antes de que la
+// etiqueta parta palabras (DESIGN.md § Controles con icono y etiqueta). A
+// tamaño normal todo cabe en una línea.
+.c-button {
+  @include tools.text(body-strong);
+
+  --_bg: var(--color-action);
+  --_bg-hover: var(--color-action-hover);
+  --_border: var(--color-action);
+  --_border-hover: var(--color-action-hover);
+  --_fg: var(--color-on-action);
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5);
+  color: var(--_fg);
+  text-align: center;
+  text-decoration-line: none;
+  background-color: var(--_bg);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_bg: var(--_bg-hover);
+    --_border: var(--_border-hover);
+  }
+
+  &--secondary {
+    --_bg: var(--color-surface);
+    --_bg-hover: var(--color-action-subtle);
+    --_border: var(--color-border-strong);
+    --_border-hover: var(--color-border-strong);
+    --_fg: var(--color-text-primary);
+  }
+
+  &--destructive {
+    --_bg: var(--color-error);
+    --_bg-hover: var(--color-error-hover);
+    --_border: var(--color-error);
+    --_border-hover: var(--color-error-hover);
+    --_fg: var(--color-on-action);
+  }
+}
