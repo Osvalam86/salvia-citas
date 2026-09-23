@@ -80,7 +80,9 @@ No hay test runner configurado.
 - Cuando el usuario señale un defecto concreto, arregla ese, sin aprovechar
   para cambiar otras cosas.
 - Un valor que no viene del diseño se reporta como hueco, no se inventa en
-  silencio.
+  silencio. Todo valor o decisión que no esté en `DESIGN.md` o `docs/` se
+  presenta como propuesta con su razón **antes** de escribir código, nunca
+  como custom property local ni como comentario.
 
 ## Decisiones de proyecto
 

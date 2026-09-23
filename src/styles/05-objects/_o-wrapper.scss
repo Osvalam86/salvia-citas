@@ -1,0 +1,24 @@
+@use '../02-tools' as tools;
+
+// Columna de contenido centrada, sin diseño visual. El tope es el token
+// --layout-column-max, ancho EXTERIOR con el gutter incluido (border-box):
+// 640 bajo lg y 1248 desde lg (DESIGN.md § Tramo intermedio). Por debajo del
+// tope llena el ancho; por encima se detiene y se centra.
+//
+// Gutter: space-4 bajo lg (padding lateral del Main móvil en Figma) y space-5
+// desde lg (§ Breakpoints). Quedan 608 y 1200 útiles.
+//
+// También es el interior de las piezas a sangre (header móvil, barras, hojas):
+// ninguna redeclara tope ni gutter.
+.o-wrapper {
+  --_gutter: var(--space-4);
+
+  inline-size: 100%; // dentro de un flex en columna, margin auto lo encogería
+  max-inline-size: var(--layout-column-max);
+  margin-inline: auto; // alineación, no separación: permitido
+  padding-inline: var(--_gutter);
+
+  @include tools.respond-to(lg) {
+    --_gutter: var(--space-5);
+  }
+}

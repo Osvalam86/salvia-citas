@@ -1,0 +1,22 @@
+@use '../01-settings/scales';
+
+// Apilado vertical (auto-layout vertical de Figma). Separación SOLO con gap.
+//
+// Regla: todo o-stack lleva SIEMPRE su modificador de gap, también el 0
+// (filas de Options, Error List). Sin modificador el gap queda en 0 igual,
+// pero un olvido y una decisión no deben verse iguales.
+.o-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+
+  &--gap-0 {
+    --_gap: 0;
+  }
+
+  @each $key in scales.$space-keys {
+    &--gap-#{$key} {
+      --_gap: var(--space-#{$key});
+    }
+  }
+}

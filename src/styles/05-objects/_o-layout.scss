@@ -1,0 +1,32 @@
+@use '../02-tools' as tools;
+
+// Patrón aside fijo + principal fluido (diseño §3.5): aside 320, gap 32, sin
+// retícula de 12 columnas. Por debajo de lg, una columna apilada.
+//
+// El modificador dice qué columna es la fija; nunca reordena. El orden visual
+// es el del DOM (criterio 1.3.2): el aside que actúa sobre la lista
+// (filtros) va antes en el DOM; el de contexto o resumen, después.
+//
+// Por D7, bajo lg el aside no se renderiza en ninguna vista del diseño
+// (filtros → hoja, «Tu cita» → Booking Bar o pantalla de confirmación), así
+// que el gap apilado (layout-gap) no tiene referencia en el diseño hoy.
+.o-layout {
+  --_columns: minmax(0, 1fr);
+
+  display: grid;
+  grid-template-columns: var(--_columns);
+  gap: var(--layout-gap);
+  align-items: start; // Figma: Body alinea arriba y los hijos ajustan su alto
+
+  &--aside-start {
+    @include tools.respond-to(lg) {
+      --_columns: var(--layout-aside-width) minmax(0, 1fr);
+    }
+  }
+
+  &--aside-end {
+    @include tools.respond-to(lg) {
+      --_columns: minmax(0, 1fr) var(--layout-aside-width);
+    }
+  }
+}

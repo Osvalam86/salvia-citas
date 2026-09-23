@@ -142,7 +142,7 @@ que el diseño sí declara.
 | `lg`   | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
 
 **Tokens por breakpoint: `_tokens.scss` importa `02-tools`.** Para redefinir
-tokens bajo `lg` (hoy solo `page-title`) se usa `tools.respond-to(lg)`, así
+tokens bajo `lg` (hoy `page-title` y `--layout-column-max`) se usa `tools.respond-to(lg)`, así
 que settings hace `@use '../02-tools' as tools`. Parece invertir ITCSS y no lo
 hace: el orden de las capas gobierna la cascada del CSS **emitido**, no las
 dependencias de compilación. `@use` es resolución de módulos en Sass, no
@@ -155,20 +155,28 @@ dos sitios, que es peor.
 con aside 320 y gap 32: **columna principal = viewport − 400** hasta que el
 contenedor alcanza 1200.
 
+**Las cuentas suponen una barra de scroll superpuesta** (móvil, macOS). Con
+barra clásica (Windows, unos 15 px) el ancho útil es el mismo menos la barra: a
+1024 la columna principal queda en 609, no en 624, y sigue por encima del
+umbral de `result-card` (512). No se corrige nada: se declara.
+
 ---
 
 ## Tramo intermedio
 
 Entre 640 y 1023 px el layout sigue siendo el de móvil. Sin límite, la columna
-de contenido crecería con el viewport hasta 1023. La regla es una sola:
+de contenido crecería con el viewport hasta 1023. La regla es una sola. El
+token es el **ancho exterior** de la columna, con el gutter incluido:
 
-| Token                 | Por debajo de `lg` | Desde `lg`                             |
-| --------------------- | ------------------ | -------------------------------------- |
-| `--layout-column-max` | 40rem (640)        | `var(--layout-container-width)` (1200) |
+| Token                 | Por debajo de `lg`                        | Desde `lg`                                                                                        |
+| --------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `--layout-column-max` | 40rem (640; gutter `space-4`, 608 útiles) | `calc(var(--layout-container-width) + 2 * var(--space-5))` (1248; gutter `space-5`, 1200 útiles) |
 
-La columna lleva `max-inline-size: var(--layout-column-max)`,
-`margin-inline: auto` y su gutter `space-4` por dentro (`border-box`). Por
-debajo de 640 llena el ancho, como en móvil; por encima se detiene y se centra.
+La columna (`o-wrapper`) lleva `max-inline-size: var(--layout-column-max)`,
+`margin-inline: auto` y el gutter por dentro (`border-box`): `space-4` bajo
+`lg` y `space-5` desde `lg`. Así el contenido llega a 1200 en escritorio, como
+exige § Breakpoints. Por debajo de 640 llena el ancho, como en móvil; por
+encima se detiene y se centra.
 El token se redefine en `_tokens.scss` con `tools.respond-to(lg)`, con el mismo
 patrón que `page-title`: ningún componente lleva media query.
 
@@ -194,8 +202,8 @@ control o de flujo y se renderiza solo uno.
 **Las piezas a sangre alinean con la columna.** `UI/Header/Mobile`, la barra
 inferior, `UI/Booking Bar`, el `Action Bar` de 02.4 y de la vista 3, y las
 hojas (filtros y calendario) conservan el fondo y el borde a todo el ancho del
-viewport. Su interior usa el mismo `--layout-column-max` con
-`margin-inline: auto` y el gutter `space-4` por dentro.
+viewport. Su interior **reutiliza `o-wrapper`**: ninguna redeclara tope ni
+gutter.
 
 | Sin la regla, a 1023                                                                 | Con la regla                                  |
 | ------------------------------------------------------------------------------------ | --------------------------------------------- |
@@ -424,10 +432,16 @@ vista 3 no.
 
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3     | **Cadena de alto de página.** El `#root` de React queda entre `body` y `main` y rompe `body { min-block-size: 100dvh }` → `main { flex: 1 }` (§3.5 del documento de diseño). No se estila con un ID: el shell de la app recibe una clase (`c-app-layout` o similar) al montarlo y recupera ahí la cadena                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible |
+| Skill | **Parche para `bemit-scss`: `overflow-wrap`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(p, h1…h6, li, dd) { overflow-wrap: break-word }`. Después: `overflow-wrap: anywhere` una vez en `:where(html)`. Razón: se hereda, así que enumerar elementos deja fuera `dt`, `label`, `td` o un `span`; y `break-word` no reduce el min-content, así que un ítem flex desborda igual. Medido a 320 con texto al 200 %: `break-word` deja 194 px fuera en un ítem de `o-cluster`, `anywhere` 0. Aplicado en `src/styles` y en la copia de `.claude/skills/`; falta el paquete `.skill` |
+| 4     | **Modificadores obligatorios de `o-stack` y `o-cluster`, sin control automático.** La regla «todo `o-stack`/`o-cluster` lleva siempre modificador de gap (también `--gap-0`), y `o-cluster` además uno de alineación» hoy solo es un comentario en sus parciales. Hacerla cumplir con una regla de ESLint sobre `className` en JSX cuando existan los primeros consumidores: probarla fallando con un caso sin modificador y pasando con los legítimos |
+| 4     | **Enlaces sueltos del kit bajo 24 px de alto.** En `/kit` y `/kit/layout`, los enlaces fuera de una frase («Ir a Enlaces», los dos de la sección Layout, «Volver al kit») miden 20 de alto. Hoy cumplen 2.5.8 por la excepción de espaciado (medido a 320 y 1440: margen mínimo de 8 px sin cortar otro objetivo), no por tamaño. Se resuelven al pasar a `UI/Link`, que por diseño lleva padding vertical 12; volver a medir entonces |
+| 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
 | 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Aplicado en `src/styles` y en la copia de la skill en `.claude/skills/`; falta instalar la versión empaquetada (`bemit-scss.skill`)                                                                                                                                                                                                                                                                                                                                |
 | Skill | **Parche para `bemit-scss`: tokens por breakpoint.** Dos reglas de la skill chocan y no dice cuál gana: «media queries siempre por mixin» (`layout-responsive.md`) y «settings = valores, tools = lo que los usa» (`arquitectura.md`), cuando `_tokens.scss` redefine tokens por breakpoint (uso de `@media` que la propia skill permite). Gana el mixin: `_tokens.scss` hace `@use '../02-tools' as tools`. Razón: el orden ITCSS gobierna el CSS emitido, no las dependencias de compilación; `@use` no altera el orden de salida y no hay ciclo porque tools no importa `_tokens`. Escribir la `@media` a mano duplicaría el criterio del breakpoint. Añadirlo a `arquitectura.md` (regla settings/tools) y a `layout-responsive.md` (media queries) |
 | —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 7     | **Zona segura en un iPhone real.** `viewport-fit=cover` y `env(safe-area-inset-*)` en `c-app-layout` (laterales) y en su hueco de barra (inferior) no se pudieron probar: en headless `env()` vale 0. Comprobar en vertical y horizontal con notch que el contenido no queda bajo el notch, que la franja bajo el indicador de inicio se pinta con la superficie y que la barra no queda bajo él |
+| 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |

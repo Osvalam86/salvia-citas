@@ -10,13 +10,15 @@
 :where(html) {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  // Se hereda: cubre todo texto sin enumerar elementos. `anywhere` y no
+  // `break-word` porque también reduce el min-content, y un ítem flex o grid
+  // no encoge por debajo de él (correo de Karla en 04.1 y vista 3, a 320 con
+  // texto al 200 %). Solo parte una palabra cuando no cabe en la línea.
+  overflow-wrap: anywhere;
 }
 
-// Toda pantalla ocupa al menos el viewport (diseño §3.5). La cadena hasta
-// `main { flex: 1 }` la recupera el shell en la fase 3 (DESIGN.md, pendientes).
-:where(body) {
-  min-block-size: 100dvh;
-}
+// Sin min-block-size en body: el #root de React lo separa de main. La cadena
+// de alto (diseño §3.5) la pone el shell, c-app-layout.
 
 :where(img, picture, video, canvas, svg) {
   display: block;
@@ -34,10 +36,6 @@
 
 :where(button) {
   cursor: pointer;
-}
-
-:where(p, h1, h2, h3, h4, h5, h6, li, dd) {
-  overflow-wrap: break-word;
 }
 
 // Listas usadas como layout: semantic-markup añade role="list" para

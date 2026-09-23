@@ -90,6 +90,12 @@
   --layout-aside-width: 20rem;     // 320
   --layout-gap: 2rem;              // 32
 
+  // Ancho EXTERIOR de la columna de contenido, gutter incluido. No viene de
+  // Figma: es un valor derivado (DESIGN.md § Tramo intermedio). Bajo lg, 640
+  // con gutter space-4 → 608 útiles, por encima de los umbrales de
+  // result-card (512) y appointment-card (544). Se reapunta desde lg, abajo.
+  --layout-column-max: 40rem; // 640
+
   // ===========================================================================
   // Nivel 2 · Roles de color
   // Cada comentario dice sobre qué propiedades CSS se aplica el rol (sale del
@@ -222,8 +228,8 @@
 }
 
 // =============================================================================
-// Tokens por breakpoint. Solo se reapuntan grupos; el componente no sabe nada
-// del breakpoint (tools.text(page-title)).
+// Tokens por breakpoint. El consumidor no sabe nada del breakpoint
+// (tools.text(page-title), max-inline-size: var(--layout-column-max)).
 // =============================================================================
 
 @include tools.respond-to(lg) {
@@ -233,5 +239,9 @@
     --text-page-title-size: var(--text-display-size);
     --text-page-title-line-height: var(--text-display-line-height);
     --text-page-title-tracking: var(--text-display-tracking);
+
+    // 1200 de contenido + gutter space-5 a cada lado = 1248: el contenido
+    // llega a 1200 (DESIGN.md § Breakpoints).
+    --layout-column-max: calc(var(--layout-container-width) + 2 * var(--space-5));
   }
 }

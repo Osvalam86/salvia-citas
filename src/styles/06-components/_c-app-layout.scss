@@ -1,0 +1,56 @@
+@use '../02-tools' as tools;
+
+// Shell de la app: header / main / barra inferior (diseño §3.5 y §4.3).
+//
+// Excepción declarada: este bloque lleva media query porque su contenedor ES
+// el viewport. El resto de componentes se adapta a su contenedor.
+//
+// Cadena de alto: el #root de React queda entre body y este bloque, así que
+// aquí se recupera el mínimo de viewport y main crece (flex: 1). Toda pantalla
+// ocupa al menos el viewport con el contenido alineado arriba.
+//
+// Zona segura lateral (viewport-fit=cover en index.html): se suma al gutter
+// de o-wrapper, no lo sustituye.
+.c-app-layout {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+
+  // Padding de Main en Figma: space-5 / space-6 en móvil, space-6 / space-7
+  // en escritorio. El lateral es el gutter de o-wrapper.
+  &__main {
+    --_padding-start: var(--space-5);
+    --_padding-end: var(--space-6);
+
+    flex: 1;
+    padding-block: var(--_padding-start) var(--_padding-end);
+
+    @include tools.respond-to(lg) {
+      --_padding-start: var(--space-6);
+      --_padding-end: var(--space-7);
+    }
+  }
+
+  // Hueco de la barra inferior (Bottom Nav, Booking Bar, Action Bar). Sticky y
+  // no fixed: la barra sigue en el flujo, como en Figma, y reserva su propio
+  // alto sea cual sea (64, 74, 102, texto al 200 %). Ningún ancestro (#root,
+  // body, este bloque) puede declarar overflow distinto de visible o clip.
+  //
+  // Solo lo que es del shell: fondo y borde son del componente de barra. La
+  // superficie de aquí pinta la franja de la zona segura; duplicarla es inocuo.
+  &__bar {
+    position: sticky;
+    inset-block-end: 0;
+    padding-block-end: env(safe-area-inset-bottom);
+    background-color: var(--color-surface);
+  }
+}
+
+// Criterio 2.4.11: el foco no queda bajo la barra. El desplazador es el
+// viewport, así que scroll-padding va en la raíz. El valor no es una
+// constante: AppLayout mide el hueco de la barra (ResizeObserver) y lo escribe
+// en --app-layout-bar-size; sin barra, 0.
+:where(html) {
+  scroll-padding-block-end: var(--app-layout-bar-size, 0);
+}

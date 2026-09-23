@@ -9,6 +9,10 @@
 :where(html) {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  // Se hereda: cubre todo texto sin enumerar elementos. `anywhere` y no
+  // `break-word` porque también reduce el min-content, y un ítem flex o grid
+  // no encoge por debajo de él. Solo parte una palabra cuando no cabe.
+  overflow-wrap: anywhere;
 }
 
 :where(body) {
@@ -32,10 +36,6 @@
 
 :where(button) {
   cursor: pointer;
-}
-
-:where(p, h1, h2, h3, h4, h5, h6, li, dd) {
-  overflow-wrap: break-word;
 }
 
 // Listas usadas como layout: semantic-markup añade role="list" para

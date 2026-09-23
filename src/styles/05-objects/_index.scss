@@ -1,1 +1,5 @@
-// Objetos o- de layout: llegan en la fase 3. Un @use por objeto.
+// Objetos o- de layout. Un @use por objeto.
+@use 'o-wrapper';
+@use 'o-layout';
+@use 'o-stack';
+@use 'o-cluster';

@@ -1,8 +1,10 @@
 // Componentes c- (uno por archivo, en orden alfabético). Correspondencia 1:1
-// con src/components/*.tsx (D5); c-kit es la excepción: es el bloque de la
-// vista del catálogo (src/views/Kit.tsx).
+// con src/components/*.tsx (D5); c-kit y c-kit-bar son la excepción: son
+// bloques de las vistas del catálogo (src/views/Kit.tsx y KitLayout.tsx).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
 // contenido no controlado y _states solo con un estado genérico sin ARIA.
+@use 'c-app-layout';
 @use 'c-kit';
+@use 'c-kit-bar';

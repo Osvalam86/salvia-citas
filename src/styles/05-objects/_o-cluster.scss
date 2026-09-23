@@ -1,0 +1,38 @@
+@use '../01-settings/scales';
+
+// Agrupación horizontal con wrap (auto-layout horizontal de Figma).
+//
+// Regla: todo o-cluster lleva SIEMPRE un modificador de gap (también el 0) y
+// uno de alineación. Sin alineación por defecto: en Figma, de los autolayouts
+// horizontales de las pantallas, 278 centran, 217 alinean arriba y 8 abajo
+// (55 % CENTER; en los maestros UI/*, 81 %). No domina con claridad, y MIN es
+// regla del diseño (control arriba cuando la etiqueta parte). Sin modificador
+// quedaría `stretch`, que no es ninguno de los tres.
+.o-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: var(--_align);
+  gap: var(--_gap);
+
+  &--align-start {
+    --_align: flex-start;
+  }
+
+  &--align-center {
+    --_align: center;
+  }
+
+  &--align-end {
+    --_align: flex-end;
+  }
+
+  &--gap-0 {
+    --_gap: 0;
+  }
+
+  @each $key in scales.$space-keys {
+    &--gap-#{$key} {
+      --_gap: var(--space-#{$key});
+    }
+  }
+}

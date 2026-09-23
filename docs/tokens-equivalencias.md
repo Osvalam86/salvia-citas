@@ -16,7 +16,7 @@ compilado.
 |---|---|---|---|
 | Color · Primitives | 33 | 20 | 13 que ningún rol consume (decisión 2) |
 | Color · Roles | 26 | 25 | `color-surface-elevated` (decisión 1) |
-| Layout & Spacing | 13 | 13 | — |
+| Layout & Spacing | 13 | 13 + 1 derivado | — · `--layout-column-max` no es de Figma: tope de la columna por breakpoint (DESIGN.md § Tramo intermedio) |
 | Estilos de texto | 12 | 8 grupos + 1 derivado | `link/md`, `link/sm`, `strike/md`, `strike/heading-sm` (decisión 3). `page-title` no es un estilo de Figma: compone `heading/lg` y `display` por breakpoint |
 | Estilos de efecto | 0 | 0 | El sistema no tiene sombras |
 | Modos | 1 | — | Sin dark mode (decisión 5) |
@@ -98,6 +98,7 @@ Fuera de código (solo Foundations): `sage/50`, `sage/200`–`500`, `sage/900`,
 | `--layout-container-width` | `layout/container-width` | 1200 | 75rem |
 | `--layout-aside-width` | `layout/aside-width` | 320 | 20rem |
 | `--layout-gap` | `layout/gap` | 32 | 2rem |
+| `--layout-column-max` | — (derivado) | — | 40rem bajo `lg`; `calc(var(--layout-container-width) + 2 * var(--space-5))` (1248) desde `lg`. Ancho exterior de la columna, gutter incluido (DESIGN.md § Tramo intermedio); reapuntado en `tools.respond-to(lg)` |
 
 `layout/gap` y `space/6` valen lo mismo pero en Figma son variables
 independientes (no hay alias): se mantienen separadas, igual que los roles que
