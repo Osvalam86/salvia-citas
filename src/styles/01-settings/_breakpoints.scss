@@ -1,0 +1,11 @@
+// =============================================================================
+// Breakpoints de viewport (compilación). var() no funciona en @media: por eso
+// viven aquí como mapa Sass, en rem. No emite CSS.
+//
+// No vienen de Figma (el archivo no tiene variables de breakpoint): se derivan
+// del diseño, ver DESIGN.md § Breakpoints. Uno solo, a propósito.
+// Si cambia, cambia también su espejo en TS (decisión D7).
+// =============================================================================
+$breakpoints: (
+  lg: 64rem, // 1024px — aparece el patrón aside + principal (columna = viewport − 400)
+);

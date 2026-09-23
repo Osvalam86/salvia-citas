@@ -1,0 +1,206 @@
+@use 'sass:math';
+
+// =============================================================================
+// Tokens CSS — ÚNICO archivo de settings que emite CSS.
+// Origen: Figma sVVjX11h3CrCOFNybb7gL1, colecciones «Color · Primitives»,
+// «Color · Roles» y «Layout & Spacing» (un solo modo, «Value») + 8 estilos de
+// texto. Traducción de nombres: `/` → `-`. Mapa completo en
+// docs/tokens-equivalencias.md. No escribir valores a mano sin reflejarlos ahí.
+//
+// Componentes y vistas consumen SOLO el nivel 2 (roles y grupos --text-*).
+// Los primitivos existen para que los roles apunten a ellos.
+// =============================================================================
+
+:root {
+  // ===========================================================================
+  // Nivel 1 · Primitivos
+  // ===========================================================================
+
+  // Color — solo los 20 que algún rol consume (DESIGN.md, decisión 2).
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-neutral-200: #e6e2d8;
+  --color-neutral-400: #b3ac98;
+  --color-neutral-600: #6e6858;
+  --color-neutral-700: #524d41;
+  --color-neutral-900: #201e19;
+  --color-sage-100: #e2eae3;
+  --color-sage-600: #486b4d;
+  --color-sage-700: #3b5740;
+  --color-sage-800: #2c4230;
+  --color-accent-100: #f7e3d0;
+  --color-accent-500: #d9834b;
+  --color-accent-700: #b15e30;
+  --color-accent-900: #7a3e1e;
+  --color-success-100: #d7f0e4;
+  --color-success-700: #1f7350;
+  --color-red-100: #f6dada;
+  --color-red-500: #922626;
+  --color-red-700: #6c1b1b;
+
+  // Tipografía
+  --font-family-heading: 'Fraunces', serif;
+  --font-family-base: 'Inter', sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+
+  --font-size-sm: 0.875rem;   // 14
+  --font-size-base: 1rem;     // 16
+  --font-size-lg: 1.25rem;    // 20
+  --font-size-xl: 1.5625rem;  // 25
+  --font-size-2xl: 1.9375rem; // 31
+  --font-size-3xl: 2.4375rem; // 39
+
+  // Interlineado sin unidad: cada clave va emparejada con su --font-size-*.
+  --line-height-sm: #{math.div(20, 14)};   // 14/20
+  --line-height-base: #{math.div(24, 16)}; // 16/24
+  --line-height-lg: #{math.div(28, 20)};   // 20/28
+  --line-height-xl: #{math.div(32, 25)};   // 25/32
+  --line-height-2xl: #{math.div(36, 31)};  // 31/36
+  --line-height-3xl: #{math.div(44, 39)};  // 39/44
+
+  --letter-spacing-tight: -0.01em;  // −1 %
+  --letter-spacing-snug: -0.005em;  // −0.5 %
+  --letter-spacing-normal: 0;
+
+  // Espaciado
+  --space-1: 0.25rem; // 4
+  --space-2: 0.5rem;  // 8
+  --space-3: 0.75rem; // 12
+  --space-4: 1rem;    // 16
+  --space-5: 1.5rem;  // 24
+  --space-6: 2rem;    // 32
+  --space-7: 3rem;    // 48
+
+  // Radios (px: excepción aceptada)
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+
+  // Layout
+  --layout-container-width: 75rem; // 1200
+  --layout-aside-width: 20rem;     // 320
+  --layout-gap: 2rem;              // 32
+
+  // ===========================================================================
+  // Nivel 2 · Roles de color
+  // Cada comentario dice sobre qué propiedades CSS se aplica el rol (sale del
+  // `scopes` de la variable en Figma). Un rol de relleno nunca va en `color`
+  // y un rol de texto nunca va en `background-color`.
+  // ===========================================================================
+
+  // Superficies — background-color
+  --color-surface: var(--color-white);
+  --color-surface-muted: var(--color-neutral-200);
+
+  // Límites — border-color. `color-border` es decorativo (tarjetas,
+  // separadores): NUNCA límite de un control (2.27:1). Ese es border-strong.
+  --color-border: var(--color-neutral-400);
+  --color-border-strong: var(--color-neutral-700);
+
+  // Texto e iconos — color (los SVG heredan con currentColor).
+  // text-secondary solo sobre color-surface (sobre surface-muted: 4.29:1).
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-link: var(--color-sage-700);
+
+  // Acción — background-color, border-color
+  --color-action: var(--color-sage-700);
+  --color-action-hover: var(--color-sage-800);
+  // Acción — solo background-color
+  --color-action-subtle: var(--color-sage-100);
+  // Sobre acción — color
+  --color-on-action: var(--color-white);
+
+  // Acento — solo background-color. NO interactivo; texto encima en
+  // color-text-primary. Nunca como color de texto ni con blanco encima (2.88:1).
+  --color-accent: var(--color-accent-500);
+  // Texto en ámbar — color
+  --color-accent-text: var(--color-accent-900);
+
+  // Éxito
+  --color-success: var(--color-success-700);         // background-color, border-color
+  --color-success-surface: var(--color-success-100); // background-color
+  --color-success-text: var(--color-success-700);    // color
+
+  // Aviso
+  --color-warning: var(--color-accent-700);          // background-color, border-color
+  --color-warning-surface: var(--color-accent-100);  // background-color
+  --color-warning-text: var(--color-accent-900);     // color
+
+  // Error
+  --color-error: var(--color-red-500);               // background-color, border-color
+  --color-error-hover: var(--color-red-700);         // background-color, border-color
+  --color-error-surface: var(--color-red-100);       // background-color
+  --color-error-text: var(--color-red-500);          // color
+
+  // Foco — outline-color. Nunca sobre la hora seleccionada (2.09:1 sobre accent).
+  --color-focus-ring: var(--color-sage-600);
+
+  // Velo — background-color, SIEMPRE con alpha al 45 % en el consumidor:
+  // color-mix(in srgb, var(--color-scrim) 45%, transparent). Nunca en la variable.
+  --color-scrim: var(--color-black);
+
+  // ===========================================================================
+  // Nivel 2 · Tipografía: un grupo por paso (8, DESIGN.md decisión 3).
+  // link/* y strike/* no son pasos: son body/md, caption y heading/sm con
+  // text-decoration, que ponen la regla base de `a` y el estado que tacha.
+  // ===========================================================================
+
+  // display — h1 de escritorio · Fraunces SemiBold 39/44, −1 %
+  --text-display-family: var(--font-family-heading);
+  --text-display-weight: var(--font-weight-semibold);
+  --text-display-size: var(--font-size-3xl);
+  --text-display-line-height: var(--line-height-3xl);
+  --text-display-tracking: var(--letter-spacing-tight);
+
+  // heading/lg — h1 de móvil · Fraunces SemiBold 31/36, −1 %
+  --text-heading-lg-family: var(--font-family-heading);
+  --text-heading-lg-weight: var(--font-weight-semibold);
+  --text-heading-lg-size: var(--font-size-2xl);
+  --text-heading-lg-line-height: var(--line-height-2xl);
+  --text-heading-lg-tracking: var(--letter-spacing-tight);
+
+  // heading/md — wordmark, h2 de Mis citas, título de hoja · 25/32, −0.5 %
+  --text-heading-md-family: var(--font-family-heading);
+  --text-heading-md-weight: var(--font-weight-semibold);
+  --text-heading-md-size: var(--font-size-xl);
+  --text-heading-md-line-height: var(--line-height-xl);
+  --text-heading-md-tracking: var(--letter-spacing-snug);
+
+  // heading/sm — h2 de bloque, h3 de tarjeta, legend de sección · 20/28
+  --text-heading-sm-family: var(--font-family-heading);
+  --text-heading-sm-weight: var(--font-weight-semibold);
+  --text-heading-sm-size: var(--font-size-lg);
+  --text-heading-sm-line-height: var(--line-height-lg);
+  --text-heading-sm-tracking: var(--letter-spacing-normal);
+
+  // body/md — cuerpo por defecto · Inter Regular 16/24
+  --text-body-md-family: var(--font-family-base);
+  --text-body-md-weight: var(--font-weight-regular);
+  --text-body-md-size: var(--font-size-base);
+  --text-body-md-line-height: var(--line-height-base);
+  --text-body-md-tracking: var(--letter-spacing-normal);
+
+  // body/strong — seleccionado, término, legend de grupo · Inter Semi Bold 16/24
+  --text-body-strong-family: var(--font-family-base);
+  --text-body-strong-weight: var(--font-weight-semibold);
+  --text-body-strong-size: var(--font-size-base);
+  --text-body-strong-line-height: var(--line-height-base);
+  --text-body-strong-tracking: var(--letter-spacing-normal);
+
+  // label — etiqueta de campo, píldoras, recuentos · Inter Semi Bold 14/20
+  --text-label-family: var(--font-family-base);
+  --text-label-weight: var(--font-weight-semibold);
+  --text-label-size: var(--font-size-sm);
+  --text-label-line-height: var(--line-height-sm);
+  --text-label-tracking: var(--letter-spacing-normal);
+
+  // caption — mensajes de campo, meta, ayuda · Inter Regular 14/20
+  --text-caption-family: var(--font-family-base);
+  --text-caption-weight: var(--font-weight-regular);
+  --text-caption-size: var(--font-size-sm);
+  --text-caption-line-height: var(--line-height-sm);
+  --text-caption-tracking: var(--letter-spacing-normal);
+}

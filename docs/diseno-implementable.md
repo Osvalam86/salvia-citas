@@ -41,6 +41,13 @@ Cerrar sesión y el aviso de privacidad llevan a una sola página genérica.
 
 ## 2 · Sistema
 
+**Lectura del archivo por MCP.** El archivo tiene seis páginas: 📕 Cover ·
+🎨 Foundations · 🧩 Components · 📐 Wireframes · 📱 Mobile (17 pantallas + 4
+paneles) · 🖥 Desktop (15 pantallas). `get_metadata` sin `nodeId` solo lista las
+páginas **ya cargadas**: Figma las carga bajo demanda, así que ese listado puede
+omitir páginas enteras. Para inventariarlas, `use_figma` con
+`figma.root.children` y `setCurrentPageAsync` en cada página antes de leerla.
+
 ### 2.1 Tokens
 
 Tres colecciones en Figma, un solo modo (`Value`): no hay dark mode en diseño y
@@ -402,11 +409,17 @@ props: etiqueta y glifo portan el estado.
 - **Info no es un estado, es la voz por defecto del producto.** Su tono es el
   neutro y no estrena ningún rol: relleno `color-surface-muted`, borde
   `color-border-strong`, icono y título en tinta.
-- En código: Success lleva `role="status"`, Error lleva `role="alert"`, **Info
-  no lleva `role`, no recibe foco y no se anuncia** — es contenido estático.
+- En código, **o foco o región viva, nunca las dos**: moverle el foco y además
+  anunciarlo lee el aviso dos veces.
+  - Cuando el disparador desaparece (cierre del diálogo de cancelar), el foco
+    pasa al título del aviso y el aviso va **sin `role`**: el foco entrega el
+    mensaje.
+  - Cuando el aviso aparece sin mover el foco, lleva su `role`: Success
+    `role="status"`, Error `role="alert"`.
+  - **Info no lleva `role`, no recibe foco y no se anuncia** — es contenido
+    estático.
 - Info nunca lleva cierre ni acción, y su título es nominal, sin verbo de
   resultado.
-- El foco pasa al título del aviso solo cuando el disparador desaparece.
 - El glifo de Info es contextual (por ejemplo `calendar-check` en la placa de
   reprogramación); los de Success y Error portan el tono y no se cambian.
 
@@ -601,7 +614,8 @@ Error **sin cierre y sin acción**, sobre la tarjeta: «Esa hora ya está ocupad
 datos se conservan.». **El pie deja de ofrecer el envío:** «Confirmar cita» pasa
 a «Elegir otra hora» Primary y la nota se retira, porque nombraba una cita que
 ya no está reservada. No se rompe la regla del envío nunca deshabilitado: no hay
-botón gris, hay un botón distinto.
+botón gris, hay un botón distinto. Como el disparador desaparece, el foco se
+perdería: **va al título del aviso, y el aviso va sin `role`** (§4.6).
 
 ### 5.4 Vista 4 · Confirmación y mis citas
 

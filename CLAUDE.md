@@ -40,8 +40,8 @@ No hay test runner configurado.
    `node.description` del componente en Figma.
 2. **`DESIGN.md`** — contrato de la capa de estilos: decisiones de traducción de
    tokens **cerradas** (no se reabren), pares tipográficos, breakpoint único
-   (`lg` 56rem), container queries (`result-card` 40rem, `slot-picker` 44rem),
-   constantes sin variable en Figma, reglas de React Aria y pares de contraste
+   (`lg` 64rem) y gutter de escritorio, container queries (`result-card`,
+   `appointment-card`, `dialog`, `slot-picker`), constantes sin variable en Figma, reglas de React Aria y pares de contraste
    prohibidos.
 3. **Skills del proyecto en `.claude/skills/`** — `bemit-scss` (arquitectura
    ITCSS, nomenclatura y prefijos; manda sobre `DESIGN.md` en eso),

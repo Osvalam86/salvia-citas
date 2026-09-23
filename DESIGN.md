@@ -100,18 +100,32 @@ que el diseño sí declara.
 
 | Nombre | Valor | Razón |
 |---|---|---|
-| `lg` | 56rem (896px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. Aside 320 + gap 32 + Result Card Row rompiendo hacia 490 + respiro 48 = 890 |
+| `lg` | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
+
+**Gutter de escritorio:** `space-5` (24) a cada lado del contenedor. De ahí,
+con aside 320 y gap 32: **columna principal = viewport − 400** hasta que el
+contenedor alcanza 1200.
 
 ---
 
 ## Contenedores
 
-`_containers.scss`. Estos sí los declara el diseño:
+**Regla: el contenedor se declara siempre en el elemento que aporta el ancho,
+nunca en el componente que cambia de forma.** El ancho de un componente que se
+reorganiza es el resultado de esa decisión, no su causa: si él mismo fuese el
+contenedor, su padding y su propia variante falsearían la medida (una Row de
+480 con padding 24 mide 430 de contenido y nunca alcanzaría su umbral). Con el
+contenedor en el padre, el umbral es siempre un ancho exterior, sin aritmética
+de padding.
 
-| Nombre | Umbral | Qué cambia |
-|---|---|---|
-| `result-card` | 40rem | Row pasa a Stacked |
-| `slot-picker` | 44rem | La tarjeta del selector apila calendario y horas |
+`_containers.scss`:
+
+| Nombre | Contenedor | Umbral | Qué cambia | Razón |
+|---|---|---|---|---|
+| `result-card` | el `li` de la lista de resultados | 32rem (512) | Stacked pasa a Row | Justo sobre el punto de rotura medido de Row (490). El `li` no tiene padding |
+| `appointment-card` | el `li` de su sección | 34rem (544) | Stacked pasa a Row | **Provisional:** verificar al construir el componente |
+| `dialog` | el velo | 32rem (512) | Stacked pasa a Row | 480 de la variante Row + 16 + 16 de margen: es cuando cabe |
+| `slot-picker` | el elemento que da ancho a la tarjeta del selector | 44rem | La tarjeta apila calendario y horas | — |
 
 ---
 
