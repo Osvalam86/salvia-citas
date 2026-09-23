@@ -22,11 +22,11 @@ React Aria Components.
 Archivo de Figma `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP. Tres colecciones,
 un solo modo (`Value`):
 
-| Colección | Contenido |
-|---|---|
-| `Color · Primitives` | 33 primitivos, `familia/paso` |
-| `Color · Roles` | 26 roles, nombres planos `color-*` |
-| `Layout & Spacing` | `space/1–7`, `radius/sm\|md\|pill`, `layout/container-width\|aside-width\|gap` |
+| Colección            | Contenido                                                                      |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `Color · Primitives` | 33 primitivos, `familia/paso`                                                  |
+| `Color · Roles`      | 26 roles, nombres planos `color-*`                                             |
+| `Layout & Spacing`   | `space/1–7`, `radius/sm\|md\|pill`, `layout/container-width\|aside-width\|gap` |
 
 Más 12 estilos de texto.
 
@@ -72,16 +72,16 @@ Tampoco `_themes.scss` con prefijo `t-`: no hay modos definidos en diseño.
 `line-height` sin unidad. Las razones salen de estos pares, medidos en el
 archivo:
 
-| Paso | Tamaño | Interlineado | Razón | Tracking |
-|---|---|---|---|---|
-| `display` | 39 | 44 | 1.128 | −0.01em |
-| `heading/lg` | 31 | 36 | 1.161 | −0.01em |
-| `heading/md` | 25 | 32 | 1.28 | −0.005em |
-| `heading/sm` | 20 | 28 | 1.4 | 0 |
-| `body/md` | 16 | 24 | 1.5 | 0 |
-| `body/strong` | 16 | 24 | 1.5 | 0 |
-| `label` | 14 | 20 | 1.43 | 0 |
-| `caption` | 14 | 20 | 1.43 | 0 |
+| Paso          | Tamaño | Interlineado | Razón | Tracking |
+| ------------- | ------ | ------------ | ----- | -------- |
+| `display`     | 39     | 44           | 1.128 | −0.01em  |
+| `heading/lg`  | 31     | 36           | 1.161 | −0.01em  |
+| `heading/md`  | 25     | 32           | 1.28  | −0.005em |
+| `heading/sm`  | 20     | 28           | 1.4   | 0        |
+| `body/md`     | 16     | 24           | 1.5   | 0        |
+| `body/strong` | 16     | 24           | 1.5   | 0        |
+| `label`       | 14     | 20           | 1.43  | 0        |
+| `caption`     | 14     | 20           | 1.43  | 0        |
 
 Familias: Fraunces SemiBold (peso 600) en los cuatro primeros; Inter Regular
 (400) y Semi Bold (600) en los cuatro últimos. Fraunces es variable con eje
@@ -104,8 +104,8 @@ entre páginas son componentes distintos (Back Link frente a breadcrumb, barra
 inferior frente a header), y el avatar cambia de paso con su variante `Size`,
 no con el breakpoint.
 
-| Paso | Por debajo de `lg` | Desde `lg` |
-|---|---|---|
+| Paso         | Por debajo de `lg`         | Desde `lg`              |
+| ------------ | -------------------------- | ----------------------- |
 | `page-title` | `heading/lg` (31/36, −1 %) | `display` (39/44, −1 %) |
 
 El grupo `--text-page-title-*` apunta a los grupos `--text-heading-lg-*` y se
@@ -137,9 +137,9 @@ que el diseño sí declara.
 
 `_breakpoints.scss`:
 
-| Nombre | Valor | Razón |
-|---|---|---|
-| `lg` | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
+| Nombre | Valor          | Razón                                                                                                                                                                                                                                            |
+| ------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lg`   | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
 
 **Tokens por breakpoint: `_tokens.scss` importa `02-tools`.** Para redefinir
 tokens bajo `lg` (hoy solo `page-title`) se usa `tools.respond-to(lg)`, así
@@ -157,6 +157,64 @@ contenedor alcanza 1200.
 
 ---
 
+## Tramo intermedio
+
+Entre 640 y 1023 px el layout sigue siendo el de móvil. Sin límite, la columna
+de contenido crecería con el viewport hasta 1023. La regla es una sola:
+
+| Token                 | Por debajo de `lg` | Desde `lg`                             |
+| --------------------- | ------------------ | -------------------------------------- |
+| `--layout-column-max` | 40rem (640)        | `var(--layout-container-width)` (1200) |
+
+La columna lleva `max-inline-size: var(--layout-column-max)`,
+`margin-inline: auto` y su gutter `space-4` por dentro (`border-box`). Por
+debajo de 640 llena el ancho, como en móvil; por encima se detiene y se centra.
+El token se redefine en `_tokens.scss` con `tools.respond-to(lg)`, con el mismo
+patrón que `page-title`: ningún componente lleva media query.
+
+**40rem no viene de Figma: es un valor derivado.** Con el gutter móvil
+`space-4` a cada lado deja 608 útiles, por encima de los umbrales de
+`result-card` (512) y `appointment-card` (544, provisional). Las tarjetas pasan
+a Row dentro del tramo, en cuanto su `li` alcanza el umbral (desde 544 de
+viewport en resultados), sin esperar a `lg`. El umbral de `dialog` se mide
+sobre el velo y no depende de la columna.
+
+**Chrome que se queda en versión móvil hasta `lg`:**
+
+| Pieza                                   | Razón                                                                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Barra inferior (con `UI/Header/Mobile`) | Patrón legítimo en tablet. Las pestañas del header de escritorio necesitan su ancho                                                           |
+| Hoja «Filtrar y ordenar»                | El aside de 320 dejaría la columna principal en 368 a 768 de viewport (viewport − 400), por debajo del umbral de la tarjeta: peor que la hoja |
+| `UI/Booking Bar`                        | Misma cuenta: la sección «Tu cita» de 320 no cabe con holgura                                                                                 |
+
+Estos números salen de la misma cuenta que fija `lg` en 1024: por eso el
+chrome cambia ahí y no antes. Es coherente con D7, porque los tres cambian de
+control o de flujo y se renderiza solo uno.
+
+**Las piezas a sangre alinean con la columna.** `UI/Header/Mobile`, la barra
+inferior, `UI/Booking Bar`, el `Action Bar` de 02.4 y de la vista 3, y las
+hojas (filtros y calendario) conservan el fondo y el borde a todo el ancho del
+viewport. Su interior usa el mismo `--layout-column-max` con
+`margin-inline: auto` y el gutter `space-4` por dentro.
+
+| Sin la regla, a 1023                                                                 | Con la regla                                  |
+| ------------------------------------------------------------------------------------ | --------------------------------------------- |
+| Wordmark, «Ayuda», ítems de la barra y «Continuar» a 16 del borde; contenido a ≈ 191 | Todo arranca en el mismo eje que el `h1`      |
+| Tres ítems de la barra de ≈ 341 cada uno                                             | Tres ítems de ≈ 203, dentro de los 608 útiles |
+| Calendario de la hoja con celdas de ≈ 140                                            | Celdas de ≈ 83, sin que la rejilla se deforme |
+
+Razón: el fondo es superficie y el interior es contenido. Con la regla, la
+superficie llega al borde y el contenido comparte eje. Por debajo de 640 la
+regla no cambia nada, porque el tope no se alcanza. Desde `lg` no aplica: estas
+piezas dejan de renderizarse, salvo el header, que ya se alinea con
+`--layout-container-width`.
+
+**Coste declarado:** en el tramo, las barras fijas muestran fondo vacío a ambos
+lados de su contenido. Es intencional: una barra que se estrechase con su
+interior dejaría el contenido que pasa por detrás visible bajo sus bordes.
+
+---
+
 ## Contenedores
 
 **Regla: el contenedor se declara siempre en el elemento que aporta el ancho,
@@ -169,12 +227,12 @@ de padding.
 
 `_containers.scss`:
 
-| Nombre | Contenedor | Umbral | Qué cambia | Razón |
-|---|---|---|---|---|
-| `result-card` | el `li` de la lista de resultados | 32rem (512) | Stacked pasa a Row | Justo sobre el punto de rotura medido de Row (490). El `li` no tiene padding |
-| `appointment-card` | el `li` de su sección | 34rem (544) | Stacked pasa a Row | **Provisional:** verificar al construir el componente |
-| `dialog` | el velo | 32rem (512) | Stacked pasa a Row | 480 de la variante Row + 16 + 16 de margen: es cuando cabe |
-| `slot-picker` | el elemento que da ancho a la tarjeta del selector | 44rem | La tarjeta apila calendario y horas | — |
+| Nombre             | Contenedor                                         | Umbral      | Qué cambia                          | Razón                                                                        |
+| ------------------ | -------------------------------------------------- | ----------- | ----------------------------------- | ---------------------------------------------------------------------------- |
+| `result-card`      | el `li` de la lista de resultados                  | 32rem (512) | Stacked pasa a Row                  | Justo sobre el punto de rotura medido de Row (490). El `li` no tiene padding |
+| `appointment-card` | el `li` de su sección                              | 34rem (544) | Stacked pasa a Row                  | **Provisional:** verificar al construir el componente                        |
+| `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe                   |
+| `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
 
 ---
 
@@ -220,14 +278,14 @@ marcadores: 3.73:1 (marcador de aviso).
 Seis pares están documentados como **«No usar»**, y el código no debe
 reintroducirlos:
 
-| Par | Ratio |
-|---|---|
-| Blanco sobre `color-accent` | 2.88 |
-| `color-accent` como color de texto | 2.88 |
-| `success/500` como color de texto sobre blanco | 3.37 |
-| `color-text-secondary` sobre `color-surface-muted` | 4.29 |
-| `color-border` como límite de un control | 2.27 |
-| Anillo de foco sobre la hora seleccionada | 2.09 |
+| Par                                                | Ratio |
+| -------------------------------------------------- | ----- |
+| Blanco sobre `color-accent`                        | 2.88  |
+| `color-accent` como color de texto                 | 2.88  |
+| `success/500` como color de texto sobre blanco     | 3.37  |
+| `color-text-secondary` sobre `color-surface-muted` | 4.29  |
+| `color-border` como límite de un control           | 2.27  |
+| Anillo de foco sobre la hora seleccionada          | 2.09  |
 
 ---
 
@@ -238,16 +296,16 @@ explícito.
 
 **D1 · Rutas y estado.** Las 32 pantallas son estados de 8 rutas:
 
-| Ruta | Vista | Estado dentro de la ruta |
-|---|---|---|
-| `/` | V1 · Búsqueda | Carga, vacío, hoja de filtros, conmutador «Avisarme» |
-| `/especialistas/:slug` | V2 · reserva | Sin horarios, Missing, hoja del calendario |
-| `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil) | — |
-| `/especialistas/:slug/datos` | V3 | Errores, reserva fallida |
-| `/citas/:id/confirmada` | V4 · confirmación | — |
-| `/mis-citas` | V4 · Mis citas | Diálogo, aviso de cancelada, aviso de reprogramada, menú de cuenta |
-| `/mis-citas/:id/reprogramar` | V2 · reprogramación | Los mismos que la V2 |
-| `/fuera-de-alcance` | Página genérica | — |
+| Ruta                             | Vista                            | Estado dentro de la ruta                                           |
+| -------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| `/`                              | V1 · Búsqueda                    | Carga, vacío, hoja de filtros, conmutador «Avisarme»               |
+| `/especialistas/:slug`           | V2 · reserva                     | Sin horarios, Missing, hoja del calendario                         |
+| `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil) | —                                                                  |
+| `/especialistas/:slug/datos`     | V3                               | Errores, reserva fallida                                           |
+| `/citas/:id/confirmada`          | V4 · confirmación                | —                                                                  |
+| `/mis-citas`                     | V4 · Mis citas                   | Diálogo, aviso de cancelada, aviso de reprogramada, menú de cuenta |
+| `/mis-citas/:id/reprogramar`     | V2 · reprogramación              | Los mismos que la V2                                               |
+| `/fuera-de-alcance`              | Página genérica                  | —                                                                  |
 
 Parámetros en la URL: en V1, `q`, `ubicacion`, filtros, `orden` y `pagina`;
 de V2 a V4, `fecha` y `hora`. Razón: varias piezas del diseño son `<a>` y
@@ -364,12 +422,12 @@ vista 3 no.
 
 ## Pendientes anotados
 
-| Fase | Pendiente |
-|---|---|
-| 3 | **Cadena de alto de página.** El `#root` de React queda entre `body` y `main` y rompe `body { min-block-size: 100dvh }` → `main { flex: 1 }` (§3.5 del documento de diseño). No se estila con un ID: el shell de la app recibe una clase (`c-app-layout` o similar) al montarlo y recupera ahí la cadena |
-| 7 | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido |
-| Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Aplicado en `src/styles` y en la copia de la skill en `.claude/skills/`; falta instalar la versión empaquetada (`bemit-scss.skill`) |
+| Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3     | **Cadena de alto de página.** El `#root` de React queda entre `body` y `main` y rompe `body { min-block-size: 100dvh }` → `main { flex: 1 }` (§3.5 del documento de diseño). No se estila con un ID: el shell de la app recibe una clase (`c-app-layout` o similar) al montarlo y recupera ahí la cadena                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Aplicado en `src/styles` y en la copia de la skill en `.claude/skills/`; falta instalar la versión empaquetada (`bemit-scss.skill`)                                                                                                                                                                                                                                                                                                                                |
 | Skill | **Parche para `bemit-scss`: tokens por breakpoint.** Dos reglas de la skill chocan y no dice cuál gana: «media queries siempre por mixin» (`layout-responsive.md`) y «settings = valores, tools = lo que los usa» (`arquitectura.md`), cuando `_tokens.scss` redefine tokens por breakpoint (uso de `@media` que la propia skill permite). Gana el mixin: `_tokens.scss` hace `@use '../02-tools' as tools`. Razón: el orden ITCSS gobierna el CSS emitido, no las dependencias de compilación; `@use` no altera el orden de salida y no hay ciclo porque tools no importa `_tokens`. Escribir la `@media` a mano duplicaría el criterio del breakpoint. Añadirlo a `arquitectura.md` (regla settings/tools) y a `layout-responsive.md` (media queries) |
-| — | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo |
-| 7 | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales |
-| 7 | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon |
+| —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |
+| 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
