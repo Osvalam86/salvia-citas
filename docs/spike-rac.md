@@ -126,9 +126,9 @@ entero, sin partir de la etiqueta de RAC:
   de abril de 2029, seleccionado» · «domingo, 29 de abril de 2029, sin
   horarios».
 
-**Coste:** se pierde también «Última fecha disponible» en `maxValue` (90 días).
-El límite ya lo comunican la ausencia de «Mes siguiente» y los días no
-enfocables; si se quiere conservar, se añade como un segmento más.
+**Coste, aceptado:** se pierde también «Última fecha disponible» en `maxValue`
+(90 días). El límite ya lo comunican la ausencia de «Mes siguiente» y los días
+no enfocables, así que no se añade como segmento.
 
 ### 2.3 · Las celdas de fuera de mes muestran su número
 

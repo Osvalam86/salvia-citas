@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Entorno local de Claude Code (servidor de desarrollo del navegador integrado)
+.claude/launch.json
