@@ -100,7 +100,9 @@
   // Nivel 2 · Roles de color
   // Cada comentario dice sobre qué propiedades CSS se aplica el rol (sale del
   // `scopes` de la variable en Figma). Un rol de relleno nunca va en `color`
-  // y un rol de texto nunca va en `background-color`.
+  // de un texto y un rol de texto nunca va en `background-color`. Excepción:
+  // en un icono, `color` alimenta el fill del path, y ahí un rol de relleno
+  // (SHAPE_FILL) es válido (DESIGN.md § Iconos y roles de color).
   // ===========================================================================
 
   // Superficies — background-color

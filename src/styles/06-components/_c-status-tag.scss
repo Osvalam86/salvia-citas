@@ -1,0 +1,68 @@
+@use '../02-tools' as tools;
+
+// UI/Status Tag (Figma 284:6061). Cada estado lleva copy, glifo, relleno y
+// tipo de borde: en forced-colors el relleno desaparece y el estado se sigue
+// leyendo por texto, glifo y borde (discontinuo en Cancelled). Los rellenos
+// son decorativos; el límite lo marca el borde.
+//
+// Alto 30, como UI/Tag. Padding inicial más corto (space-2): compensa el hueco
+// óptico del icono. flex-wrap: el icono baja de línea antes de que la
+// etiqueta parta palabras (DESIGN.md § Controles con icono y etiqueta).
+// El icono lleva su propio rol, de relleno en Confirmed y Pending (DESIGN.md
+// § Iconos y roles de color).
+.c-status-tag {
+  @include tools.text(label);
+
+  --_border-style: solid;
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2) var(--space-3);
+  color: var(--_fg);
+  background-color: var(--_bg);
+  border: 1px var(--_border-style) var(--_border);
+  border-radius: var(--radius-pill);
+
+  // En forced-colors el svg solo hereda el color forzado si no declara el
+  // suyo (preserve-parent-color): sin esto conserva el de marca.
+  &__icon {
+    color: var(--_icon);
+
+    @media (forced-colors: active) {
+      color: currentcolor;
+    }
+  }
+
+  &--confirmed {
+    --_bg: var(--color-success-surface);
+    --_border: var(--color-success);
+    --_fg: var(--color-success-text);
+    --_icon: var(--color-success);
+  }
+
+  &--pending {
+    --_bg: var(--color-warning-surface);
+    --_border: var(--color-warning);
+    --_fg: var(--color-warning-text);
+    --_icon: var(--color-warning);
+  }
+
+  &--past {
+    --_bg: var(--color-surface-muted);
+    --_border: var(--color-border-strong);
+    --_fg: var(--color-text-primary);
+    --_icon: var(--color-text-primary);
+  }
+
+  // Punteado: border-style dashed nativo (DESIGN.md § Constantes).
+  &--cancelled {
+    --_bg: var(--color-surface);
+    --_border: var(--color-border-strong);
+    --_border-style: dashed;
+    --_fg: var(--color-text-secondary);
+    --_icon: var(--color-text-secondary);
+  }
+}

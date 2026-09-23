@@ -253,12 +253,22 @@ Medidas en los maestros, no son tokens del archivo:
 - **Anillo de foco, uno solo para todo el sistema:** 2px de grosor, 2px de
   desfase, radio = radio del control + 4 (10 sobre `radius/sm`). Desfase −4
   dentro del header, en la barra inferior y en los ítems del menú de cuenta.
+- **Destino de foco programático:** un elemento con `tabindex="-1"` que
+  recibe el foco por script (el `h1` al cambiar de ruta, el resumen de
+  errores, el título de un aviso) conserva el anillo global. Con teclado
+  muestra dónde fue el foco; con ratón no aparece (`:focus-visible`). No se
+  suprime.
 - Alto de control de texto: 50, por construcción (borde 1 + 12 + interlineado
   24 + 12 + borde 1). No es un alto fijo: es el resultado del padding.
 - Fila de casilla y radio: 48 en las dos plataformas, también por padding.
 - Velo de hojas y diálogos: `color-scrim` al 45 %
   (`color-mix(in srgb, var(--color-scrim) 45%, transparent)`), nunca en la
   variable.
+- Borde punteado de `UI/Status Tag` Cancelled, `UI/Time Slot` Full y
+  `UI/Calendar Day` Full: `border-style: dashed` nativo de 1px. Figma dibuja
+  el patrón [4, 3]; en código lo pone cada navegador. Es un borde real: sigue
+  el radio y en `forced-colors` se mantiene discontinuo, que es lo que
+  distingue el estado cuando el color desaparece.
 
 ---
 
@@ -273,7 +283,25 @@ más ancha que el interior del control entero. A tamaño normal no cambia nada:
 todo cabe en una línea.
 
 Hoy aplica a `UI/Button` y `UI/Back Link`; todo componente nuevo con icono y
-etiqueta en fila la hereda.
+etiqueta en fila la hereda. En 4.2 la heredan `UI/Status Tag`, `UI/Step` y
+`UI/Notice`; esta última con una base de contenido (`8rem`, derivada en su
+parcial), porque su cuerpo es un párrafo y sin base bajaría siempre de línea.
+
+---
+
+## Iconos y roles de color
+
+En un icono, `color` alimenta el relleno del path (`fill="currentColor"`): un
+rol con scope `SHAPE_FILL` es válido ahí. `UI/Status Tag` pinta su icono con
+`color-success` (Confirmed) y `color-warning` (Pending) sobre `.c-icon`, como
+en Figma, no con el rol de texto de su etiqueta; F.3 valida `hourglass` a
+3.73:1. La regla «un rol de relleno nunca va en `color`» vale para el texto.
+
+Un icono con color propio vuelve a `currentcolor` en
+`@media (forced-colors: active)`: Chromium no fuerza el color de un `svg`
+que no lo hereda, y el icono conservaría el color de marca sobre el fondo del
+sistema (medido en 4.2: el check de Realizada y el glifo de Info quedaban
+casi invisibles). Primeros casos: Status Tag y Notice (4.2).
 
 ---
 
@@ -449,8 +477,10 @@ vista 3 no.
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible |
 | 4     | **Anillo de `UI/Menu Item` y `UI/Nav Item` (4.4).** Medido en las variantes Focus: anillo hacia dentro (x = y = 2, tamaño − 4, trazo 2) con **radio 0**, en `UI/Menu Item` y en las dos de `UI/Nav Item`. Es el desfase −4 de § Constantes; el control no tiene radio, así que el outline sale recto sin declarar nada más. Comprobarlo al construir los dos |
+| 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
 | 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
+| 7     | **Anuncio real de `UI/Notice` en región viva.** Comprobar con NVDA y VoiceOver que Success (`role="status"`) y Error (`role="alert"`) se anuncian al aparecer sin mover el foco, y si se lee también «Cerrar aviso». En 4.2 solo se verificó la estructura: la región existe vacía antes del mensaje y el contenido se inserta dentro |
 | 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |

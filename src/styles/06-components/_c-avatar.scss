@@ -1,0 +1,50 @@
+// UI/Avatar (Figma 223:4927). Tamaño fijo en los dos ejes (la proporción es
+// la decisión), en rem para que la inicial quepa con el texto ampliado.
+// Círculo color-surface-muted con la inicial en tinta. Sin borde: es
+// decorativo (aria-hidden) y en forced-colors basta con la inicial.
+//
+// El paso de la inicial cambia con Size (heading-md; heading-lg en Large):
+// va en variables locales en vez de tools.text() para que el modificador
+// solo cambie variables.
+.c-avatar {
+  --_size: 3rem;
+  --_text-family: var(--text-heading-md-family);
+  --_text-weight: var(--text-heading-md-weight);
+  --_text-size: var(--text-heading-md-size);
+  --_text-line-height: var(--text-heading-md-line-height);
+  --_text-tracking: var(--text-heading-md-tracking);
+
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  inline-size: var(--_size);
+  block-size: var(--_size);
+  overflow: hidden;
+  font-family: var(--_text-family);
+  font-size: var(--_text-size);
+  font-weight: var(--_text-weight);
+  line-height: var(--_text-line-height);
+  color: var(--color-text-primary);
+  letter-spacing: var(--_text-tracking);
+  background-color: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+
+  &--medium {
+    --_size: 4rem;
+  }
+
+  &--large {
+    --_size: 6rem;
+    --_text-family: var(--text-heading-lg-family);
+    --_text-weight: var(--text-heading-lg-weight);
+    --_text-size: var(--text-heading-lg-size);
+    --_text-line-height: var(--text-heading-lg-line-height);
+    --_text-tracking: var(--text-heading-lg-tracking);
+  }
+
+  &__photo {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+}

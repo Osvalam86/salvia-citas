@@ -1,0 +1,91 @@
+@use '../02-tools' as tools;
+
+// UI/Notice (Figma 334:8516). Aviso en línea y persistente. El icono, el
+// título, el relleno y el borde portan el tono; el cuerpo va en tinta. En
+// forced-colors quedan el borde, el glifo y el título.
+//
+// Ranura del icono de 20 × 1lh: el icono se centra en la primera línea del
+// título (1lh = interlineado de body-md). El cierre va alineado arriba.
+//
+// flex-wrap con base de contenido 8rem (DESIGN.md § Controles con icono y
+// etiqueta). Derivación, en la instancia más estrecha (viewport de 320, aviso
+// con cierre): ancho del aviso − bordes 2 − padding 32 − icono 20 − gaps 24 −
+// cierre 48. Con barra de scroll superpuesta, 288 − 126 = 162; con barra
+// clásica (15), 273 − 126 = 147. 8rem = 128 cabe en las dos, así que a tamaño
+// normal no cambia nada (10rem, 160, no cabía con barra clásica). Con el texto
+// al 200 % a 320 al contenido le quedan 40 como mucho: la base (256) ya no
+// cabe y el contenido baja a su propia fila, y el cierre a la siguiente, en
+// el orden del DOM. Sin base, el cuerpo, un párrafo cuyo max-content es una
+// sola línea, bajaría de línea siempre.
+.c-notice {
+  @include tools.text(body-md);
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4);
+  color: var(--color-text-primary);
+  background-color: var(--_bg);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-md);
+
+  &__icon-slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    block-size: 1lh;
+  }
+
+  // En forced-colors el svg solo hereda el color forzado si no declara el
+  // suyo (preserve-parent-color): sin esto conserva el del tono.
+  &__icon {
+    color: var(--_icon);
+
+    @media (forced-colors: active) {
+      color: currentcolor;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex: 1 1 8rem;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  &__title {
+    @include tools.text(body-strong);
+
+    color: var(--_title);
+  }
+
+  &--success {
+    --_bg: var(--color-success-surface);
+    --_border: var(--color-success);
+    --_title: var(--color-success-text);
+    --_icon: var(--color-success-text);
+  }
+
+  &--error {
+    --_bg: var(--color-error-surface);
+    --_border: var(--color-error);
+    --_title: var(--color-error-text);
+    --_icon: var(--color-error-text);
+  }
+
+  // Info es la voz por defecto del producto: el neutro, sin rol nuevo.
+  &--info {
+    --_bg: var(--color-surface-muted);
+    --_border: var(--color-border-strong);
+    --_title: var(--color-text-primary);
+    --_icon: var(--color-text-primary);
+  }
+}

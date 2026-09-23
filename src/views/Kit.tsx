@@ -1,10 +1,16 @@
+import { useState } from 'react'
 import calendarBlankUrl from '../assets/icons/calendar-blank.svg'
 import AppLayout from '../components/AppLayout.tsx'
+import Avatar from '../components/Avatar.tsx'
 import BackLink from '../components/BackLink.tsx'
 import Button, { type ButtonProps } from '../components/Button.tsx'
 import Icon from '../components/Icon.tsx'
 import IconButton from '../components/IconButton.tsx'
 import Link from '../components/Link.tsx'
+import Notice from '../components/Notice.tsx'
+import StatusTag from '../components/StatusTag.tsx'
+import Step from '../components/Step.tsx'
+import Tag from '../components/Tag.tsx'
 import { ICON_NAMES } from '../components/iconNames.ts'
 
 // Catálogo del sistema (D9): va también en producción. Crece con cada fase;
@@ -42,6 +48,55 @@ const buttonStyles: { variant: NonNullable<ButtonProps['variant']>; name: string
   { variant: 'secondary', name: 'Secondary' },
   { variant: 'destructive', name: 'Destructive' },
 ]
+
+// Las dos formas de entregar un aviso de resultado (diseño §4.6).
+function NoticeDemos() {
+  const [liveOpen, setLiveOpen] = useState(false)
+  const [cancelled, setCancelled] = useState(false)
+
+  return (
+    <>
+      <div className="o-stack o-stack--gap-2">
+        <p className="c-kit__meta">
+          Región viva: el disparador sigue en pantalla y el foco se queda en él
+        </p>
+        <div className="o-cluster o-cluster--gap-3 o-cluster--align-center">
+          <Button variant="secondary" onClick={() => setLiveOpen(true)}>
+            Avisarme si se libera un hueco
+          </Button>
+        </div>
+        <Notice
+          tone="success"
+          delivery="live"
+          open={liveOpen}
+          headingLevel={4}
+          title="Aviso activado"
+          body="Te avisaremos por correo si se libera un hueco con la Dra. Ruiz."
+          onDismiss={() => setLiveOpen(false)}
+        />
+      </div>
+      <div className="o-stack o-stack--gap-2">
+        <p className="c-kit__meta">Foco: el disparador desaparece y el foco pasa al título</p>
+        {cancelled ? (
+          <Notice
+            tone="error"
+            delivery="focus"
+            headingLevel={4}
+            title="Cita cancelada"
+            body="Ya no tienes la cita del martes 8 de mayo a las 17:00 con el Dr. Molina."
+            onDismiss={() => setCancelled(false)}
+          />
+        ) : (
+          <div className="o-cluster o-cluster--gap-3 o-cluster--align-center">
+            <Button variant="secondary" onClick={() => setCancelled(true)}>
+              Cancelar la cita de ejemplo
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
 
 export default function Kit() {
   return (
@@ -170,6 +225,55 @@ export default function Kit() {
             <Link href="#kit-tipografia">Ir a Tipografía</Link>
             <BackLink href="/">Especialistas</BackLink>
           </div>
+        </section>
+
+        <section className="c-kit__section" aria-labelledby="kit-identidad">
+          <h2 className="c-kit__heading" id="kit-identidad">
+            Identidad y estado
+          </h2>
+
+          <h3 className="c-kit__subheading">Avatar</h3>
+          <p>Solo el respaldo de la inicial: las fotos esperan a decidir su origen.</p>
+          <div className="o-cluster o-cluster--gap-4 o-cluster--align-end">
+            <Avatar size="small" initial="E" />
+            <Avatar size="medium" initial="E" />
+            <Avatar size="large" initial="E" />
+          </div>
+
+          <h3 className="c-kit__subheading">Tag</h3>
+          <div className="o-cluster o-cluster--gap-2 o-cluster--align-center">
+            <Tag>Presencial</Tag>
+            <Tag>Presencial y videoconsulta</Tag>
+          </div>
+
+          <h3 className="c-kit__subheading">Status Tag</h3>
+          <div className="o-cluster o-cluster--gap-2 o-cluster--align-center">
+            <StatusTag status="confirmed" />
+            <StatusTag status="pending" />
+            <StatusTag status="past" />
+            <StatusTag status="cancelled" />
+          </div>
+
+          <h3 className="c-kit__subheading">Step</h3>
+          <ol
+            className="o-cluster o-cluster--gap-4 o-cluster--align-center"
+            role="list"
+            aria-label="Pasos de la reserva"
+          >
+            <Step state="done" number={1} label="Fecha y hora" />
+            <Step state="current" number={2} label="Tus datos" />
+            <Step state="upcoming" number={3} label="Listo" />
+          </ol>
+
+          <h3 className="c-kit__subheading">Notice</h3>
+          <Notice
+            tone="info"
+            headingLevel={4}
+            icon="calendar-check"
+            title="Tu cita actual"
+            body="Miércoles 16 de mayo · 09:30. Al confirmar, esa hora se libera."
+          />
+          <NoticeDemos />
         </section>
 
         <section className="c-kit__section" aria-labelledby="kit-layout">

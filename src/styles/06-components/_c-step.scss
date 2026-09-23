@@ -1,0 +1,56 @@
+// UI/Step (Figma 223:4979). Paso de la fila de la reserva, no interactivo.
+// Marcador de 24 con borde 2 incluido y check de 20: la misma anatomía que
+// UI/Checkbox. Cada estado lleva forma, peso o glifo además del color:
+// Done, relleno y check; Current, borde color-action y peso de label;
+// Upcoming, borde color-border-strong y texto secundario. En forced-colors
+// el relleno desaparece y queda el aro con el check.
+//
+// caption y label comparten familia, tamaño, interlineado y tracking; solo
+// cambia el peso. Va en variables locales en vez de tools.text() para que el
+// modificador solo cambie variables. flex-wrap: la etiqueta baja de línea
+// antes de partir palabras (DESIGN.md § Controles con icono y etiqueta).
+.c-step {
+  --_weight: var(--text-caption-weight);
+  --_fg: var(--color-text-primary);
+  --_marker-fg: var(--_fg);
+  --_marker-bg: var(--color-surface);
+  --_marker-border: var(--color-border-strong);
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-family: var(--text-caption-family);
+  font-size: var(--text-caption-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-caption-line-height);
+  color: var(--_fg);
+  letter-spacing: var(--text-caption-tracking);
+
+  &__marker {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    color: var(--_marker-fg);
+    background-color: var(--_marker-bg);
+    border: 2px solid var(--_marker-border);
+    border-radius: var(--radius-pill);
+  }
+
+  &--done {
+    --_marker-fg: var(--color-on-action);
+    --_marker-bg: var(--color-action);
+    --_marker-border: var(--color-action);
+  }
+
+  &--current {
+    --_weight: var(--text-label-weight);
+    --_marker-border: var(--color-action);
+  }
+
+  &--upcoming {
+    --_fg: var(--color-text-secondary);
+  }
+}
