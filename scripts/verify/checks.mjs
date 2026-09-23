@@ -3,15 +3,15 @@
 // serializan con toString: no pueden usar nada de fuera de su propio cuerpo.
 
 // Palabras que parten dentro de sí mismas en los elementos de `selector`. Una
-// palabra «pudiendo caber» es la que cabía entera en el ancho de contenido del
-// elemento, descontados sus iconos y gaps: esa es la que la regla prohíbe.
+// palabra «pudiendo caber» es la que cabía entera en el interior del elemento
+// (ancho de contenido, sin descontar iconos: con flex-wrap bajan de línea y la
+// etiqueta dispone del interior entero). Esa es la que la regla prohíbe.
 export function splitWords(selector) {
   const split = []
   const couldFit = []
   for (const el of document.querySelectorAll(selector)) {
     const cs = getComputedStyle(el)
-    let avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
-    for (const svg of el.querySelectorAll(':scope > svg')) avail -= svg.getBoundingClientRect().width + (parseFloat(cs.columnGap) || 0)
+    const avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
     let node
     while ((node = walker.nextNode())) {

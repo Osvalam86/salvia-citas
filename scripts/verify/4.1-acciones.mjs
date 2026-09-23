@@ -83,18 +83,31 @@ export default async function run(b, expect) {
     expect(`2.5.8 a ${w}: alto de los enlaces sueltos del kit`, { kit, backLink: back }, { kit: [48], backLink: 48 })
   }
 
-  // --- 200 % a 320, barra superpuesta (como la medida del informe) -------------
-  await b.overlayScrollbars(true)
-  await b.metrics(320, 900, 2)
-  await b.go('/kit')
-  expect('texto al 200 %', await b.run(text200), '32px')
-  await sleep(300)
-  expect('200 %: Button', (await b.run(size, T.primary))[1], 98)
-  expect('200 %: Icon Button', await b.run(size, T.iconButton), [96, 96])
-  expect('200 %: Link', (await b.run(size, T.link))[1], 96)
-  expect('200 %: Back Link «Especialistas»', await b.run(size, T.backLink), [244, 96])
-  expect('200 %: sin scroll horizontal', await b.run(overflow), 0)
-  expect('200 %: palabras partidas en Button, Link y Back Link', await b.run(splitWords, '.c-button, .c-link, .c-back-link'), { split: ['Descargar', 'calendar-blank.svg'], couldFit: [] })
+  // --- 200 % a 320, con las dos barras ----------------------------------------------
+  // Ninguna palabra parte pudiendo caber (la regla). Las inevitables son más
+  // anchas que el interior del botón entero: 158 px con barra superpuesta,
+  // 143 con la clásica, donde «completo» y «Avisarme» lo exceden por 2–3 px
+  // (DESIGN.md § Controles con icono y etiqueta; Pendientes, fase 5).
+  const unavoidable = {
+    clásica: ['Siguiente', 'completo', 'Descargar', 'calendar-blank.svg', 'Avisarme'],
+    superpuesta: ['Descargar', 'calendar-blank.svg'],
+  }
+  // Back Link con barra clásica: icono 40 + gap 8 + «Especialistas» 196 = 244
+  // no caben en 241, y por la regla el icono baja de línea en vez de partir la
+  // palabra: 24 + 48 + 48 + 24 = 144 de alto.
+  const backLinkHeight = { clásica: 144, superpuesta: 96 }
+  for (const overlay of [false, true]) {
+    const bar = overlay ? 'superpuesta' : 'clásica'
+    await b.overlayScrollbars(overlay)
+    await b.metrics(320, 900, 2)
+    await b.go('/kit')
+    expect(`200 %, barra ${bar}: texto al 200 %`, await b.run(text200), '32px')
+    await sleep(300)
+    expect(`200 %, barra ${bar}: alto de Button, Icon Button, Link y Back Link`, [(await b.run(size, T.primary))[1], await b.run(size, T.iconButton), (await b.run(size, T.link))[1], (await b.run(size, T.backLink))[1]], [98, [96, 96], 96, backLinkHeight[bar]])
+    expect(`200 %, barra ${bar}: sin scroll horizontal`, await b.run(overflow), 0)
+    expect(`200 %, barra ${bar}: ninguna palabra parte pudiendo caber; las inevitables`, await b.run(splitWords, '.c-button, .c-link, .c-back-link'), { split: unavoidable[bar], couldFit: [] })
+  }
+  expect('200 %, barra superpuesta: Back Link «Especialistas»', await b.run(size, T.backLink), [244, 96])
   await b.style('.c-kit__fill { block-size: 50px !important }')
   // Con flex-wrap (añadido después de la primera medida, que centraba una sola
   // línea y daba 67 arriba y 66 abajo), el contenido arranca arriba y el texto

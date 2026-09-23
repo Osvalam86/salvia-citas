@@ -28,3 +28,6 @@ dist-ssr
 
 # Capturas y perfil de Edge de pnpm verify
 scripts/verify/out/
+# Archivo temporal de las contrapruebas estáticas (scripts/verify/static.mjs):
+# se borra siempre, pero si un script se interrumpe no debe versionarse.
+src/views/VerifyTemp.tsx

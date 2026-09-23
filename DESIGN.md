@@ -290,6 +290,15 @@ En 4.3, `UI/Checkbox` y `UI/Radio`, con la misma base `8rem` en la etiqueta y
 en el texto del mensaje: al 200 % a 320 la caja sube a su propia línea, también
 sobre etiquetas cortas que habrían cabido; es el precio de no partir palabras.
 
+**Límite medido.** Al 200 % a 320 con barra de scroll clásica (15 px), el
+interior de un `UI/Button` a ancho completo mide 143 px (158 con barra
+superpuesta), y parten las palabras que lo exceden por 2–3 px: «completo»
+(«Ver mes completo») y «Avisarme» («Avisarme si se libera un hueco»). No hay
+scroll horizontal ni pérdida de contenido, y ninguna palabra parte pudiendo
+caber: la regla se cumple. El caso excede lo que exige WCAG (1.4.4 pide 200 %
+sin pérdida; 1.4.10, 320 CSS px a zoom completo), así que el padding no se
+toca.
+
 ---
 
 ## Iconos y roles de color
@@ -491,6 +500,7 @@ vista 3 no.
 | 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
 | 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
+| 5     | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
 | 5     | **Opciones de Motivo de consulta.** El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5     | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
