@@ -54,8 +54,9 @@ No hay test runner configurado.
    prohibidos.
 3. **Skills del proyecto en `.claude/skills/`** — `bemit-scss` (arquitectura
    ITCSS, nomenclatura y prefijos; manda sobre `DESIGN.md` en eso),
-   `semantic-markup` (marcado y ARIA) y `theme-tokens` (generar la capa
-   settings desde Figma). `bemit-scss` trae un scaffold de `styles/` en
+   `semantic-markup` (marcado y ARIA), `theme-tokens` (generar la capa
+   settings desde Figma) y `seccion-kit` (plan y cierre de cada sección de
+   la fase 4). `bemit-scss` trae un scaffold de `styles/` en
    `assets/scaffold/`.
 
 ## Arquitectura y reglas que cruzan archivos
