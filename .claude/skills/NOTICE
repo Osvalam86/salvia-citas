@@ -1,0 +1,24 @@
+Skills de Claude del proyecto Salvia
+semantic-markup · theme-tokens · bemit-scss
+
+Copyright (c) 2026 Osvaldo Ocampo
+https://www.linkedin.com/in/osvaldo-ocampo/
+
+Estas skills, con sus instrucciones, referencias y assets (incluido el
+scaffold SCSS de bemit-scss), son obra de Osvaldo Ocampo y se publican bajo
+Creative Commons Atribución 4.0 Internacional (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/
+Texto completo en LICENSE-DOCS, en la raíz del repositorio.
+
+Puedes usarlas, copiarlas y adaptarlas con cualquier fin siempre que:
+  1. atribuyas la autoría a Osvaldo Ocampo con el enlace de arriba,
+  2. enlaces la licencia, e
+  3. indiques si las modificaste.
+
+Atribución sugerida:
+  Skill «bemit-scss» por Osvaldo Ocampo
+  (https://www.linkedin.com/in/osvaldo-ocampo/) · CC BY 4.0
+  Fuente: https://github.com/Osvalam86/salvia-citas
+
+El código de la aplicación que parte de estas skills (src/styles/, por
+ejemplo) se publica bajo MIT: ver LICENSE en la raíz.
