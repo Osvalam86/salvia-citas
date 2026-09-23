@@ -1,0 +1,7 @@
+@use '../02-tools' as tools;
+
+// Foco visible global de base. Los componentes solo lo ajustan si el diseño
+// define otro; nunca lo eliminan sin reemplazo equivalente.
+:where(:focus-visible) {
+  @include tools.focus-ring;
+}

@@ -109,8 +109,8 @@ comparten valor (decisión 4).
 
 | Token | Origen | Valor |
 |---|---|---|
-| `--font-family-heading` | Fraunces (display, heading/*) | `'Fraunces', serif` |
-| `--font-family-base` | Inter (body/*, label, caption) | `'Inter', sans-serif` |
+| `--font-family-heading` | Fraunces (display, heading/*) | `'Fraunces Variable', 'Fraunces', ui-serif, Georgia, serif` |
+| `--font-family-base` | Inter (body/*, label, caption) | `'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif` |
 | `--font-weight-regular` | Inter Regular | 400 |
 | `--font-weight-semibold` | Fraunces SemiBold · Inter Semi Bold | 600 |
 | `--font-size-sm` | 14 | 0.875rem |
@@ -128,6 +128,9 @@ comparten valor (decisión 4).
 | `--letter-spacing-tight` | −1 % | −0.01em |
 | `--letter-spacing-snug` | −0.5 % | −0.005em |
 | `--letter-spacing-normal` | 0 % | 0 |
+
+Las familias llevan el sufijo « Variable» porque así las registra Fontsource
+(D11 en `DESIGN.md`); la familia sin sufijo queda de respaldo.
 
 Cada interlineado en px aparece con un único tamaño, así que el interlineado
 comparte clave con su tamaño. Se emite sin unidad y sin redondear (DESIGN.md

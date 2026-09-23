@@ -1,0 +1,8 @@
+@use '../02-tools' as tools;
+
+// Única capa con !important: sobrescrituras excepcionales.
+// Oculto a la vista, presente para lectores de pantalla (p. ej. el h2
+// «Resultados» de la vista 1, diseño §3.7).
+.u-sr-only {
+  @include tools.visually-hidden($important: true);
+}

@@ -21,6 +21,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // Safari (VoiceOver) quita la semántica de lista a un ul/ol sin
+      // marcadores; el reset los quita solo con role="list" explícito.
+      // El rol no es redundante aquí: se permite solo en ul/ol y solo `list`.
+      'jsx-a11y/no-redundant-roles': ['error', { ul: ['list'], ol: ['list'] }],
       // jsx-a11y no lo detecta: un div/span sin role es `generic`, que prohíbe
       // el nombrado. El nombre se ignora (semantic-markup, reglas ARIA).
       'no-restricted-syntax': [

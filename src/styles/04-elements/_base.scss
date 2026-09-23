@@ -1,0 +1,18 @@
+@use '../02-tools' as tools;
+
+// Elementos sin clase. Sin margins. Solo consumen roles y grupos --text-*.
+
+:where(body) {
+  @include tools.text(body-md);
+
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+// Sin paso tipográfico: el mismo encabezado cambia de paso según el contexto
+// (DESIGN.md § Encabezados). Se neutraliza el tamaño y el peso del navegador
+// y cada componente pone el suyo con tools.text().
+:where(h1, h2, h3, h4, h5, h6) {
+  font: inherit;
+  text-wrap: balance;
+}

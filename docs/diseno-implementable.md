@@ -63,7 +63,8 @@ Reglas de consumo:
 - `color-accent` **no es interactivo**: marca momentos puntuales (hora
   seleccionada, destacado) con texto `color-text-primary` encima. El texto en
   ámbar usa `color-accent-text`.
-- `color-scrim` se pinta siempre con alpha: `rgb(from var(--color-scrim) r g b / 45%)`.
+- `color-scrim` se pinta siempre con alpha:
+  `color-mix(in srgb, var(--color-scrim) 45%, transparent)`.
 - `color-border` es decorativo (tarjetas, separadores); **no sirve como límite
   de un control** (2.27:1). El límite real es `color-border-strong`.
 - `color-text-secondary` solo sobre `color-surface`. Sobre `color-surface-muted`

@@ -1,0 +1,6 @@
+// Enlace subrayado por defecto: cubre link/md y link/sm (DESIGN.md, decisión 3).
+// Sin text-underline-offset: el diseño no lo declara (hueco, fase 7).
+:where(a) {
+  color: var(--color-text-link);
+  text-decoration-line: underline;
+}

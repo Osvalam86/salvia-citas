@@ -39,8 +39,10 @@
   --color-red-700: #6c1b1b;
 
   // Tipografía
-  --font-family-heading: 'Fraunces', serif;
-  --font-family-base: 'Inter', sans-serif;
+  // Fontsource registra las variables con sufijo « Variable» (D11). La familia
+  // sin sufijo queda de respaldo por si está instalada en el sistema.
+  --font-family-heading: 'Fraunces Variable', 'Fraunces', ui-serif, Georgia, serif;
+  --font-family-base: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
 
   --font-weight-regular: 400;
   --font-weight-semibold: 600;

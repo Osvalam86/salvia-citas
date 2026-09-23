@@ -1,0 +1,49 @@
+// Reset con :where() → especificidad 0: cualquier clase lo sobrescribe.
+// Sin margins en ningún elemento: la separación la da el gap del padre.
+// Sin line-height: lo pone tools.text() desde los tokens (D10).
+
+:where(*, *::before, *::after) {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+:where(html) {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+// Toda pantalla ocupa al menos el viewport (diseño §3.5). La cadena hasta
+// `main { flex: 1 }` la recupera el shell en la fase 3 (DESIGN.md, pendientes).
+:where(body) {
+  min-block-size: 100dvh;
+}
+
+:where(img, picture, video, canvas, svg) {
+  display: block;
+  max-inline-size: 100%;
+}
+
+:where(img, video) {
+  block-size: auto;
+}
+
+:where(input, button, textarea, select) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(button) {
+  cursor: pointer;
+}
+
+:where(p, h1, h2, h3, h4, h5, h6, li, dd) {
+  overflow-wrap: break-word;
+}
+
+// Listas usadas como layout: semantic-markup añade role="list" para
+// conservar la semántica en Safari al quitar los marcadores. El atributo va
+// dentro de :where() para que el reset no sume especificidad.
+:where(ul[role='list'], ol[role='list']) {
+  list-style: none;
+  padding: 0;
+}

@@ -83,7 +83,21 @@ archivo:
 
 Familias: Fraunces SemiBold (peso 600) en los cuatro primeros; Inter Regular
 (400) y Semi Bold (600) en los cuatro últimos. Fraunces es variable con eje
-`opsz`: `font-optical-sizing: auto`.
+`opsz`: `font-optical-sizing: auto`, que es el valor inicial y no se declara.
+
+**Nombres de familia con sufijo.** Los tokens dicen `'Fraunces Variable'` e
+`'Inter Variable'`, no `'Fraunces'` e `'Inter'`: es el nombre con el que
+Fontsource registra las versiones variables (D11). La familia sin sufijo va
+detrás como respaldo por si alguien la tiene instalada. No es un error de
+transcripción desde Figma.
+
+### Encabezados
+
+`h1`–`h6` no llevan paso tipográfico en `04-elements`: el mismo elemento cambia
+de paso según el contexto (`h2` es `heading/md` en las secciones de Mis citas,
+`heading/sm` en un bloque y `body/strong` en el resumen de errores de la vista
+3). Asignar un paso por elemento obligaría a desasignarlo en casi todos los
+usos. El paso lo pone cada componente con `tools.text()` (D10).
 
 Escala de razón 1.25 desde 16. Mínimo 14 px; la excepción de texto grande de
 WCAG no se usa en ningún par.
@@ -142,7 +156,8 @@ Medidas en los maestros, no son tokens del archivo:
   24 + 12 + borde 1). No es un alto fijo: es el resultado del padding.
 - Fila de casilla y radio: 48 en las dos plataformas, también por padding.
 - Velo de hojas y diálogos: `color-scrim` al 45 %
-  (`rgb(from var(--color-scrim) r g b / 45%)`), nunca en la variable.
+  (`color-mix(in srgb, var(--color-scrim) 45%, transparent)`), nunca en la
+  variable.
 
 ---
 
@@ -178,3 +193,147 @@ reintroducirlos:
 | `color-text-secondary` sobre `color-surface-muted` | 4.29 |
 | `color-border` como límite de un control | 2.27 |
 | Anillo de foco sobre la hora seleccionada | 2.09 |
+
+---
+
+## Decisiones de arquitectura (D1–D14)
+
+Tomadas en la planeación de la fase de código. No se reabren sin acuerdo
+explícito.
+
+**D1 · Rutas y estado.** Las 32 pantallas son estados de 8 rutas:
+
+| Ruta | Vista | Estado dentro de la ruta |
+|---|---|---|
+| `/` | V1 · Búsqueda | Carga, vacío, hoja de filtros, conmutador «Avisarme» |
+| `/especialistas/:slug` | V2 · reserva | Sin horarios, Missing, hoja del calendario |
+| `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil) | — |
+| `/especialistas/:slug/datos` | V3 | Errores, reserva fallida |
+| `/citas/:id/confirmada` | V4 · confirmación | — |
+| `/mis-citas` | V4 · Mis citas | Diálogo, aviso de cancelada, aviso de reprogramada, menú de cuenta |
+| `/mis-citas/:id/reprogramar` | V2 · reprogramación | Los mismos que la V2 |
+| `/fuera-de-alcance` | Página genérica | — |
+
+Parámetros en la URL: en V1, `q`, `ubicacion`, filtros, `orden` y `pagina`;
+de V2 a V4, `fecha` y `hora`. Razón: varias piezas del diseño son `<a>` y
+necesitan un `href` real (Page Link, «Ver todos los especialistas», el Back
+Link «Tu cita», «Cambiar fecha u hora»), y con la selección en la URL cada
+página aguanta una recarga sin almacén global.
+
+La paginación y «Ver más» comparten `pagina`: en escritorio se muestra el
+corte de esa página, en móvil los resultados de 1 a `pagina × 4`. Así un
+cambio de tamaño no pierde la posición.
+
+`/especialistas/:slug/confirmar` existe en cualquier viewport, pero solo el
+«Continuar» de móvil lleva a ella.
+
+Hasta la fase 5, `/` redirige a `/kit`.
+
+**D2 · Estado del selector de la vista 2.** Un reducer `useSlotPicker` en la
+composición, con cuatro valores: `{ date, time, visibleWeek, visibleMonth }`.
+La tira, el calendario y el ListBox son vistas controladas de ese estado; el
+texto de estado, «día lleno» y el estado de la Booking Bar se derivan. Reglas:
+
+- Cambiar de fecha pone `time` a `null`: una hora pertenece a su día.
+- Navegar de semana no cambia la fecha.
+- La hoja del calendario tiene su propio borrador, que solo se aplica con «Ver
+  horarios del martes 24». Cerrarla lo descarta.
+
+Fechas con `CalendarDate` de `@internationalized/date`, declarado como
+dependencia directa. Nunca `DateValue` (ver `spike-rac.md` § 2.5).
+
+**D3 · Un solo SlotPicker, sin prop de modo.** Dos vistas lo componen. Todo lo
+que cambia entre reserva y reprogramación está fuera del selector: copy y
+etiqueta del envío, aside y pasos, breadcrumb, placa Info, destino tras el
+envío. Lo que cambia dentro se deriva de los datos, no de un modo: el «Hoy» de
+la leyenda aparece solo si el mes visible contiene hoy; «Semana anterior» y
+«Mes anterior» dependen de `minValue`. Un `mode="reschedule"` metería copy de
+vista dentro de un componente del kit.
+
+**D4 · Datos de disponibilidad.** Un registro por médico,
+`Record<ISODate, Slot[]>`. Los días declarados en §5.2 y §5.4 van literales.
+«Lleno» se deriva de `slots.every(s => !s.available)` y nunca es un campo
+propio, así tira, calendario y lista no pueden contradecirse.
+
+Reloj: `TODAY` y `NOW` en `src/data/clock.ts`; `new Date()` y `today()`
+prohibidos por lint. **`NOW` = lunes 23 de abril de 2029, 09:00** — anterior
+al 19:15 de Mariana y al 10:30 de la cita de Ruiz, como exige el recordatorio
+de 04.1. **`maxValue` = 90 días desde `TODAY`.**
+
+Script de aserciones que falla si los datos dejan de cumplir los hechos
+declarados: el 23 y el 29 de abril llenos; el 24 con 6 horas libres y la
+primera a las 10:30; los días llenos de mayo exactamente los de la lista; el
+17 de mayo con 8 libres; mayo con 5 semanas y abril con 6.
+
+Huecos que el documento no cubre y se resuelven al llegar a ellos, proponiendo
+antes un patrón explícito: horas del 25 al 28 de abril y del resto de mayo;
+disponibilidad de Cortés en abril y de Ruiz en mayo. **Se generan los 30
+cardiólogos que faltan hasta 34**: son datos, no diseño; el documento solo fija
+los 4 de la primera página.
+
+**D5 · Componentes React frente a parciales SCSS.** Estilos solo en
+`src/styles/` por capas. Componentes en `src/components/NombreComponente.tsx`,
+sin importar nunca SCSS. Correspondencia 1:1 por nombre: `ResultCard.tsx` ↔
+`.c-result-card` ↔ `06-components/_c-result-card.scss`. Vistas en
+`src/views/`, datos en `src/data/`. Un único punto de entrada: `main.scss`
+importado en `main.tsx`. Colocalizar el SCSS junto al TSX rompería la regla de
+que la carpeta es la capa y el orden de cascada de los `_index.scss`.
+
+**D6 · Las variantes `Layout` de Figma son container queries, no props.**
+Aplica a Result Card, Appointment Card y Dialog.
+
+**D7 · Cambios móvil/escritorio.** Si solo cambia la presentación, CSS. Si
+cambia el control o el flujo, `useMediaQuery(lg)` y se renderiza solo uno.
+Aplica a tira frente a calendario, Booking Bar frente a sección, y paginación
+frente a «Ver más». Renderizar los dos y ocultar uno duplicaría un `h2` y los
+IDs. El valor del breakpoint queda duplicado entre SCSS y TS: añadir una
+comprobación que falle si difieren.
+
+**D8 · Estados de demo.** Carga, vacío y reserva fallida no tienen disparador
+sin backend. Parámetro `?escenario=` (`ocupada`, `lenta`); el vacío se produce
+de forma natural con una consulta sin coincidencias. Más una página de
+desarrollo con enlaces a cada estado.
+
+**D9 · Catálogo.** Ruta `/kit` en lugar de Storybook: cero dependencias y la
+misma cascada global. **Va también en producción**, no solo en desarrollo: un
+catálogo del sistema es parte de lo que la pieza demuestra.
+
+**D10 · Tipografía.** Mixin `tools.text($paso)` que emite las propiedades
+sueltas desde los tokens. Se descarta el shorthand `font` porque restablece
+`font-variant-numeric` (rompe `tabular-nums`) y `font-optical-sizing`. No se
+emite `font-optical-sizing`: `auto` ya es el valor inicial. Los elementos
+`h1`–`h6` no llevan tamaño (ver «Encabezados»).
+
+**D11 · Fuentes alojadas con Fontsource.** Fraunces variable con el eje `opsz`
+(`opsz.css`) e Inter variable (`wght.css`, no el `opsz`: cambiaría el dibujo
+respecto a Figma). Sin peticiones a terceros. Los paquetes registran las
+familias como `'Fraunces Variable'` e `'Inter Variable'`; los tokens las
+declaran con la familia sin sufijo como respaldo.
+
+**D12 · Despliegue en Netlify.** Router con historial del navegador
+(`createBrowserRouter`, modo datos) y fallback de SPA, sin el truco del
+`404.html` de GitHub Pages. El modo datos aporta `<ScrollRestoration>`, que
+hace falta: el foco se mueve al `h1` al navegar, y sin restauración de scroll
+esa gestión pelea con la posición que recuerda el navegador.
+
+**D13 · La cita de la Dra. Ruiz.** El 24 a las 10:30 ya está en Mis citas como
+Confirmada, y el flujo de reserva reserva justo esa cita. Almacén en memoria
+sembrado con las 5 citas de la §6; completar el flujo **reemplaza** la cita de
+Ruiz en lugar de duplicarla. Todo se reinicia al recargar.
+
+**D14 · Legend con encabezado.** `UI/Legend` recibe una prop opcional de nivel
+de encabezado. La vista 2 la usa (`<legend><h2>Elige fecha</h2></legend>`); la
+vista 3 no.
+
+---
+
+## Pendientes anotados
+
+| Fase | Pendiente |
+|---|---|
+| 3 | **Cadena de alto de página.** El `#root` de React queda entre `body` y `main` y rompe `body { min-block-size: 100dvh }` → `main { flex: 1 }` (§3.5 del documento de diseño). No se estila con un ID: el shell de la app recibe una clase (`c-app-layout` o similar) al montarlo y recupera ahí la cadena |
+| 7 | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido |
+| Skill | **Parche para `bemit-scss`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: `:where(ul, ol)[role='list']`. Después: `:where(ul[role='list'], ol[role='list'])`. Razón: el atributo fuera del `:where()` sube el selector a (0,1,0) en una capa que debe estar en (0,0,0). Ya corregido en este proyecto; lo aplica el usuario a la skill |
+| — | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo |
+| 7 | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales |
+| 7 | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon |

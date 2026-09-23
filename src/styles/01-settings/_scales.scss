@@ -4,3 +4,7 @@
 // Sass solo conoce los nombres; los valores viven en los tokens. No emite CSS.
 // =============================================================================
 $space-keys: (1, 2, 3, 4, 5, 6, 7);
+
+// Pasos tipográficos que acepta tools.text() (D10). DEBEN coincidir con los
+// grupos --text-<paso>-* de _tokens.scss (DESIGN.md, decisión 3: son 8).
+$text-steps: (display, heading-lg, heading-md, heading-sm, body-md, body-strong, label, caption);

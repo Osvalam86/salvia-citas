@@ -1,0 +1,93 @@
+@use 'sass:list';
+@use 'sass:map';
+@use 'sass:string';
+@use '../01-settings/breakpoints' as bp;
+@use '../01-settings/containers' as ct;
+@use '../01-settings/scales';
+
+/// Paso tipográfico (D10): las cinco propiedades sueltas de --text-<paso>-*.
+/// Sin shorthand `font`: restablecería font-variant-numeric (tabular-nums) y
+/// font-optical-sizing. No emite font-optical-sizing: `auto` es el inicial.
+/// @example @include tools.text(heading-sm);
+@mixin text($step) {
+  @if not list.index(scales.$text-steps, $step) {
+    @error 'Paso tipográfico `#{$step}` no existe en 01-settings/_scales ($text-steps).';
+  }
+
+  font-family: var(--text-#{$step}-family);
+  font-size: var(--text-#{$step}-size);
+  font-weight: var(--text-#{$step}-weight);
+  line-height: var(--text-#{$step}-line-height);
+  letter-spacing: var(--text-#{$step}-tracking);
+}
+
+/// Media query mobile-first por viewport. Solo para layout de página (o-)
+/// y cambios de token por breakpoint. Componentes → container().
+@mixin respond-to($size) {
+  @if not map.has-key(bp.$breakpoints, $size) {
+    @error 'Breakpoint `#{$size}` no existe en 01-settings/_breakpoints.';
+  }
+
+  @media (min-width: map.get(bp.$breakpoints, $size)) {
+    @content;
+  }
+}
+
+/// Container query con nombre obligatorio. El contenedor se declara en el
+/// bloque (container: <name> / inline-size) y lo consultan sus elementos.
+@mixin container($name, $size) {
+  @if not map.has-key(ct.$containers, $size) {
+    @error 'Contenedor `#{$size}` no existe en 01-settings/_containers.';
+  }
+  // stylelint-disable-next-line container-name-pattern -- el nombre llega interpolado; se valida en cada `container:`
+  @container #{$name} (min-width: #{map.get(ct.$containers, $size)}) {
+    @content;
+  }
+}
+
+/// Anillo de foco, uno solo para todo el sistema (DESIGN.md § Constantes):
+/// 2px, desfase 2px; −4px dentro del header y en controles de icono.
+/// Outline (no box-shadow): sobrevive a forced-colors. El radio lo sigue el
+/// propio outline desde el border-radius del control.
+@mixin focus-ring($offset: 2px) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: $offset;
+}
+
+/// Transiciones y animaciones SOLO si el usuario no pidió movimiento reducido.
+@mixin motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+/// :hover solo en dispositivos con hover real (evita hover "pegado" en táctil).
+@mixin hover {
+  @media (hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+/// Ocultar visualmente conservando el contenido para lectores de pantalla.
+/// $important: true solo desde 07-utilities (única capa con !important).
+@mixin visually-hidden($important: false) {
+  $i: null;
+
+  @if $important {
+    $i: string.unquote('!important');
+  }
+
+  position: absolute $i;
+  // stylelint-disable unit-disallowed-list -- la técnica mide 1px por definición, no escala con el texto
+  inline-size: 1px $i;
+  block-size: 1px $i;
+  padding: 0 $i;
+  margin: -1px $i;
+  // stylelint-enable unit-disallowed-list
+  overflow: hidden $i;
+  clip-path: inset(50%) $i;
+  white-space: nowrap $i;
+  border: 0 $i;
+}

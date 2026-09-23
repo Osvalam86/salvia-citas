@@ -10,25 +10,23 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fase de código recién arrancada. El diseño está cerrado; no hay
-implementación todavía. La plantilla de Vite (`App.tsx`, `App.css`,
-`index.css`) se retira al construir la capa de estilos.
+Estado actual: fases 1 y 2 cerradas. Existen `01-settings` a `04-elements`,
+`u-sr-only`, React Router y el catálogo `/kit` (`src/views/Kit.tsx` +
+`c-kit`). Las capas `05-objects` y `06-components` están vacías salvo `c-kit`.
 
 ## Comandos
 
-Gestor: **pnpm** (≥11, Node ≥20).
+Gestor: **pnpm** (≥11, Node ≥20), también en comprobaciones temporales.
 
 ```bash
 pnpm dev        # servidor de desarrollo Vite
 pnpm build      # tsc -b && vite build (el typecheck va dentro del build)
-pnpm lint       # eslint .
+pnpm lint       # eslint . && stylelint "src/**/*.scss"
+pnpm contrast   # reproduce los 31 pares de F.3 desde el SCSS compilado
 pnpm preview    # sirve dist/
 ```
 
 No hay test runner configurado.
-
-`eslint-plugin-jsx-a11y` está instalado pero **aún no está en
-`eslint.config.js`**.
 
 ## Fuentes de verdad (léelas antes de escribir código)
 
@@ -105,6 +103,11 @@ No hay test runner configurado.
 
 ## Calidad
 
-- `eslint-plugin-jsx-a11y` activo: un `aria-*` mal puesto debe fallar el lint.
-- Stylelint con patrón de nombres BEMIT cuando exista la capa de estilos.
+- `eslint-plugin-jsx-a11y` strict activo: un `aria-*` mal puesto falla el lint.
+  `role="list"` en `ul`/`ol` está permitido a propósito (el reset lo exige).
+- Stylelint (`stylelint.config.mjs`) con patrón BEMIT y lo mecánico del
+  checklist: sin primitivos, hex ni colores con nombre fuera de `01-settings`;
+  sin IDs; especificidad ≤ (0,2,0); `!important` solo en `u-`; un nivel de
+  anidamiento; `px` solo en bordes, outline y radios.
+- `DESIGN.md` § «Pendientes anotados» lista lo que queda abierto y en qué fase.
 - Ninguna entrega con un ítem en ✗ del checklist de `bemit-scss`.
