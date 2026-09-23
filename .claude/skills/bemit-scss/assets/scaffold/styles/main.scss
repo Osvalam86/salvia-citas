@@ -1,0 +1,12 @@
+// =============================================================================
+// main.scss — punto de entrada. El orden ES la cascada: no reordenar.
+// 02-tools no se importa aquí: no emite CSS, lo consume cada parcial.
+// Las carpetas numeradas no son identificadores Sass válidos: `as` obligatorio.
+// =============================================================================
+@use '01-settings/tokens';
+@use '03-generic' as generic;
+@use '04-elements' as elements;
+@use '05-objects' as objects;
+@use '06-components' as components;
+@use '07-utilities' as utilities;
+@use 'vendors';

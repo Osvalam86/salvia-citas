@@ -1,0 +1,8 @@
+// =============================================================================
+// Tokens CSS — ÚNICO archivo de settings que emite CSS.
+// Lo genera/actualiza la skill theme-tokens. No escribir valores a mano aquí.
+// Los componentes consumen la capa semántica con var(--token).
+// =============================================================================
+:root {
+  // theme-tokens: primitivos + semánticos
+}

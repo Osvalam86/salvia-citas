@@ -1,0 +1,5 @@
+allowBuilds:
+  "@parcel/watcher": true
+peerDependencyRules:
+  allowedVersions:
+    "eslint-plugin-jsx-a11y>eslint": "10"

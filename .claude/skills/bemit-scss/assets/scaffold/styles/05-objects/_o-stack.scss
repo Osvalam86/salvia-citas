@@ -1,0 +1,16 @@
+@use '../01-settings/scales';
+
+// Apilado vertical (auto-layout vertical de Figma). Separación SOLO con gap.
+.o-stack {
+  --_gap: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+
+  @each $key in scales.$space-keys {
+    &--gap-#{$key} {
+      --_gap: var(--space-#{$key});
+    }
+  }
+}

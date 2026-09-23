@@ -1,0 +1,11 @@
+// =============================================================================
+// Umbrales de container queries (compilación), en rem. Son anchos del
+// CONTENEDOR, no del viewport: ajustar al contenido real de los componentes.
+// No emite CSS.
+// =============================================================================
+$containers: (
+  sm: 20rem,   // 320px
+  md: 30rem,   // 480px
+  lg: 40rem,   // 640px
+  xl: 55rem,   // 880px
+);

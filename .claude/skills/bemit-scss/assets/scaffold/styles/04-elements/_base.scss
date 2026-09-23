@@ -1,0 +1,13 @@
+// Elementos sin clase. Sin margins. Solo consumen tokens semánticos.
+
+:where(body) {
+  font-family: var(--font-family-base);
+  color: var(--color-text-default);
+  background-color: var(--color-bg-page);
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-family-heading, var(--font-family-base));
+  line-height: 1.2;
+  text-wrap: balance;
+}

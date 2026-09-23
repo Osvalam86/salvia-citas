@@ -1,0 +1,15 @@
+@use 'sass:math';
+
+$base-font: 16px !default;
+
+/// px → rem. Acepta px o número sin unidad (se asume px).
+/// @example tools.rem(24) → 1.5rem
+@function rem($size, $base: $base-font) {
+  @if math.is-unitless($size) {
+    $size: $size * 1px;
+  }
+  @if math.unit($size) != 'px' {
+    @error 'rem() espera px o número sin unidad; recibió `#{$size}`.';
+  }
+  @return math.div($size, $base) * 1rem;
+}

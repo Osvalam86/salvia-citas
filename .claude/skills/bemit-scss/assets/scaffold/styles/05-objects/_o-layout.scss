@@ -1,0 +1,31 @@
+@use '../01-settings/scales';
+@use '../02-tools' as tools;
+
+// Grid de layout de página. Mobile: 1 columna. Columnas a partir de md.
+.o-layout {
+  --_gap: 1rem;
+
+  display: grid;
+  gap: var(--_gap);
+
+  // Columnas automáticas; min() evita desbordar en pantallas estrechas.
+  &--auto-fit {
+    --_min: 15rem;
+
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--_min), 100%), 1fr));
+  }
+
+  @each $cols in (2, 3, 4) {
+    &--cols-#{$cols} {
+      @include tools.respond-to(md) {
+        grid-template-columns: repeat(#{$cols}, minmax(0, 1fr));
+      }
+    }
+  }
+
+  @each $key in scales.$space-keys {
+    &--gap-#{$key} {
+      --_gap: var(--space-#{$key});
+    }
+  }
+}

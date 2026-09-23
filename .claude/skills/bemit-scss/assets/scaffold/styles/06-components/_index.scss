@@ -1,0 +1,8 @@
+// 1) Componentes c- (uno por archivo, en orden alfabético)
+// @use 'c-button';
+
+// 2) Archivos transversales (siempre al final de la capa)
+@use 'states';
+@use 'themes';
+@use 'scopes';
+@use 'js-hooks';

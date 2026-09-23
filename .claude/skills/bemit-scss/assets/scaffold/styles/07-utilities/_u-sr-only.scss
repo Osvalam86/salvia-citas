@@ -1,0 +1,11 @@
+@use '../02-tools' as tools;
+
+// Única capa con !important: sobrescrituras excepcionales.
+.u-sr-only {
+  @include tools.visually-hidden($important: true);
+}
+
+// Oculto hasta recibir foco (skip links).
+.u-sr-only-focusable:not(:focus-within) {
+  @include tools.visually-hidden($important: true);
+}

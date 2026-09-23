@@ -1,0 +1,25 @@
+@use '../01-settings/scales';
+
+// Agrupación horizontal con wrap (auto-layout horizontal de Figma).
+.o-cluster {
+  --_gap: 0.5rem;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--_gap);
+
+  &--between {
+    justify-content: space-between;
+  }
+
+  &--end {
+    justify-content: flex-end;
+  }
+
+  @each $key in scales.$space-keys {
+    &--gap-#{$key} {
+      --_gap: var(--space-#{$key});
+    }
+  }
+}

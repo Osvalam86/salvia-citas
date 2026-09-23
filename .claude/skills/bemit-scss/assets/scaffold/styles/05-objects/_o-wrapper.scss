@@ -1,0 +1,15 @@
+// Contenedor de ancho máximo centrado. Sin diseño visual.
+// Ajustar los valores por defecto a tokens del proyecto cuando existan.
+.o-wrapper {
+  --_max: 75rem;
+  --_gutter: 1rem;
+
+  inline-size: 100%;
+  max-inline-size: var(--_max);
+  margin-inline: auto; // alineación, no separación: permitido
+  padding-inline: var(--_gutter);
+
+  &--narrow {
+    --_max: 48rem;
+  }
+}

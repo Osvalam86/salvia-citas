@@ -1,0 +1,5 @@
+// Estados is-/has- SOLO cuando no existe equivalente nativo o ARIA.
+// Primero: :disabled, :checked, :user-invalid, [aria-expanded],
+// [aria-selected], [aria-current], [aria-pressed], [aria-busy], [aria-invalid].
+// Los estados de un componente se escriben en su propio parcial, encadenados
+// al bloque (.c-tab.is-loading). Aquí solo estados genéricos reutilizables.

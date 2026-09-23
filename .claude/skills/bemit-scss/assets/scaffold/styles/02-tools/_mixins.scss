@@ -1,0 +1,66 @@
+@use 'sass:map';
+@use 'sass:string';
+@use '../01-settings/breakpoints' as bp;
+@use '../01-settings/containers' as ct;
+
+/// Media query mobile-first por viewport. Solo para layout de página (o-)
+/// y cambios de token por breakpoint. Componentes → container().
+@mixin respond-to($size) {
+  @if not map.has-key(bp.$breakpoints, $size) {
+    @error 'Breakpoint `#{$size}` no existe en 01-settings/_breakpoints.';
+  }
+  @media (min-width: map.get(bp.$breakpoints, $size)) {
+    @content;
+  }
+}
+
+/// Container query con nombre obligatorio. El contenedor se declara en el
+/// bloque (container: <name> / inline-size) y lo consultan sus elementos.
+@mixin container($name, $size) {
+  @if not map.has-key(ct.$containers, $size) {
+    @error 'Contenedor `#{$size}` no existe en 01-settings/_containers.';
+  }
+  @container #{$name} (min-width: #{map.get(ct.$containers, $size)}) {
+    @content;
+  }
+}
+
+/// Anillo de foco visible. Outline (no box-shadow): sobrevive a forced-colors.
+@mixin focus-ring($offset: 2px) {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: $offset;
+}
+
+/// Transiciones y animaciones SOLO si el usuario no pidió movimiento reducido.
+@mixin motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+/// :hover solo en dispositivos con hover real (evita hover "pegado" en táctil).
+@mixin hover {
+  @media (hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+/// Ocultar visualmente conservando el contenido para lectores de pantalla.
+/// $important: true solo desde 07-utilities (única capa con !important).
+@mixin visually-hidden($important: false) {
+  $i: null;
+  @if $important {
+    $i: string.unquote('!important');
+  }
+  position: absolute $i;
+  inline-size: 1px $i;
+  block-size: 1px $i;
+  padding: 0 $i;
+  margin: -1px $i;
+  overflow: hidden $i;
+  clip-path: inset(50%) $i;
+  white-space: nowrap $i;
+  border: 0 $i;
+}
