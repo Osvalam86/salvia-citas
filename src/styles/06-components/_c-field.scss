@@ -1,0 +1,137 @@
+@use '../02-tools' as tools;
+
+// UI/Field/Text y UI/Field/Select (Figma 161:288, 161:377): un solo bloque
+// para FieldText y FieldSelect (DESIGN.md, D5). Etiqueta, control de 50 y
+// mensaje, separados por space-2: 78 sin mensaje, 106 con una línea.
+//
+// El borde, el padding y el radio van en el propio input/select, que es lo que
+// recibe el foco: el anillo es el global (radio 6 + 4 = 10), también en error.
+// __control es una rejilla de una celda que apila el control y la capa de
+// iconos (__adornments), que no capta el clic.
+.c-field {
+  --_message: var(--color-text-secondary);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  &__label {
+    @include tools.text(label);
+
+    color: var(--color-text-primary);
+  }
+
+  &__control {
+    display: grid;
+  }
+
+  &__message {
+    @include tools.text(caption);
+
+    color: var(--_message);
+  }
+
+  // El error sustituye a la pista en el mismo sitio.
+  &:has([aria-invalid='true']) {
+    --_message: var(--color-error-text);
+  }
+}
+
+// Alto 50 por construcción: borde 1 + padding 12 + interlineado 24 + 12 + 1.
+// En error, borde 2 y padding 1px menor: el alto y la posición del texto no
+// cambian. El padding final reserva el sitio de los iconos (20 + space-3 cada
+// uno), así el texto nunca pasa por debajo.
+.c-field__input,
+.c-field__select {
+  @include tools.text(body-md);
+
+  --_fg: var(--color-text-primary);
+  --_border: var(--color-border-strong);
+  --_border-hover: var(--color-action);
+  // stylelint-disable-next-line unit-disallowed-list -- grosor de borde: no escala con el texto
+  --_border-width: 1px;
+  --_pad-block: var(--space-3);
+  --_pad-inline: var(--space-4);
+  --_reserve: 0rem;
+
+  grid-area: 1 / 1;
+  inline-size: 100%;
+  padding-block: var(--_pad-block);
+  padding-inline: var(--_pad-inline) calc(var(--_pad-inline) + var(--_reserve));
+  color: var(--_fg);
+  appearance: none;
+  background-color: var(--color-surface);
+  border: var(--_border-width) solid var(--_border);
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_border: var(--_border-hover);
+  }
+
+  // Tres señales: borde 2 color-error, icono y mensaje en color-error-text.
+  // Compensación de 1px (px: el borde no escala, un rem al 200 % serían 2).
+  &[aria-invalid='true'] {
+    --_border: var(--color-error);
+    --_border-hover: var(--color-error);
+    // stylelint-disable unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    --_border-width: 2px;
+    --_pad-block: calc(var(--space-3) - 1px);
+    --_pad-inline: calc(var(--space-4) - 1px);
+    // stylelint-enable unit-disallowed-list
+  }
+}
+
+.c-field__input {
+  &::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 1;
+  }
+
+  &[aria-invalid='true'] {
+    --_reserve: calc(1.25rem + var(--space-3));
+  }
+}
+
+// Chevron siempre; con error, aviso antes del chevron.
+.c-field__select {
+  --_reserve: calc(1.25rem + var(--space-3));
+
+  &[aria-invalid='true'] {
+    --_reserve: calc(2 * (1.25rem + var(--space-3)));
+  }
+
+  // Vacío: la opción real value="" seleccionada va en secundario. :where()
+  // deja el :has() en (0,2,0).
+  &:has(:where(option[value='']):checked) {
+    --_fg: var(--color-text-secondary);
+  }
+}
+
+// En la lista desplegable, las opciones en tinta aunque el select esté vacío
+// (Windows las pinta con el color del select).
+.c-field__option {
+  color: var(--color-text-primary);
+}
+
+// Iconos a 17 del borde exterior en reposo y en error (borde + space-4).
+.c-field__adornments {
+  display: flex;
+  grid-area: 1 / 1;
+  gap: var(--space-3);
+  align-items: center;
+  place-self: center end;
+  // stylelint-disable-next-line unit-disallowed-list -- el borde de reposo (1px), que no escala
+  padding-inline-end: calc(var(--space-4) + 1px);
+  color: var(--color-text-primary);
+  pointer-events: none;
+}
+
+// Color propio: en forced-colors vuelve a currentcolor (DESIGN.md § Iconos y
+// roles de color).
+.c-field__error-icon {
+  color: var(--color-error-text);
+
+  @media (forced-colors: active) {
+    color: currentcolor;
+  }
+}

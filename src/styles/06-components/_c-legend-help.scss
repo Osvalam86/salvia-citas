@@ -1,0 +1,11 @@
+@use '../02-tools' as tools;
+
+// Ayuda de UI/Legend: fuera de <legend>, enlazada con aria-describedby en el
+// fieldset para que el nombre del grupo siga siendo corto. La pinta
+// Legend.tsx junto a c-legend (DESIGN.md, D5). A todo el ancho y partiendo en
+// líneas.
+.c-legend-help {
+  @include tools.text(caption);
+
+  color: var(--color-text-secondary);
+}

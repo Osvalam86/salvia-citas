@@ -1,0 +1,35 @@
+// UI/Legend (Figma 168:493). Section: heading-sm (fieldsets de la vista 3).
+// Group: body-strong (grupos de filtros). La separación con el contenido la
+// pone el fieldset de la pantalla con su gap (space-4 si siguen campos,
+// space-1 si siguen filas de casilla o radio).
+//
+// Flotada: una legend sin flotar es la «legend renderizada» del fieldset y no
+// participa en su flex, así que el gap no la separa. Flotada es un ítem más
+// (float no aplica dentro de un contenedor flex).
+//
+// El paso cambia con Level: variables locales en vez de tools.text() para que
+// el modificador solo cambie variables. Con D14, el <h2> de dentro hereda.
+.c-legend {
+  --_text-family: var(--text-heading-sm-family);
+  --_text-weight: var(--text-heading-sm-weight);
+  --_text-size: var(--text-heading-sm-size);
+  --_text-line-height: var(--text-heading-sm-line-height);
+  --_text-tracking: var(--text-heading-sm-tracking);
+
+  float: inline-start;
+  inline-size: 100%;
+  font-family: var(--_text-family);
+  font-size: var(--_text-size);
+  font-weight: var(--_text-weight);
+  line-height: var(--_text-line-height);
+  color: var(--color-text-primary);
+  letter-spacing: var(--_text-tracking);
+
+  &--group {
+    --_text-family: var(--text-body-strong-family);
+    --_text-weight: var(--text-body-strong-weight);
+    --_text-size: var(--text-body-strong-size);
+    --_text-line-height: var(--text-body-strong-line-height);
+    --_text-tracking: var(--text-body-strong-tracking);
+  }
+}

@@ -1,0 +1,84 @@
+@use '../02-tools' as tools;
+
+// UI/Radio (Figma 168:486). La misma fila que UI/Checkbox: padding 12 +
+// interlineado 24 = 48, toda ella área de clic. Círculo de 24 con borde 2 y
+// alineado arriba; el input nativo, invisible, lo ocupa.
+//
+// Seleccionado con tres señales: borde color-action, punto de 12 y etiqueta en
+// body-strong. El punto se dibuja con borde (0 × 0 y 0.375rem de grosor), no
+// con fondo: en forced-colors el fondo desaparece y el borde no. Sin
+// seleccionar, grosor 0 y no transparente, que forced-colors pintaría.
+//
+// flex-wrap con base 8rem en la etiqueta, con la misma derivación que
+// UI/Checkbox: a tamaño normal el círculo sigue en la línea de la etiqueta; al
+// 200 % a 320 sube a su propia línea en vez de partir palabras.
+.c-radio {
+  --_weight: var(--text-body-md-weight);
+  --_border: var(--color-border-strong);
+  --_border-hover: var(--color-action);
+  --_dot: var(--color-action);
+  --_dot-hover: var(--color-action);
+  --_dot-width: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding-block: var(--space-3);
+  font-family: var(--text-body-md-family);
+  font-size: var(--text-body-md-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-body-md-line-height);
+  color: var(--color-text-primary);
+  letter-spacing: var(--text-body-md-tracking);
+  cursor: pointer;
+
+  @include tools.hover {
+    --_border: var(--_border-hover);
+    --_dot: var(--_dot-hover);
+  }
+
+  &__circle {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    background-color: var(--color-surface);
+    border: 2px solid var(--_border);
+    border-radius: var(--radius-pill);
+  }
+
+  &__input {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    appearance: none;
+    cursor: pointer;
+    opacity: 0;
+  }
+
+  &__label {
+    flex: 1 1 8rem;
+  }
+
+  &__dot {
+    grid-area: 1 / 1;
+    border: var(--_dot-width) solid var(--_dot);
+    border-radius: var(--radius-pill);
+  }
+
+  &:has(:checked) {
+    --_weight: var(--text-body-strong-weight);
+    --_border: var(--color-action);
+    --_border-hover: var(--color-action-hover);
+    --_dot-hover: var(--color-action-hover);
+    --_dot-width: 0.375rem;
+  }
+}
+
+// El anillo del input no se ve (opacity 0): se dibuja en el círculo.
+.c-radio__circle:has(:focus-visible) {
+  @include tools.focus-ring;
+}

@@ -1,0 +1,143 @@
+@use '../02-tools' as tools;
+
+// UI/Checkbox (Figma 168:455). Fila de alto intrínseco: padding 12 +
+// interlineado 24 = 48; con mensaje, 12 + 24 + 4 + 20 + 12 = 72. Toda la fila
+// de la etiqueta es área de clic (el <label> envuelve caja y texto); el
+// mensaje queda fuera del <label> y se alinea con el texto (24 + space-3).
+//
+// Caja de 24 con borde 2 incluido y radius-sm, alineada arriba: coincide con
+// la primera línea aunque la etiqueta parta. El input nativo, invisible,
+// ocupa la caja: es el control real. Los estados se leen de él con :has().
+//
+// Marcada: relleno color-action, check y etiqueta en body-strong. El peso
+// cambia con un estado, así que va en variables en vez de tools.text().
+//
+// flex-wrap con base 8rem en la etiqueta y en el texto del mensaje (DESIGN.md
+// § Controles con icono y etiqueta). Derivación: a 320, a la etiqueta le
+// quedan 252 con barra superpuesta y 237 con barra clásica (ancho − caja 24 −
+// gap 12); 8rem = 128 cabe en los dos, así que a tamaño normal la caja sigue
+// en la línea de la etiqueta. Al 200 % a 320 quedarían 169: la base (256) no
+// cabe y la caja sube a su propia línea, en vez de partir palabras.
+.c-checkbox {
+  --_weight: var(--text-body-md-weight);
+  --_box-bg: var(--color-surface);
+  --_box-bg-hover: var(--color-surface);
+  --_box-border: var(--color-border-strong);
+  --_box-border-hover: var(--color-action);
+  --_check-visibility: hidden;
+  --_row-pad-end: var(--space-3);
+  --_pad-end: 0;
+  --_message: var(--color-text-secondary);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block-end: var(--_pad-end);
+
+  // Con mensaje, el padding inferior pasa de la fila a la raíz.
+  &--with-message {
+    --_row-pad-end: 0;
+    --_pad-end: var(--space-3);
+  }
+
+  &__box {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    background-color: var(--_box-bg);
+    border: 2px solid var(--_box-border);
+    border-radius: var(--radius-sm);
+  }
+
+  &__input {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    appearance: none;
+    cursor: pointer;
+    opacity: 0;
+  }
+
+  // Color propio: en forced-colors vuelve a currentcolor y hereda el forzado
+  // (DESIGN.md § Iconos y roles de color).
+  &__check {
+    grid-area: 1 / 1;
+    color: var(--color-on-action);
+    visibility: var(--_check-visibility);
+
+    @media (forced-colors: active) {
+      color: currentcolor;
+    }
+  }
+
+  &__label,
+  &__message-text {
+    flex: 1 1 8rem;
+  }
+
+  &__message {
+    @include tools.text(caption);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding-inline-start: calc(1.5rem + var(--space-3));
+    color: var(--_message);
+  }
+
+  &__error-icon {
+    color: var(--color-error-text);
+
+    @media (forced-colors: active) {
+      color: currentcolor;
+    }
+  }
+
+  // Error solo sin marcar («debes aceptar»): el borde ya mide 2 en reposo, así
+  // que las señales son color, icono y texto.
+  &:has([aria-invalid='true']) {
+    --_box-border: var(--color-error);
+    --_box-border-hover: var(--color-error);
+    --_message: var(--color-error-text);
+  }
+
+  // Marcada, después del error: con los dos, la caja se pinta marcada y el
+  // mensaje sigue en error hasta que la pantalla lo retire.
+  &:has(:checked) {
+    --_weight: var(--text-body-strong-weight);
+    --_box-bg: var(--color-action);
+    --_box-bg-hover: var(--color-action-hover);
+    --_box-border: var(--color-action);
+    --_box-border-hover: var(--color-action-hover);
+    --_check-visibility: visible;
+  }
+}
+
+.c-checkbox__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding-block: var(--space-3) var(--_row-pad-end);
+  font-family: var(--text-body-md-family);
+  font-size: var(--text-body-md-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-body-md-line-height);
+  color: var(--color-text-primary);
+  letter-spacing: var(--text-body-md-tracking);
+  cursor: pointer;
+
+  @include tools.hover {
+    --_box-bg: var(--_box-bg-hover);
+    --_box-border: var(--_box-border-hover);
+  }
+}
+
+// El anillo del input no se ve (opacity 0): se dibuja en la caja.
+.c-checkbox__box:has(:focus-visible) {
+  @include tools.focus-ring;
+}

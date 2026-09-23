@@ -13,7 +13,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . && stylelint \"src/**/*.scss\"",
     "preview": "vite preview",
-    "contrast": "node scripts/contrast.mjs"
+    "contrast": "node scripts/contrast.mjs",
+    "verify": "node scripts/verify/run.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

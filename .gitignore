@@ -25,3 +25,6 @@ dist-ssr
 
 # Entorno local de Claude Code (servidor de desarrollo del navegador integrado)
 .claude/launch.json
+
+# Capturas y perfil de Edge de pnpm verify
+scripts/verify/out/

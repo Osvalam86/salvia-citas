@@ -10,9 +10,19 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 y 2 cerradas. Existen `01-settings` a `04-elements`,
-`u-sr-only`, React Router y el catálogo `/kit` (`src/views/Kit.tsx` +
-`c-kit`). Las capas `05-objects` y `06-components` están vacías salvo `c-kit`.
+Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.3 hechas.
+Existen las capas `01-settings` a `07-utilities`, los objetos de layout
+(`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
+(`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
+(`src/views/`). Componentes en `src/components/`:
+
+- 4.1 Acciones: `Icon` (19 SVG en `src/assets/icons/`), `Button`,
+  `IconButton`, `Link`, `BackLink`.
+- 4.2 Identidad y estado: `Avatar` (solo inicial; fotos pendientes),
+  `Tag`, `StatusTag`, `Step`, `Notice`.
+- 4.3 Formulario: `FieldText`, `FieldSelect`, `Checkbox`, `Radio`, `Legend`.
+
+Siguiente: 4.4 Navegación.
 
 ## Comandos
 
@@ -23,6 +33,7 @@ pnpm dev        # servidor de desarrollo Vite
 pnpm build      # tsc -b && vite build (el typecheck va dentro del build)
 pnpm lint       # eslint . && stylelint "src/**/*.scss"
 pnpm contrast   # reproduce los 31 pares de F.3 desde el SCSS compilado
+pnpm verify 4.3 # verifica una sección del kit contra su informe (con pnpm dev; docs/verificacion.md)
 pnpm preview    # sirve dist/
 ```
 

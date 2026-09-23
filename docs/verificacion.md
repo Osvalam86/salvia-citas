@@ -1,0 +1,86 @@
+# Verificación de las secciones del kit
+
+Cómo se mide cada sección de la fase 4, con qué herramientas y qué trampas se
+encontraron por el camino. Los scripts viven en `scripts/verify/` y comparan
+cada medida con las cifras de su informe de sección: un ✗ es una regresión o
+un cambio que hay que explicar, nunca un número que se ajusta sin más.
+
+## Cómo se ejecuta
+
+```bash
+pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
+pnpm verify 4.3   # 4.1, 4.2 o 4.3
+```
+
+Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
+Edge. Sin dependencias. La ruta de Edge es la de Windows; en otro sistema,
+`EDGE_PATH=/ruta/a/edge`. Otro servidor: `VERIFY_BASE=http://…`.
+
+Salida: una línea ✓/✗ por comprobación y el recuento final; código de salida 1
+si alguna no coincide. Las capturas van a `scripts/verify/out/<sección>/`, que
+no se versiona.
+
+## Estructura
+
+| Archivo | Qué hace |
+|---|---|
+| `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación |
+| `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas, `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
+| `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
+| `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
+| `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` | Una sección cada uno |
+
+## Método
+
+- **Teclado y ratón reales.** `Input.dispatchKeyEvent` e
+  `Input.dispatchMouseEvent`, no `element.focus()` ni `click()`: el anillo
+  depende de `:focus-visible`, que distingue teclado de ratón.
+- **Texto al 200 %:** `html { font-size: 200% }` inyectado. Equivale a la
+  ampliación solo de texto del navegador porque todo el proyecto mide en rem;
+  cada medida comprueba que `html` vale 32px.
+- **Palabras partidas:** para cada palabra, un `Range` sobre ella; si sus
+  rectángulos caen en más de una línea, está partida. «Pudiendo caber» es la
+  que cabía entera en el ancho de contenido del elemento, descontados sus
+  iconos: esa es la que la regla prohíbe.
+- **Barras de scroll:** la clásica de Windows mide 15 px (ancho útil 305 a 320);
+  la superpuesta se simula con `Emulation.setScrollbarsHidden`. Las secciones
+  que dependen del ancho útil se miden con las dos.
+- **`forced-colors`:** `Emulation.setEmulatedMedia` con
+  `forced-colors: active`; se leen los colores calculados y se guardan capturas.
+- **Contrapruebas:** un estilo temporal (`b.style`, retirado con `b.unstyle`)
+  demuestra que una regla actúa: sin ella, la medida cambia.
+
+## Trampas encontradas
+
+- **`Page.setFontSizes` no sirve para el 200 %:** no se mantenía entre medidas
+  (4.1). De ahí la inyección en `html`.
+- **Intro no activa un `<button>`** si el `keyDown` no lleva `text: '\r'`: sin
+  el carácter no hay `keypress`. Lo mismo con Espacio y las casillas (4.2).
+- **El panel del navegador integrado** no emula `forced-colors`, no hace
+  capturas de una región ampliada y a veces deja de pintar (capturas en blanco).
+  Sirve para inspeccionar; las medidas de sección van por CDP.
+- **Carreras de navegación:** tras `Page.navigate`, el documento anterior sigue
+  respondiendo un momento. `go` espera a la URL de destino y a su `h1`.
+- **El perfil de Edge fuera del repo:** Vite vigila el proyecto, y los archivos
+  bloqueados del perfil lo tumban (`EBUSY`). El perfil va a la carpeta temporal
+  del sistema.
+- **Chromium no fuerza el color de un `svg`** que declara el suyo
+  (`preserve-parent-color`): en `forced-colors` el icono vuelve a
+  `currentcolor` (DESIGN.md § Iconos y roles de color).
+- **Las cifras cambian cuando cambia el diseño del componente.** Ejemplo: la
+  contraprueba de alto fijo de 4.1 daba 67 px de texto fuera por arriba y 66
+  por abajo; tras añadir `flex-wrap` a `c-button` el contenido arranca arriba y
+  se sale solo por abajo. Lo que la contraprueba prueba, que el texto se sale,
+  no cambió; la expectativa se actualizó con su porqué en el script.
+
+## Comprobaciones manuales
+
+No se automatizan; se repiten a mano cuando cambia lo que prueban.
+
+| Qué | Cómo | Sección |
+|---|---|---|
+| Hash de los iconos contra Figma | `use_figma` de solo lectura sobre `F.7 · Iconos` (frame `127:4003`): `exportAsync({ format: 'SVG_STRING' })` de cada `icon/*` y FNV-1a del `d`. El script compara con los valores de ese día, guardados en `icon-hashes.mjs` | 4.1 |
+| Aviso de desarrollo de la región viva | Montar el `Notice` de región viva del kit ya abierto (`useState(true)`), recargar `/kit` y ver en la consola «Notice delivery="live" montado ya abierto…». Revertir | 4.2 |
+| Anuncio real con lector de pantalla | NVDA y VoiceOver: región viva de `Notice`, ayuda de `Legend` por `aria-describedby`. Pendiente de la fase 7 | 4.2, 4.3 |
+| Zona segura y Safari | iPhone real y Safari de macOS. Pendiente de la fase 7 | 3 |
