@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import calendarBlankUrl from '../assets/icons/calendar-blank.svg'
 import AppLayout from '../components/AppLayout.tsx'
 import Avatar from '../components/Avatar.tsx'
 import BackLink from '../components/BackLink.tsx'
 import Button, { type ButtonProps } from '../components/Button.tsx'
+import Checkbox from '../components/Checkbox.tsx'
+import FieldSelect from '../components/FieldSelect.tsx'
+import FieldText from '../components/FieldText.tsx'
 import Icon from '../components/Icon.tsx'
 import IconButton from '../components/IconButton.tsx'
+import Legend from '../components/Legend.tsx'
 import Link from '../components/Link.tsx'
+import Radio from '../components/Radio.tsx'
 import Notice from '../components/Notice.tsx'
 import StatusTag from '../components/StatusTag.tsx'
 import Step from '../components/Step.tsx'
@@ -48,6 +53,118 @@ const buttonStyles: { variant: NonNullable<ButtonProps['variant']>; name: string
   { variant: 'secondary', name: 'Secondary' },
   { variant: 'destructive', name: 'Destructive' },
 ]
+
+// Copy de la vista 3 y de los filtros (Figma). Del motivo de consulta el
+// diseño solo nombra «Primera consulta»: el resto de opciones llega con los
+// datos de la fase 5.
+const MOTIVOS = [{ value: 'primera', label: 'Primera consulta' }] as const
+const DISPONIBILIDAD = ['Cualquier fecha', 'Hoy', 'Esta semana', 'Este mes'] as const
+
+function FormDemos() {
+  const helpId = useId()
+
+  return (
+    <>
+      <h3 className="c-kit__subheading">Field/Text</h3>
+      <div className="o-stack o-stack--gap-5">
+        <FieldText
+          label="Correo electrónico"
+          name="kit-correo"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="nombre@ejemplo.com"
+          hint="Te enviaremos el comprobante de la cita"
+        />
+        <FieldText
+          label="Correo electrónico"
+          name="kit-correo-error"
+          type="email"
+          autoComplete="email"
+          defaultValue="karla@"
+          error="Escribe un correo válido, con @ y dominio"
+        />
+        <FieldText
+          label="Teléfono (opcional)"
+          name="kit-telefono"
+          type="tel"
+          autoComplete="tel"
+          inputMode="tel"
+          hint="10 dígitos. Te llamamos solo si hay un cambio"
+        />
+      </div>
+
+      <h3 className="c-kit__subheading">Field/Select</h3>
+      <div className="o-stack o-stack--gap-5">
+        <FieldSelect
+          label="Motivo de consulta"
+          name="kit-motivo"
+          options={MOTIVOS}
+          placeholder="Elige una opción"
+          hint="Nos ayuda a preparar tu consulta"
+        />
+        <FieldSelect
+          label="Motivo de consulta"
+          name="kit-motivo-error"
+          options={MOTIVOS}
+          placeholder="Elige una opción"
+          error="Elige el motivo de tu consulta"
+        />
+        <FieldSelect
+          label="Motivo de consulta"
+          name="kit-motivo-lleno"
+          options={MOTIVOS}
+          placeholder="Elige una opción"
+          defaultValue="primera"
+          hint="Nos ayuda a preparar tu consulta"
+        />
+      </div>
+
+      <h3 className="c-kit__subheading">Checkbox y Legend Section</h3>
+      <fieldset className="o-stack o-stack--gap-1" aria-describedby={helpId}>
+        <Legend
+          level="section"
+          helpId={helpId}
+          help="Todos los campos son obligatorios salvo los marcados como opcionales"
+        >
+          Antes de confirmar
+        </Legend>
+        <div className="o-stack o-stack--gap-0">
+          <Checkbox
+            label="Acepto el aviso de privacidad"
+            name="kit-privacidad"
+            error="Debes aceptar el aviso para continuar"
+          />
+          <Checkbox
+            label="Quiero un recordatorio por correo el día anterior"
+            name="kit-recordatorio"
+            defaultChecked
+            hint="Lo enviamos 24 horas antes de tu cita"
+          />
+          <Checkbox label="Cardiología" name="kit-especialidad" />
+        </div>
+      </fieldset>
+
+      <h3 className="c-kit__subheading">Radio y Legend Group</h3>
+      <fieldset className="o-stack o-stack--gap-1">
+        <Legend level="group">Disponibilidad</Legend>
+        <div className="o-stack o-stack--gap-0">
+          {DISPONIBILIDAD.map((label, index) => (
+            <Radio label={label} name="kit-disponibilidad" value={label} defaultChecked={index === 0} key={label} />
+          ))}
+        </div>
+      </fieldset>
+
+      <h3 className="c-kit__subheading">Legend con encabezado (D14)</h3>
+      <fieldset className="o-stack o-stack--gap-4">
+        <Legend level="section" headingLevel={3}>
+          Elige fecha
+        </Legend>
+        <FieldText label="Nombre completo" name="kit-nombre" autoComplete="name" hint="Como aparece en tu identificación" />
+      </fieldset>
+    </>
+  )
+}
 
 // Las dos formas de entregar un aviso de resultado (diseño §4.6).
 function NoticeDemos() {
@@ -274,6 +391,14 @@ export default function Kit() {
             body="Miércoles 16 de mayo · 09:30. Al confirmar, esa hora se libera."
           />
           <NoticeDemos />
+        </section>
+
+        <section className="c-kit__section" aria-labelledby="kit-formulario">
+          <h2 className="c-kit__heading" id="kit-formulario">
+            Formulario
+          </h2>
+          <p>Estados reales: hover, foco y error con aria-invalid. La validación es al enviar.</p>
+          <FormDemos />
         </section>
 
         <section className="c-kit__section" aria-labelledby="kit-layout">

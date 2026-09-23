@@ -35,7 +35,15 @@ const objectModifierRules = [
 ]
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'scripts/verify/out']),
+  {
+    // Scripts de Node: contraste (pnpm contrast) y verificación (pnpm verify).
+    files: ['scripts/**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -53,6 +61,10 @@ export default defineConfig([
       // marcadores; el reset los quita solo con role="list" explícito.
       // El rol no es redundante aquí: se permite solo en ul/ol y solo `list`.
       'jsx-a11y/no-redundant-roles': ['error', { ul: ['list'], ol: ['list'] }],
+      // El tipo de React acepta cualquier texto en autoComplete (admite
+      // combinaciones de tokens), así que el compilador no para un token mal
+      // escrito. La regla sí, también en el componente que envuelve al input.
+      'jsx-a11y/autocomplete-valid': ['error', { inputComponents: ['FieldText'] }],
       // Un solo array: en flat config, otro bloque con esta regla sustituiría
       // al anterior en lugar de sumarse.
       //

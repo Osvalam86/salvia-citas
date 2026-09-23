@@ -286,6 +286,9 @@ Hoy aplica a `UI/Button` y `UI/Back Link`; todo componente nuevo con icono y
 etiqueta en fila la hereda. En 4.2 la heredan `UI/Status Tag`, `UI/Step` y
 `UI/Notice`; esta última con una base de contenido (`8rem`, derivada en su
 parcial), porque su cuerpo es un párrafo y sin base bajaría siempre de línea.
+En 4.3, `UI/Checkbox` y `UI/Radio`, con la misma base `8rem` en la etiqueta y
+en el texto del mensaje: al 200 % a 320 la caja sube a su propia línea, también
+sobre etiquetas cortas que habrían cabido; es el precio de no partir palabras.
 
 ---
 
@@ -423,6 +426,14 @@ sin importar nunca SCSS. Correspondencia 1:1 por nombre: `ResultCard.tsx` ↔
 importado en `main.tsx`. Colocalizar el SCSS junto al TSX rompería la regla de
 que la carpeta es la capa y el orden de cascada de los `_index.scss`.
 
+Excepciones declaradas al 1:1: `c-kit` y `c-kit-bar` son bloques de las
+vistas del catálogo; `c-field` es un solo bloque para `FieldText.tsx` y
+`FieldSelect.tsx` (`UI/Field/Text` y `UI/Field/Select`), que comparten toda
+la anatomía (etiqueta, control de 50, iconos y mensaje) y solo cambian el
+control; `Legend.tsx` pinta dos bloques, `c-legend` y `c-legend-help`, porque
+la ayuda va fuera de `<legend>` y un elemento BEM no puede vivir fuera de su
+bloque.
+
 **D6 · Las variantes `Layout` de Figma son container queries, no props.**
 Aplica a Result Card, Appointment Card y Dialog.
 
@@ -480,6 +491,10 @@ vista 3 no.
 | 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
 | 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
+| 5     | **Opciones de Motivo de consulta.** El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
+| 5     | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
+| 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
+| Skill | **Parche para `bemit-scss`: reset de `fieldset` y `legend`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles`; falta la skill |
 | 7     | **Anuncio real de `UI/Notice` en región viva.** Comprobar con NVDA y VoiceOver que Success (`role="status"`) y Error (`role="alert"`) se anuncian al aparecer sin mover el foco, y si se lee también «Cerrar aviso». En 4.2 solo se verificó la estructura: la región existe vacía antes del mensaje y el contenido se inserta dentro |
 | 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |

@@ -38,6 +38,19 @@
   cursor: pointer;
 }
 
+// Sin esto, un fieldset no encoge por debajo de su contenido
+// (min-inline-size: min-content del navegador) y rompe a 320. El agrupamiento
+// lo marca la legend, no un borde.
+:where(fieldset) {
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+}
+
+:where(legend) {
+  padding: 0;
+}
+
 // Listas usadas como layout: semantic-markup añade role="list" para
 // conservar la semántica en Safari al quitar los marcadores. El atributo va
 // dentro de :where() para que el reset no sume especificidad.

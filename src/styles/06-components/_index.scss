@@ -1,6 +1,7 @@
 // Componentes c- (uno por archivo, en orden alfabético). Correspondencia 1:1
-// con src/components/*.tsx (D5); c-kit y c-kit-bar son la excepción: son
-// bloques de las vistas del catálogo (src/views/Kit.tsx y KitLayout.tsx).
+// con src/components/*.tsx (D5), con las excepciones declaradas en D5: c-kit y
+// c-kit-bar (vistas del catálogo), c-field (FieldText y FieldSelect) y
+// c-legend-help (lo pinta Legend.tsx).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -9,12 +10,17 @@
 @use 'c-avatar';
 @use 'c-back-link';
 @use 'c-button';
+@use 'c-checkbox';
+@use 'c-field';
 @use 'c-icon';
 @use 'c-icon-button';
 @use 'c-kit';
 @use 'c-kit-bar';
+@use 'c-legend';
+@use 'c-legend-help';
 @use 'c-link';
 @use 'c-notice';
+@use 'c-radio';
 @use 'c-status-tag';
 @use 'c-step';
 @use 'c-tag';

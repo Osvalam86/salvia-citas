@@ -228,7 +228,7 @@ es Back Link, no Link. Alto 48, padding lateral 0 para alinear con la columna.
 `value`, `message`, `showMessage`.
 
 - **Tamaño intrínseco, sin alto fijo ni mínimo.** Borde 1 + 12 + 24 + 12 +
-  borde 1 = 50. Padding horizontal 24.
+  borde 1 = 50. Padding horizontal 16 (`space-4`).
 - Borde en reposo `color-border-strong`; hover `color-action`.
 - Error: borde 2 `color-error`, el padding se compensa restando 1 px,
   `warning-circle` de 20 dentro del control (antes del chevron en el select) y
