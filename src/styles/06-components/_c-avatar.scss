@@ -9,13 +9,15 @@
 //
 // API pública: --avatar-size. El padre que coloca el avatar puede fijar su
 // tamaño cuando depende de su contenedor y no de una prop (Result Card: 48 en
-// Stacked, 64 en Row). Sin ella, manda Size (DESIGN.md § Custom properties
-// públicas).
+// Stacked, 64 en Row). Sin ella, manda Size: los modificadores solo cambian
+// --_size-default, y la decisión entre las dos se escribe una vez, en la raíz
+// (DESIGN.md § Custom properties públicas).
 //
 // Foto e inicial comparten la única celda de la rejilla: la foto tapa la
 // inicial cuando carga, y la inicial ocupa el círculo entero mientras tanto.
 .c-avatar {
-  --_size: var(--avatar-size, 3rem);
+  --_size-default: 3rem;
+  --_size: var(--avatar-size, var(--_size-default));
   --_text-family: var(--text-heading-md-family);
   --_text-weight: var(--text-heading-md-weight);
   --_text-size: var(--text-heading-md-size);
@@ -38,11 +40,11 @@
   border-radius: var(--radius-pill);
 
   &--medium {
-    --_size: var(--avatar-size, 4rem);
+    --_size-default: 4rem;
   }
 
   &--large {
-    --_size: var(--avatar-size, 6rem);
+    --_size-default: 6rem;
     --_text-family: var(--text-heading-lg-family);
     --_text-weight: var(--text-heading-lg-weight);
     --_text-size: var(--text-heading-lg-size);

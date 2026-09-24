@@ -39,11 +39,12 @@ Ejecuta `references/checklist.md` contra tu código y corrige antes de entregar.
 - **SCSS moderno:** `@use`/`@forward`, módulos `sass:*`, nada deprecado. Carpetas numeradas → `@use ... as` obligatorio.
 - **Tokens:** valores de diseño siempre con `var(--token)` semántico directo. Sin variables SCSS puente. Literal en rem solo para valores propios del componente usados en 1–2 lugares.
 - **Custom properties locales** `--_nombre` en el bloque: modificadores y estados cambian la variable, no redeclaran propiedades.
+- **Custom property pública** (un padre la fija por CSS y el valor por defecto cambia por variante): se llama `--<bloque>-<propiedad>`, sin prefijo. El valor por defecto va en `--_<propiedad>-default`, que es lo único que cambian los modificadores. La decisión `var(--<bloque>-<propiedad>, var(--_<propiedad>-default))` se escribe una vez, en la raíz del bloque, y ningún modificador la redeclara: si la redeclara, ignora la pública sin que nada lo detecte. El padre la fija en su elemento de mezcla. Ejemplo: `.c-avatar { --_size-default: 3rem; --_size: var(--avatar-size, var(--_size-default)); &--large { --_size-default: 6rem; } }`. Una propiedad que mide y escribe un script, y que se lee con un único valor por defecto (`var(--x, 0)`), no necesita `-default`.
 - **Sass solo para lo que CSS no puede:** condiciones de `@media`/`@container`, mapas, loops, `tools.rem()`, mixins.
 - **Unidades:** rem siempre, incluidas media y container queries. px solo en `border-radius`, anchos de `border`/`outline` y `outline-offset`.
 - **Layout:** grid para página y cuadrículas complejas, subgrid para alinear interiores entre hermanos, flex para el resto.
 - **Separación:** siempre `gap`. Nunca `margin` para separar. Permitido: `margin-inline: auto` (alineación) y márgenes dentro de `s-` (contenido no controlado).
-- **Responsive:** container queries en componentes; `@media` solo para layout de página, redefinir tokens por breakpoint y preferencias del usuario.
+- **Responsive:** container queries en componentes; `@media` solo para layout de página, tokens por breakpoint, preferencias o condiciones del usuario en rem (texto grande) y componentes cuyo contenedor es el viewport (el shell).
 - **Especificidad:** una clase por selector; estados como máximo (0,2,0); sin IDs, sin clases calificadas, sin descendientes; `!important` solo en `u-`.
 - **Propiedades lógicas** por defecto (`inline-size`, `padding-block`, `margin-inline`, `inset-inline`).
 - **Soporte:** ≥ 90 % global en caniuse y soportado en las 2 últimas versiones de Chrome, Safari y Firefox. Por debajo, solo con `@supports` y fallback.

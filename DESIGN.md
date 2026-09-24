@@ -322,14 +322,43 @@ el mismo `container-name`, sin un segundo nombre
 
 ## Custom properties públicas
 
-Un bloque puede publicar una propiedad sin guion bajo cuando su padre tiene que
-fijarla y depende de un contenedor, no de una prop. El nombre es el del bloque
-sin el prefijo `c-` más la propiedad: `--avatar-size`, no `--c-avatar-size`. El
-bloque la lee con su valor propio como respaldo
-(`--_size: var(--avatar-size, 3rem)`) y el padre la fija en su elemento de
-mezcla. Lo privado sigue en `--_*`.
+Un bloque puede publicar una propiedad sin guion bajo cuando alguien de fuera
+tiene que fijar un valor que el bloque no deduce de sus props. El nombre es el
+del bloque sin el prefijo `c-` más la propiedad: `--avatar-size`, no
+`--c-avatar-size`. Lo privado sigue en `--_*`. Hay dos clases:
 
-Único caso: `--avatar-size` (Result Card: 48 en Stacked, 64 en Row).
+**La fija un padre por CSS, con un valor por defecto que depende de la
+variante: lleva el patrón `-default`.**
+
+- El valor por defecto va en `--_<propiedad>-default`; los modificadores solo
+  cambian ese dato.
+- La decisión `--_<propiedad>: var(--<bloque>-<propiedad>, var(--_<propiedad>-default))`
+  se escribe una vez, en la raíz del bloque; ningún modificador la redeclara.
+  Un modificador que escribiese `--_size: 8rem` ignoraría la pública sin que
+  lo detecten el lint, el build ni el verify.
+- `var()` en una custom property se resuelve en el elemento después de la
+  cascada: la decisión de la raíz lee el `-default` que deja el modificador.
+- El padre fija la pública en su elemento de mezcla.
+
+```scss
+.c-avatar {
+  --_size-default: 3rem;
+  --_size: var(--avatar-size, var(--_size-default));
+
+  &--medium { --_size-default: 4rem; }
+  &--large  { --_size-default: 6rem; }
+}
+```
+
+Caso: `--avatar-size` (Result Card la fija en su mezcla: 48 en Stacked, 64 en
+Row).
+
+**La mide y la escribe un script: un solo valor por defecto en la lectura y
+sin `-default`.** No hay variantes que cambien el respaldo.
+
+Caso: `--app-layout-bar-size` (`AppLayout.tsx` la escribe en `:root` con un
+`ResizeObserver` sobre el hueco de la barra; `c-app-layout` la lee con
+`var(--app-layout-bar-size, 0)`).
 
 ---
 
@@ -745,7 +774,7 @@ vista 3 no.
 | 5     | **Opciones de Motivo de consulta.** El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5     | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
-| Skill | **Parche para `bemit-scss`: reset de `fieldset` y `legend`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles`; falta la skill |
+| Skill ✓ | **Parche para `bemit-scss`: reset de `fieldset` y `legend`. Cerrado.** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles` y en la skill del repo |
 | 7     | **Anuncio real de `UI/Notice` en región viva.** Comprobar con NVDA y VoiceOver que Success (`role="status"`) y Error (`role="alert"`) se anuncian al aparecer sin mover el foco, y si se lee también «Cerrar aviso». En 4.2 solo se verificó la estructura: la región existe vacía antes del mensaje y el contenido se inserta dentro |
 | 6     | **Ruta `/fuera-de-alcance`.** Destino de Ayuda, Cuenta, Iniciar sesión, Crear cuenta y «Cerrar sesión» (botón que navega). Hasta entonces, el kit llega al 404 de React Router |
 | 7     | **Menú de cuenta y navegación con lector.** Que NVDA y VoiceOver anuncien «expandido/contraído» en el disparador y la página actual en las dos navs |

@@ -67,7 +67,7 @@ Orden sugerido de lo anidado: pseudoclases y estados → elementos (`&__`) → m
 | Herramienta | Uso |
 |---|---|
 | `tools.rem($px)` | px o número sin unidad → rem. Para traducir medidas del diseño |
-| `tools.respond-to($bp)` | `@media (min-width)` con el mapa de breakpoints. Solo layout de página y tokens por breakpoint |
+| `tools.respond-to($bp)` | `@media (min-width)` con el mapa de breakpoints. Solo layout de página, tokens por breakpoint y componentes cuyo contenedor es el viewport (el shell). Las condiciones del usuario en rem (texto grande) no pasan por aquí: van fuera del mapa (`layout-responsive.md`) |
 | `tools.container($name, $size)` | `@container <name> (min-width)` con el mapa de contenedores |
 | `tools.focus-ring($offset)` | Outline de foco con `--color-border-focus` |
 | `tools.motion-safe` | Envuelve transiciones y animaciones en `prefers-reduced-motion: no-preference` |

@@ -32,13 +32,14 @@ Marca cada ítem como ✓ (cumple), ✗ (corregir antes de entregar) o N/A. No s
 - [ ] Grid para página y cuadrículas; subgrid para alinear interiores; flex para el resto
 - [ ] Componentes con container query: el bloque declara `container: <nombre> / inline-size` y sus elementos consultan
 - [ ] El contenedor recibe ancho del contexto (no es *hug* ni de ancho fijo)
-- [ ] Media queries solo para layout de página, tokens por breakpoint o preferencias del usuario
+- [ ] Media queries solo para layout de página, tokens por breakpoint, preferencias o condiciones del usuario en rem (texto grande) y componentes cuyo contenedor es el viewport (el shell)
 - [ ] Propiedades lógicas; sin alto fijo en contenedores de texto
 
 ## Especificidad y estados
 - [ ] Máximo (0,1,0) en bloques, elementos y modificadores; (0,2,0) en estados
 - [ ] Sin IDs, clases calificadas, descendientes ni `!important` fuera de `u-`
 - [ ] Modificadores y estados cambian custom properties `--_`, no redeclaran propiedades
+- [ ] Ningún modificador redeclara la decisión de una propiedad pública; solo cambia su `-default`
 - [ ] Estados desde atributos nativos o ARIA; `is-`/`has-` solo sin equivalente
 
 ## Accesibilidad visual

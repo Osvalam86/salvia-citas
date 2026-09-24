@@ -75,8 +75,10 @@ Si el bloque necesita cambiar su propio layout según su ancho, se declara el co
 | Layout de página y objetos `o-` | `@include tools.respond-to(md) { grid-template-columns: … }` |
 | Redefinir tokens por breakpoint | Tipografía que cambia en desktop: se redefine `--text-*` en `:root` dentro de la media query (en `_tokens.scss`, lo hace `theme-tokens`). El componente no cambia |
 | Preferencias del usuario | `prefers-reduced-motion`, `prefers-color-scheme`, `hover`, `pointer`, `forced-colors` |
+| Componente cuyo contenedor es el viewport | El shell de la aplicación (p. ej. `c-app-layout`): ningún ancestro le da el ancho, así que usa `tools.respond-to()` en su propio parcial |
+| Condición del usuario en rem | Texto grande (p. ej. `tools.large-text`, con `$large-text` en `_breakpoints.scss` fuera del mapa de breakpoints: no es un breakpoint de layout y el script no lo consulta). En una media query el rem es la letra del navegador, así que se cumple con un viewport estrecho o con letra grande. Es `max-width` porque describe una condición («cabe poco»), no un tramo mobile-first |
 
-Siempre mobile-first (`min-width`), en rem, con el mixin. Nunca un valor en px ni una media query escrita a mano. Esto incluye `_tokens.scss` cuando redefine tokens por breakpoint: importa `02-tools` y usa el mixin (ver «Regla settings/tools» en `arquitectura.md`).
+Siempre mobile-first (`min-width`), salvo la condición de texto grande, en rem, con el mixin. Nunca un valor en px ni una media query escrita a mano. Esto incluye `_tokens.scss` cuando redefine tokens por breakpoint: importa `02-tools` y usa el mixin (ver «Regla settings/tools» en `arquitectura.md`).
 
 ### Un paso tipográfico que cambia entre móvil y escritorio
 

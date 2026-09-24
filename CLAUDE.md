@@ -109,6 +109,7 @@ No hay test runner configurado.
 
 - **Paso a paso, con confirmación explícita antes de avanzar.** No encadenes
   fases sin confirmación del usuario.
+- En fases largas, un commit por bloque cerrado y verificado.
 - Señala los defectos reales de lo que construyas. No des por bueno lo que no
   lo está.
 - Cuando el usuario señale un defecto concreto, arregla ese, sin aprovechar
