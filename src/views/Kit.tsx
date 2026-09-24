@@ -504,6 +504,16 @@ export default function Kit() {
           </p>
         </section>
 
+        <section className="c-kit__section" aria-labelledby="kit-citas">
+          <h2 className="c-kit__heading" id="kit-citas">
+            Citas y diálogos
+          </h2>
+          <p>Appointment Card en su propia página.</p>
+          <p>
+            <Link href="/kit/citas">Ver citas y diálogos</Link>
+          </p>
+        </section>
+
         <section className="c-kit__section" aria-labelledby="kit-layout">
           <h2 className="c-kit__heading" id="kit-layout">
             Layout

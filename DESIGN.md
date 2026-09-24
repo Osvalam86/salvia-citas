@@ -181,11 +181,13 @@ El token se redefine en `_tokens.scss` con `tools.respond-to(lg)`, con el mismo
 patrón que `page-title`: ningún componente lleva media query.
 
 **40rem no viene de Figma: es un valor derivado.** Con el gutter móvil
-`space-4` a cada lado deja 608 útiles, por encima de los umbrales de
-`result-card` (576) y `appointment-card` (544, provisional). Las tarjetas pasan
+`space-4` a cada lado deja 608 útiles, por encima del umbral de
+`result-card` (576). Result Card pasa
 a Row dentro del tramo, en cuanto su `li` alcanza el umbral (desde 608 de
 viewport en resultados; 623 con barra clásica), sin esperar a `lg`. Medido: a
-608 y a 609, Row con 214 salvo la modalidad larga, que baja de línea (242). El umbral de `dialog` se mide
+608 y a 609, Row con 214 salvo la modalidad larga, que baja de línea (242).
+`appointment-card` (640) queda por encima: Appointment Card va en Stacked en
+todo el tramo (§ Contenedores, costes). El umbral de `dialog` se mide
 sobre el velo y no depende de la columna.
 
 **Chrome que se queda en versión móvil hasta `lg`:**
@@ -298,9 +300,22 @@ el mismo `container-name`, sin un segundo nombre
 | ---------------------- | -------------------------------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `result-card-identity` | el `li` (contenedor `result-card`)                 | 14rem (224) | Por debajo, el avatar va encima del encabezado  | Al encabezado le quedan 8rem: bordes 2px + padding 2rem + avatar 3rem + hueco 0,75rem + 8rem. Al 100 % no ocurre (el `li` más estrecho mide 273); al 200 % a 320 sí (448 en px) |
 | `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
-| `appointment-card` | el `li` de su sección                              | 34rem (544) | Stacked pasa a Row                  | **Provisional:** verificar al construir el componente                        |
+| `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
 | `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe                   |
 | `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
+
+**Costes declarados de `appointment-card` (40rem).**
+
+- En el tramo intermedio la columna mide como mucho 608: las citas van en Stacked hasta `lg`.
+- Desde `lg`, con el aside de Mis citas, la columna mide viewport − 400: Row desde 1040 de
+  viewport (1055 con barra clásica). Entre 1024 y 1039 (1054) van en Stacked con las acciones a
+  ancho completo, un patrón móvil en escritorio (diseño §3.6). Sale de la cuenta de
+  § Breakpoints; se mide en la vista 4 (fase 5).
+- En Row, la nota de Pending (485) va en dos líneas hasta un `li` de 783 y la tarjeta mide 260
+  en vez de 240; desde 784, una línea y 240 (medido a 640, 782, 783 y 784).
+- Stacked a 375 con barra clásica: el `li` mide 328, la nota de Pending va en tres líneas y la
+  tarjeta mide 330 en vez de 310 (medido). En un móvil real la barra es superpuesta y mide 310,
+  como Figma.
 
 ---
 
@@ -729,6 +744,9 @@ vista 3 no.
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
 | 5     | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
 | 5     | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; con recarga no pasa. Reproducido por Osvaldo en su Chrome (Windows, barra clásica) y por `pnpm verify 4.6` (Edge sin interfaz, 1350): 4932 píxeles distintos de la página recargada en x 68–304, y 849–879, persistentes a los 4 s, en la misma región del documento que ocupaban los avatares en `/kit` (y 2476–2572). **Disparador:** página de origen desplazada + navegación en cliente + desplazamiento con rueda (no con `scrollTo` ni con clic por script); sin nodo en el DOM; desaparece con el árbol de capas de CDP activo. **Hipótesis:** el compositor de Chromium reutiliza teselas de la página anterior sin repintarlas. No lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario. La reproducción se volvió intermitente tras recompilar; sin los avatares dio 0, pero no es concluyente (un resto de una región vacía también es blanco). La prueba en 8087662 (`/kit` → `/kit/resultados`) no llegó a hacerse. La comprobación queda en ✗ en `pnpm verify 4.6`. Las vistas navegan en cliente entre sí: resolver antes de cerrar la fase 5 |
+| 5     | **Foco al cambiar de ruta.** D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
+| 5     | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
+| 5     | **Filtro de consola en `4.7-citas.mjs`.** El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |
 | 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |
 | 7     | **Carga diferida por ruta.** 4.6 lleva el JS de 393 a 595 kB (gzip 121 → 183) y Vite avisa del chunk de más de 500 kB. Medido en 8087662 y en 4.6 |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |

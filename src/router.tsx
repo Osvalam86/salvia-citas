@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import Kit from './views/Kit.tsx'
+import KitAppointments from './views/KitAppointments.tsx'
 import KitDateTime from './views/KitDateTime.tsx'
 import KitLayout from './views/KitLayout.tsx'
 import KitNav from './views/KitNav.tsx'
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { path: '/kit/navegacion', element: <KitNav /> },
       { path: '/kit/resultados', element: <KitResults /> },
       { path: '/kit/fecha-hora', element: <KitDateTime /> },
+      { path: '/kit/citas', element: <KitAppointments /> },
     ],
   },
 ])

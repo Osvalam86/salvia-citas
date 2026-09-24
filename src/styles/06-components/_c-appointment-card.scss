@@ -1,0 +1,132 @@
+@use '../02-tools' as tools;
+
+// UI/Appointment Card (Figma 284:6299). La raíz es el <li> de la lista de su
+// sección: aporta el ancho y es el contenedor (DESIGN.md § Contenedores). Sin
+// padding, así que el umbral es el ancho exterior de la tarjeta. __card es la
+// caja que cambia de forma:
+//
+// - Stacked (base): cuerpo y acciones apilados, padding y separación 16; las
+//   acciones a todo el ancho y apiladas (a dos columnas «Cancelar cita»
+//   partiría).
+// - Row desde 40rem (appointment-card): el cuerpo fluido y la columna de
+//   acciones a 14rem (224 de Figma: cabe «Agendar seguimiento», 216), para que
+//   los botones caigan en la misma columna en todas las filas; padding y
+//   separación 24, alineado arriba. Las acciones siguen apiladas.
+//
+// Alto por construcción, como en Figma: el borde cuenta en el alto
+// (border-box), igual que el trazo de la variante (strokesIncludedInLayout).
+.c-appointment-card {
+  container: appointment-card / inline-size;
+
+  &__card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    padding: var(--space-4);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    @include tools.container(appointment-card, appointment-card) {
+      grid-template-columns: minmax(0, 1fr) 14rem;
+      gap: var(--space-5);
+      padding: var(--space-5);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  &__when {
+    @include tools.text(heading-sm);
+
+    --_fg: var(--color-text-primary);
+    --_decoration: none;
+
+    color: var(--_fg);
+    font-variant-numeric: tabular-nums;
+    text-decoration-line: var(--_decoration);
+    text-wrap: pretty;
+  }
+
+  // strike/heading-sm de Figma: el mismo paso con el tachado del estado
+  // (DESIGN.md, decisión 3). El estado lo sostienen además el tag y su borde
+  // punteado: en forced-colors el color desaparece y el tachado se queda.
+  &__when--cancelled {
+    --_fg: var(--color-text-secondary);
+    --_decoration: line-through;
+  }
+
+  &__note {
+    @include tools.text(caption);
+
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  // Avatar y nombre en fila con flex-wrap y base 8rem en el texto (DESIGN.md §
+  // Controles con icono y etiqueta): el avatar baja de línea antes de que el
+  // nombre parta palabras. Al 100 % no ocurre.
+  &__who {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  &__person {
+    flex: 1 1 8rem;
+  }
+
+  &__name {
+    @include tools.text(body-strong);
+  }
+
+  &__specialty {
+    color: var(--color-text-secondary);
+  }
+
+  // Icono y etiqueta: la misma regla, con la base en el texto.
+  &__location {
+    @include tools.text(caption);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: flex-start;
+    color: var(--color-text-secondary);
+  }
+
+  &__text {
+    flex: 1 1 8rem;
+    text-wrap: pretty;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  // Mezcla sobre c-button: FILL de Figma, a lo ancho de su columna.
+  &__action {
+    inline-size: 100%;
+  }
+}

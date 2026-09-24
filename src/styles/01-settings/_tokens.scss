@@ -92,8 +92,9 @@
 
   // Ancho EXTERIOR de la columna de contenido, gutter incluido. No viene de
   // Figma: es un valor derivado (DESIGN.md § Tramo intermedio). Bajo lg, 640
-  // con gutter space-4 → 608 útiles, por encima de los umbrales de
-  // result-card (512) y appointment-card (544). Se reapunta desde lg, abajo.
+  // con gutter space-4 → 608 útiles, por encima del umbral de result-card
+  // (576); appointment-card (640) se queda en Stacked en el tramo. Se reapunta
+  // desde lg, abajo.
   --layout-column-max: 40rem; // 640
 
   // ===========================================================================

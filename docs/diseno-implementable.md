@@ -673,8 +673,9 @@ En escritorio, tarjetas Row y `<aside>` «Agendar otra cita» — legítimo porq
 contiene envío.
 
 **Cancelar:** diálogo destructivo con foco inicial en «Mantener mi cita». Al
-cerrarse, la cita pasa a Pasadas como Cancelled, aparece un aviso Error tras el
-`h1` y **el foco va al título del aviso**, no al `h3` de la tarjeta. El
+cerrarse, la cita pasa a Pasadas como Cancelled, aparece un aviso Success «Cita
+cancelada», cerrable, tras el encabezado de la página (`h1` y subtítulo) y **el
+foco va al título del aviso**, no al `h3` de la tarjeta. El
 subtítulo baja a «Tienes N citas próximas».
 
 **Menú de cuenta:** popover no modal, sin velo. Ver `UI/Menu`.
