@@ -37,13 +37,7 @@ No asumas la tecnología. Un `<label for>` en HTML es `htmlFor` en JSX; `class` 
 
 ## Paso 1 — Inventario
 
-Antes de marcar, lista mentalmente cada pieza de contenido del encargo y responde tres preguntas por pieza:
-
-1. **¿Qué es?** — texto, control, agrupación, dato, imagen, navegación.
-2. **¿Qué hace?** — navega, ejecuta, informa, agrupa, decora.
-3. **¿Qué relación tiene con lo demás?** — encabeza, pertenece a, describe a, etiqueta a.
-
-La tercera pregunta es la que decide listas, tablas, `<dl>`, `fieldset` y los cableados por `id`. No la saltes.
+Cada pieza de contenido se define por lo que es (texto, control, agrupación, dato, imagen, navegación), lo que hace (navega, ejecuta, informa, agrupa, decora) y su relación con las demás (encabeza, pertenece a, describe a, etiqueta a). La relación es la que decide listas, tablas, `<dl>`, `fieldset` y los cableados por `id`, y la que más fácil se pasa por alto.
 
 ## Paso 2 — Mapa semántico
 
@@ -60,7 +54,7 @@ Asigna el elemento a cada pieza con `references/decision-semantica.md`. Reglas q
 Aplica `references/reglas-aria-vigentes.md`. Resumen operativo:
 
 1. **Primera regla de ARIA**: no usar ARIA si el HTML nativo ya lo resuelve.
-2. **Segunda regla**: no redeclarar el rol implícito de un elemento (`role="button"` en `<button>`, `role="navigation"` en `<nav>`, `role="list"` en `<ul>` → todos prohibidos).
+2. **Segunda regla**: no redeclarar el rol implícito de un elemento (`role="button"` en `<button>`, `role="navigation"` en `<nav>`). Única excepción: `role="list"` en una lista cuyo CSS quita los marcadores, porque Safari + VoiceOver pierde entonces la semántica de lista (`references/decision-semantica.md` §3).
 3. **Tercera regla**: si agregas un `role` interactivo, agregas el manejo de teclado completo de ese patrón. ARIA describe comportamiento, no lo crea.
 4. `aria-hidden="true"` nunca en un elemento enfocable ni en un ancestro de uno enfocable.
 5. `aria-label` solo en elementos cuyo rol admite nombre. En un `<div>` o `<span>` sin `role`, el rol implícito es `generic` y el nombre se **ignora**: es marcado inválido y sin efecto.
@@ -87,7 +81,7 @@ Reglas duras de `id`:
 
 Entrega el marcado directo, listo para pegar. Sin auditoría, sin checklist, sin tabla de verificación.
 
-Después del código, **solo si aplica**, agrega una nota de máximo 3 viñetas para señalar lo que no es evidente a simple vista:
+Después del código, **solo si aplica**, agrega una nota breve en viñetas con lo que no es evidente a simple vista:
 - Elementos presentes solo para tecnología asistiva (`sr-only`, `<legend>` oculto visualmente, `<caption>`).
 - Atributos que requieren que el JS los actualice en runtime (`aria-expanded`, `aria-selected`, `aria-current`, `aria-invalid`, `aria-live`).
 - Decisiones de teclado que el marcado por sí solo no cubre (gestión de foco en modales, roving tabindex).

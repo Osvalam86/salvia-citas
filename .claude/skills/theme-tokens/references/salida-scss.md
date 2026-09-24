@@ -18,8 +18,7 @@ Si el proyecto tiene la estructura de `bemit-scss`, estos archivos ya existen: s
 
 ### `_tokens.scss`
 ```scss
-@use 'sass:map';
-@use 'breakpoints' as bp;
+@use '../02-tools' as tools;
 
 :root {
   // ===== Nivel 1: primitivos =====
@@ -42,13 +41,13 @@ Si el proyecto tiene la estructura de `bemit-scss`, estos archivos ya existen: s
 }
 
 // ===== Redefinición por breakpoint (solo semánticos) =====
-@media (min-width: map.get(bp.$breakpoints, lg)) {
+@include tools.respond-to(lg) {
   :root {
     --text-heading-1-size: var(--font-size-3xl);
   }
 }
 ```
-- Settings no usa `02-tools`: la media query lee el mapa directamente. Así se respeta la dirección de las capas ITCSS.
+- Si el proyecto tiene en `02-tools` un mixin de breakpoints (estructura de `bemit-scss`), la media query se escribe con él: el criterio del breakpoint vive en un solo sitio, y el orden ITCSS gobierna el CSS emitido, no los `@use`. Sin esa capa, se lee el mapa directamente (`@use 'sass:map'`, `map.get(bp.$breakpoints, lg)`).
 - Solo se redefinen semánticos por breakpoint; los primitivos son fijos.
 - Sin `@layer`.
 

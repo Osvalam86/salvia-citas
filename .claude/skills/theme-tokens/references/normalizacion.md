@@ -1,6 +1,6 @@
 # Normalización a 3 niveles
 
-Entrada: inventario extraído (nombres del diseñador, cualquiera sea su criterio). Salida: tokens normalizados + mapa de equivalencias. La skill renombra y organiza; NUNCA inventa valores.
+Entrada: inventario extraído (nombres del diseñador, cualquiera sea su criterio). Salida: tokens normalizados + mapa de equivalencias. La skill renombra y organiza; no inventa valores.
 
 ## Nivel 1 — Primitivos (descriptivos)
 - **Colores**: agrupar por matiz (hue). Nombre = familia descriptiva + paso por luminosidad: `--color-blue-600`. El paso se asigna aproximando la luminosidad relativa del valor real a la escala estándar (50≈más claro … 950≈más oscuro); con pocos tonos, usar pasos separados (100/500/700), no consecutivos. Neutros → `gray-*` (o `neutral-*` si hay dos familias de grises). Blanco/negro → `--color-white`/`--color-black`.
@@ -11,7 +11,7 @@ Entrada: inventario extraído (nombres del diseñador, cualquiera sea su criteri
 - Unidades: rem para tamaños, espaciados y breakpoints (base 16 salvo projectContext); px solo en radios, bordes y hairlines; sombras tal cual diseño.
 
 ## Nivel 2 — Semánticos (por función; los consumen los componentes)
-Set objetivo (crear SOLO los que tengan candidato real en el diseño; sin candidato → hueco reportado):
+Set objetivo (crear solo los que tengan candidato real en el diseño; sin candidato → hueco reportado):
 - Fondos/superficies: `--color-bg-page`, `--color-surface`, `--color-surface-raised`
 - Texto: `--color-text-default`, `--color-text-muted`, `--color-text-inverse`, `--color-text-link`, `--color-text-disabled`
 - Bordes: `--color-border-default`, `--color-border-strong`, `--color-border-focus`

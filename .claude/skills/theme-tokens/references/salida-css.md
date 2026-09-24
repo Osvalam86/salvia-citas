@@ -40,4 +40,4 @@ Archivo: `styles/settings/tokens.css` (o la capa de settings del proyecto). Sin 
 ## Reglas
 - Primitivos y semánticos en el mismo archivo, secciones separadas y comentadas por categoría (colores/tipografía/espaciado/radios/sombras).
 - Breakpoints: las custom properties no funcionan en media queries. Se documentan en un comentario de cabecera (clave → valor en rem) y se escriben como valor literal en rem en cada `@media`.
-- Los componentes consumen SOLO nivel 2.
+- Los componentes consumen solo el nivel 2.

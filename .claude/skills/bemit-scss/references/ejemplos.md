@@ -4,7 +4,7 @@ Calibran el resultado esperado. Los tokens asumen una capa semántica generada p
 
 ## Ejemplo 1 — AppBar (flujo completo)
 
-**Contexto:** el spec de `figma-spec-json` (UI/AppBar, solo mobile) ya pasó sus bloqueantes: el círculo izquierdo es el botón "Abrir menú" y el derecho, el botón "Perfil". `semantic-markup` entregó la estructura. El proyecto ya tiene la base BEMIT; el token del fondo verde claro no existe.
+**Contexto:** el spec de diseño (UI/AppBar, solo mobile) ya pasó sus bloqueantes: el círculo izquierdo es el botón "Abrir menú" y el derecho, el botón "Perfil". `semantic-markup` entregó la estructura. El proyecto ya tiene la base BEMIT; el token del fondo verde claro no existe.
 
 **Markup recibido → con clases** (misma estructura; solo se agregó `class`):
 

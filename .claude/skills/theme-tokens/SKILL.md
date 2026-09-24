@@ -5,9 +5,9 @@ description: Extrae los tokens de diseño de un archivo de Figma (variables Y es
 
 # Theme tokens: de Figma a settings normalizados
 
-Convierte los tokens de un archivo de Figma — cualquiera sea el criterio de nombres del diseñador — en la configuración de theme del proyecto con una arquitectura idéntica en todos los stacks: **3 niveles** (primitivos descriptivos → semánticos por función → componente bajo demanda) con **CSS custom properties SIEMPRE como capa primaria** (accesibles desde JS/DOM).
+Convierte los tokens de un archivo de Figma — cualquiera sea el criterio de nombres del diseñador — en la configuración de theme del proyecto con una arquitectura idéntica en todos los stacks: **3 niveles** (primitivos descriptivos → semánticos por función → componente bajo demanda) con **CSS custom properties como capa primaria en todos los stacks** (accesibles desde JS/DOM).
 
-Principio rector: **la skill renombra y organiza; JAMÁS inventa diseño.** Todo valor de salida es trazable a un valor del archivo de Figma mediante el mapa de equivalencias.
+Principio rector: **la skill renombra y organiza; no inventa diseño.** Todo valor de salida es trazable a un valor del archivo de Figma mediante el mapa de equivalencias.
 
 ## Proceso obligatorio
 
@@ -21,26 +21,26 @@ Con el link/nodo del usuario, extrae vía MCP según `references/extraccion-figm
 - **Estilos de texto** (el export nativo de Figma no los incluye; el MCP sí los expone): familia, tamaño, peso, line-height, letter-spacing, transform.
 - **Efectos**: sombras y radios (variables o estilos de efecto).
 
-Reporta el inventario extraído ANTES de normalizar: cuántas variables, colecciones, modos, estilos de texto. Si el archivo no define variables ni estilos (valores sueltos en capas), entra en **modo degradado**: infiere la paleta desde los nodos, decláralo explícitamente y pide confirmación del inventario antes de continuar.
+Reporta el inventario extraído antes de normalizar: cuántas variables, colecciones, modos, estilos de texto. Si el archivo no define variables ni estilos (valores sueltos en capas), entra en **modo degradado**: infiere la paleta desde los nodos, decláralo explícitamente y pide confirmación del inventario antes de continuar.
 
 ### Paso 2 — Normalización a 3 niveles
 Aplica `references/normalizacion.md`. Resumen de reglas duras:
 
 1. **Primitivos descriptivos**: nombrados por lo que son (`blue-500`, `gray-100`, `font-size-lg`), nunca por rol. El paso numérico de color se asigna por luminosidad del valor real al step estándar más cercano.
 2. **Semánticos por función**: `bg-*`, `surface-*`, `text-*`, `border-*`, `action-*`, `feedback-*` — apuntan a primitivos. Aquí se mapean los nombres de rol que traiga el diseñador (`primary`, `gris principal`).
-3. **NUNCA inventar valores**: si Figma trae 4 tonos de azul, la salida tiene 4 primitivos de azul — no se completa la rampa. Si falta un semántico esencial sin candidato claro (p. ej. no hay color de error), se reporta el hueco; no se inventa.
+3. **Sin valores inventados**: si Figma trae 4 tonos de azul, la salida tiene 4 primitivos de azul — no se completa la rampa. Si falta un semántico esencial sin candidato claro (p. ej. no hay color de error), se reporta el hueco; no se inventa.
 4. **Mapa de equivalencias Figma→token obligatorio** en la salida: cada token con su nombre original de Figma y valor. Es el contrato auditable con el diseño.
 5. **Colisiones y ambigüedades se preguntan**, no se resuelven en silencio (dos variables distintas con el mismo valor y roles confusos, alias circulares, modos incompletos).
 
 ### Paso 3 — Generación por stack
-Carga SOLO el adaptador correspondiente:
+Carga solo el adaptador correspondiente:
 - CSS puro → `references/salida-css.md`
 - SCSS (ITCSS/BEMIT) → `references/salida-scss.md` — custom properties en `_tokens.scss` + mapas Sass solo para lo que se resuelve en compilación (breakpoints, claves de escala). Sin variables SCSS puente.
 - Tailwind v4 → `references/salida-tailwind-v4.md` — `@theme` directo en CSS, sin config JS.
 
 **Tipografía responsive**: si Figma define el mismo estilo de texto con valores distintos por breakpoint, aplica `references/tipografia-responsive.md`. Por defecto el token semántico se redefine por breakpoint; la tipografía fluida (`clamp()`) solo si el usuario la pide.
 
-**Modos (light/dark)**: SOLO si el archivo de Figma trae modos definidos. Se implementan re-apuntando la capa semántica; los primitivos no cambian entre modos. Si Figma no trae modos, no se genera infraestructura de dark mode (se anota como no definido en diseño).
+**Modos (light/dark)**: solo si el archivo de Figma trae modos definidos. Se implementan re-apuntando la capa semántica; los primitivos no cambian entre modos. Si Figma no trae modos, no se genera infraestructura de dark mode (se anota como no definido en diseño).
 
 ### Paso 4 — Autoverificación
 Ejecuta `references/checklist-tokens.md`. Incluye el reporte de contraste: pares semánticos texto/fondo que no alcanzan 4.5:1 (o 3:1 en UI) se **reportan** con el criterio WCAG — nunca se corrigen en silencio alterando valores del diseño.

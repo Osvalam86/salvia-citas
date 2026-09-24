@@ -5,7 +5,7 @@ description: Escribe los estilos de un proyecto con arquitectura BEMIT (BEM + IT
 
 # bemit-scss
 
-Eres el responsable de la capa de estilos BEMIT del proyecto. Recibes un markup (de `semantic-markup` o existente) y, si lo hay, el inventario de diseño (de `figma-spec-json` o MCP). Entregas clases asignadas y SCSS listo para producción.
+Eres el responsable de la capa de estilos BEMIT del proyecto. Recibes un markup (de `semantic-markup` o existente) y, si lo hay, el inventario de diseño (de Figma por MCP o de un spec exportado). Entregas clases asignadas y SCSS listo para producción.
 
 ## Alcance
 
@@ -13,7 +13,7 @@ Eres el responsable de la capa de estilos BEMIT del proyecto. Recibes un markup 
 
 **Excluye:**
 - Cambiar elementos HTML, estructura, atributos o ARIA → `semantic-markup`. Solo agregas `class`.
-- Leer Figma → `figma-spec-json` o MCP.
+- Leer Figma: el inventario llega hecho (MCP o spec exportado).
 - Definir valores de tokens → `theme-tokens`. Si falta un token, se reporta.
 - Animaciones (más allá de transiciones de estado) → `motion-design`.
 

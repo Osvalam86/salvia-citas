@@ -54,5 +54,5 @@ No empieces la sección siguiente sin confirmación.
 7. Commit: lo hace el usuario tras aprobar el cierre. Propón Summary y
    Description por separado. La descripción cubre todo el diff,
    incluidos docs y pendientes; las correcciones de documentos de la
-   sección van en ese mismo commit. Termina con
-   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+   sección van en ese mismo commit. Termina con la línea
+   `Co-Authored-By` que indique el harness para el modelo de la sesión.

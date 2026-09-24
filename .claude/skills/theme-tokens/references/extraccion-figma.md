@@ -11,7 +11,7 @@
 Si el usuario entrega un export de variables (JSON) o el spec del plugin: mismas reglas; los estilos de texto habrá que pedirlos por MCP o screenshot+confirmación.
 
 ## Modo degradado (sin variables ni estilos definidos)
-Inferir la paleta y tipografía recorriendo nodos de las vistas principales. OBLIGATORIO: declarar el modo degradado, presentar el inventario inferido (valores + dónde aparecen) y esperar confirmación del usuario antes de normalizar. Los nombres originales del mapa de equivalencias serán "(inferido de <nodo>)".
+Inferir la paleta y tipografía recorriendo nodos de las vistas principales. Se declara el modo degradado, se presenta el inventario inferido (valores + dónde aparecen) y se espera la confirmación del usuario antes de normalizar. Los nombres originales del mapa de equivalencias serán "(inferido de <nodo>)".
 
 ## Modos de color
-Si una colección trae ≥2 modos (Light/Dark u otros): extraer los valores de cada modo por variable. Verificar completitud: variables sin valor en algún modo se reportan como hueco. Los modos SOLO generan infraestructura de salida si existen aquí.
+Si una colección trae ≥2 modos (Light/Dark u otros): extraer los valores de cada modo por variable. Verificar completitud: variables sin valor en algún modo se reportan como hueco. Los modos solo generan infraestructura de salida si existen aquí.
