@@ -1,0 +1,32 @@
+@use '../02-tools' as tools;
+
+// UI/Header/Mobile (Figma 127:4171). Pieza a sangre: fondo y borde a todo el
+// ancho; el interior es o-wrapper (DESIGN.md § Tramo intermedio).
+//
+// Alto 64 con el borde dentro, como en Figma (trazo INSIDE): 8 + Nav Link de
+// 48 + 7 + borde 1.
+.c-header-mobile {
+  background-color: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+
+  &__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: var(--space-2) calc(var(--space-2) - 1px);
+  }
+
+  // «Ayuda» trae su padding de 12: el margen negativo deja su texto a 16 del
+  // borde, en el mismo eje que el wordmark al otro lado.
+  &__help {
+    margin-inline-end: calc(-1 * var(--space-3));
+  }
+}
+
+// Nav Link dentro del header: anillo hacia dentro (DESIGN.md § Constantes).
+// Fuera del bloque: Stylelint resuelve mal «&__x:pseudo».
+.c-header-mobile__help:focus-visible {
+  @include tools.focus-ring(-4px);
+}

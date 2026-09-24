@@ -9,3 +9,11 @@
 $breakpoints: (
   lg: 64rem, // 1024px — aparece el patrón aside + principal (columna = viewport − 400)
 );
+
+// Texto grande respecto al viewport (DESIGN.md § Texto grande respecto al
+// viewport). No es un breakpoint de layout: en una media query, rem es la
+// letra del navegador, así que se alcanza por estrechez o por letra grande.
+// Derivado: las tres etiquetas de la barra inferior caben en una línea desde
+// 300px a 16px = 18.75rem (medido). Fuera de $breakpoints: React no lo
+// consulta y no tiene espejo en TS.
+$large-text: 18.75rem;

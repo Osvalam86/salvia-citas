@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.3 hechas.
+Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.4 hechas.
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -21,8 +21,13 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 - 4.2 Identidad y estado: `Avatar` (solo inicial; fotos pendientes),
   `Tag`, `StatusTag`, `Step`, `Notice`.
 - 4.3 Formulario: `FieldText`, `FieldSelect`, `Checkbox`, `Radio`, `Legend`.
+- 4.4 Navegación: `HeaderDesktop`, `HeaderMobile`, `Wordmark`, `Breadcrumb`,
+  `NavLink`, `NavItem`, `BottomNav`, `Menu`, `MenuItem`; salto al contenido
+  en `AppLayout`; modo de texto grande (`tools.large-text`); `useDisclosure`
+  y `useMediaQuery` en `src/hooks/`; demo del chrome real en
+  `/kit/navegacion`.
 
-Siguiente: 4.4 Navegación.
+Siguiente: 4.5 Búsqueda y resultados.
 
 ## Comandos
 

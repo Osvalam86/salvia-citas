@@ -1,0 +1,60 @@
+@use '../02-tools' as tools;
+
+// UI/Nav Link (Figma 127:4098). Suelto mide 48 (padding 12 + interlineado
+// 24); en el header ocupa todo el alto (c-header-desktop__link). Sin
+// subrayado: navegación (DESIGN.md § Enlaces de navegación).
+//
+// Actual: tres señales (body/strong, tinta y barra de 2 color-action) más
+// aria-current, nunca solo color. Hover no actual: tinta y barra color-border.
+//
+// La barra es un indicador superpuesto (::after absoluto, fuera del layout) y
+// es un BORDE, no un fondo: en forced-colors un fondo se fuerza al del lienzo
+// y desaparece; un borde se fuerza a un color de sistema visible (LinkText en
+// un enlace, medido en 4.4) y se conserva. En reposo su estilo es none: no se
+// ve ni en forced-colors, donde un transparent sí se pintaría.
+//
+// body/md y body/strong solo difieren en el peso: variables locales en vez de
+// tools.text(), para que el estado actual solo cambie variables (como c-step).
+.c-nav-link {
+  --_weight: var(--text-body-md-weight);
+  --_fg: var(--color-text-secondary);
+  --_bar: var(--color-border);
+  --_bar-hover: var(--color-border);
+  --_bar-style: none;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3);
+  font-family: var(--text-body-md-family);
+  font-size: var(--text-body-md-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-body-md-line-height);
+  color: var(--_fg);
+  letter-spacing: var(--text-body-md-tracking);
+  text-decoration-line: none;
+
+  &::after {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    content: '';
+    border-block-end: 2px var(--_bar-style) var(--_bar);
+  }
+
+  &[aria-current='page'] {
+    --_weight: var(--text-body-strong-weight);
+    --_fg: var(--color-text-primary);
+    --_bar: var(--color-action);
+    --_bar-hover: var(--color-action-hover);
+    --_bar-style: solid;
+  }
+
+  // Después del actual, con la misma especificidad: el hover de la actual
+  // toma su --_bar-hover (color-action-hover).
+  @include tools.hover {
+    --_fg: var(--color-text-primary);
+    --_bar: var(--_bar-hover);
+    --_bar-style: solid;
+  }
+}

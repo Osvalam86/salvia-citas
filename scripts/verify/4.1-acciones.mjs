@@ -4,12 +4,14 @@ import { center, focusInfo, overflow, size, splitWords, text200 } from './checks
 import { FIGMA, iconHashes } from './icon-hashes.mjs'
 import { lintLines, typeErrorLines } from './static.mjs'
 
+// Botones del catálogo, dentro de main: el salto al contenido (4.4) también
+// lleva c-button y va antes, fuera de main.
 const T = {
-  primary: "document.querySelectorAll('.c-button')[0]",
-  secondary: "document.querySelector('.c-button--secondary')",
-  destructive: "document.querySelector('.c-button--destructive')",
-  asLink: "document.querySelector('a.c-button:not([download])')",
-  download: "document.querySelector('a.c-button[download]')",
+  primary: "document.querySelectorAll('main .c-button')[0]",
+  secondary: "document.querySelector('main .c-button--secondary')",
+  destructive: "document.querySelector('main .c-button--destructive')",
+  asLink: "document.querySelector('main a.c-button:not([download])')",
+  download: "document.querySelector('main a.c-button[download]')",
   fill: "document.querySelector('.c-kit__fill')",
   iconButton: "document.querySelector('.c-icon-button')",
   link: "[...document.querySelectorAll('.c-link')].find((a) => a.textContent === 'Ir a Tipografía')",

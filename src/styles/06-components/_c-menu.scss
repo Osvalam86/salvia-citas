@@ -1,0 +1,14 @@
+// UI/Menu (Figma 284:7266): panel del menú de cuenta. 240 de ancho, padding
+// vertical 8, borde 1 color-border-strong (su único límite: el sistema no
+// tiene sombras) y radius-md. La posición la pone el padre
+// (c-header-desktop__menu).
+//
+// Sin display: el atributo hidden cierra el panel, y un display de clase le
+// ganaría.
+.c-menu {
+  inline-size: 15rem;
+  padding-block: var(--space-2);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}

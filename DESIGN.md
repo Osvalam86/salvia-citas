@@ -223,6 +223,57 @@ interior dejaría el contenido que pasa por detrás visible bajo sus bordes.
 
 ---
 
+## Texto grande respecto al viewport
+
+**No es un breakpoint de layout.** El único breakpoint sigue siendo `lg`. Esto
+es una condición del usuario: en una media query, `rem` es la letra del
+navegador, así que se alcanza por un viewport estrecho o por letra grande.
+`tools.large-text` = `(max-width: 18.75rem)`, con `$large-text` en
+`_breakpoints.scss`, fuera del mapa: React no lo consulta y no tiene espejo
+en TS.
+
+**Derivación.** Las tres etiquetas de la barra inferior caben en una línea
+desde 300 px a 16 = 18,75rem (medido: «Especialistas» en `label` mide
+88,8). Todo el chrome está en `rem`, así que la cuenta vale con cualquier
+letra.
+
+| Caso                              | Viewport     | Modo                                         |
+| --------------------------------- | ------------ | -------------------------------------------- |
+| 320–430 al 100 %                  | 20–26,88rem  | No                                           |
+| 320 con la letra al 150 % / 200 % | 13,33 / 10rem | Sí                                          |
+| 1024 con la letra al 200 %        | 32rem        | No (chrome móvil por `lg`, barra en tercios) |
+
+**Qué hace cada barra.** El hueco del shell (`c-app-layout__bar`) pasa a
+`position: static`: la barra queda al final del flujo, donde ya estaba en el
+DOM, y no cambia el orden de lectura ni de tabulación. Fija, taparía casi
+media pantalla (248–288 a 320 con la letra al 200 %). El `scroll-padding`
+vale 0: la barra no tapa nada. `--app-layout-bar-size` sigue publicada, sin
+uso.
+
+- `UI/Bottom Nav`: una columna de filas. El Nav Item es una fila (12 +
+  icono 24 + 12 = 48, como Menu Item) con 16 al inicio y 0 al final. La barra
+  de actual pasa al inicio (`border-inline-start` de 2 `color-action`;
+  `color-border` en hover): en una lista vertical, un borde superior en una
+  fila intermedia se lee como separador. Anillo general. Con la letra al
+  200 %, en la fila de «Especialistas» el icono baja de línea antes de que la
+  palabra parta (regla de icono y etiqueta).
+- **Cada barra futura (`UI/Booking Bar`, `Action Bar`) declara en su plan
+  cómo se ve en este modo.** La regla del shell ya la saca de la posición
+  fija; su interior lo decide su plan.
+
+**Desviación de Figma: Nav Item con `padding-inline: 0`** (Figma: 8). En la
+barra, el ítem llena su tercio con el texto centrado; el padding lateral solo
+cuenta cuando la etiqueta no cabe. Con 8, «Especialistas» parte por debajo de
+348 px (a 320 al 100 %, barra de 84); con 0, cabe desde 300.
+
+**Límite declarado.** Con barra de scroll clásica (15 px), entre 300 y
+315 px al 100 % la etiqueta no cabe y el modo no se activa. Solo ocurre en
+una ventana de escritorio de ese ancho exacto. A 320 con zoom (la prueba de
+1.4.10) cabe. Subir el umbral lo cubriría a cambio de activar el modo sin
+necesidad en móviles con la letra al 125 %.
+
+---
+
 ## Contenedores
 
 **Regla: el contenedor se declara siempre en el elemento que aporta el ancho,
@@ -252,7 +303,17 @@ Medidas en los maestros, no son tokens del archivo:
   radio).
 - **Anillo de foco, uno solo para todo el sistema:** 2px de grosor, 2px de
   desfase, radio = radio del control + 4 (10 sobre `radius/sm`). Desfase −4
-  dentro del header, en la barra inferior y en los ítems del menú de cuenta.
+  en lo que toca el borde de su contenedor: Nav Link del header, Nav Item de
+  la barra inferior e ítems del menú de cuenta (radio 0). El wordmark y los
+  botones del header conservan el general.
+- **`z-index: 1`**, el único del sistema: el panel del menú de cuenta (tapa
+  el contenido) y el salto al contenido (va antes que el header en el DOM).
+- **Salto al contenido** (2.4.1, sin dibujo en Figma): primer foco del shell,
+  «Saltar al contenido», oculto hasta recibir el foco. Entonces es un
+  Secondary superpuesto sobre el header (`space-2` arriba, `space-4` + zona
+  segura al lado). Lleva el foco por script al `h1` de la vista
+  (`id="contenido"`, `tabIndex={-1}`, el mismo destino que al cambiar de
+  ruta), sin entrada de historial.
 - **Destino de foco programático:** un elemento con `tabindex="-1"` que
   recibe el foco por script (el `h1` al cambiar de ruta, el resumen de
   errores, el título de un aviso) conserva el anillo global. Con teclado
@@ -298,6 +359,16 @@ scroll horizontal ni pérdida de contenido, y ninguna palabra parte pudiendo
 caber: la regla se cumple. El caso excede lo que exige WCAG (1.4.4 pide 200 %
 sin pérdida; 1.4.10, 320 CSS px a zoom completo), así que el padding no se
 toca.
+
+---
+
+## Enlaces de navegación
+
+Wordmark, `UI/Nav Link`, `UI/Nav Item` y `UI/Menu Item` van sin subrayado
+(Figma: `textDecoration` NONE, medido). Son navegación, no enlaces dentro de
+un texto: su contexto los identifica y 1.4.1 no aplica. Todo lo demás
+(`UI/Link`, `UI/Back Link`, `UI/Breadcrumb`, enlaces en texto) conserva el
+subrayado de la regla base de `a`.
 
 ---
 
@@ -441,7 +512,10 @@ vistas del catálogo; `c-field` es un solo bloque para `FieldText.tsx` y
 la anatomía (etiqueta, control de 50, iconos y mensaje) y solo cambian el
 control; `Legend.tsx` pinta dos bloques, `c-legend` y `c-legend-help`, porque
 la ayuda va fuera de `<legend>` y un elemento BEM no puede vivir fuera de su
-bloque.
+bloque; `c-wordmark` (`Wordmark.tsx`) no es uno de los 34 componentes: lo
+comparten los dos headers. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
+comprobado en `pnpm lint`.
 
 **D6 · Las variantes `Layout` de Figma son container queries, no props.**
 Aplica a Result Card, Appointment Card y Dialog.
@@ -496,7 +570,6 @@ vista 3 no.
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible |
-| 4     | **Anillo de `UI/Menu Item` y `UI/Nav Item` (4.4).** Medido en las variantes Focus: anillo hacia dentro (x = y = 2, tamaño − 4, trazo 2) con **radio 0**, en `UI/Menu Item` y en las dos de `UI/Nav Item`. Es el desfase −4 de § Constantes; el control no tiene radio, así que el outline sale recto sin declarar nada más. Comprobarlo al construir los dos |
 | 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
 | 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
@@ -506,6 +579,10 @@ vista 3 no.
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
 | Skill | **Parche para `bemit-scss`: reset de `fieldset` y `legend`** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles`; falta la skill |
 | 7     | **Anuncio real de `UI/Notice` en región viva.** Comprobar con NVDA y VoiceOver que Success (`role="status"`) y Error (`role="alert"`) se anuncian al aparecer sin mover el foco, y si se lee también «Cerrar aviso». En 4.2 solo se verificó la estructura: la región existe vacía antes del mensaje y el contenido se inserta dentro |
+| 6     | **Ruta `/fuera-de-alcance`.** Destino de Ayuda, Cuenta, Iniciar sesión, Crear cuenta y «Cerrar sesión» (botón que navega). Hasta entonces, el kit llega al 404 de React Router |
+| 7     | **Menú de cuenta y navegación con lector.** Que NVDA y VoiceOver anuncien «expandido/contraído» en el disparador y la página actual en las dos navs |
+| 7     | **`hyphens: auto` en Nav Item.** Sin efecto en Edge sobre Windows (medido). Comprobar en Safari (iOS y macOS) y en Chrome Android |
+| 7     | **Texto grande con el ajuste real del navegador.** Comprobar el modo con el tamaño de letra del navegador en escritorio (Chrome, Firefox, Safari) y en Android (Chrome, ajuste de tamaño de texto o zoom de página): que la barra pase al flujo en 320–430 con la letra grande y no al 100 % |
 | 7     | **Favicon.** No está en el diseño y «Salvia» no existe como marca gráfica. La pestaña va sin icono hasta entonces; es un hueco declarado, no un olvido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | —     | **Deuda conocida: lista de primitivos a mano.** La regla de Stylelint que prohíbe primitivos fuera de `01-settings` enumera las familias de color (`neutral`, `sage`, `accent`, `success`, `red`, más `white` y `black`) en una expresión regular. Si entra una familia nueva, hay que añadirla ahí. No se deriva de `_tokens.scss` porque exigiría un script propio; con `color-no-hex` y `color-named` activos, el riesgo es bajo                                                                                                                                                                                                                                                                                                                     |
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |

@@ -127,8 +127,8 @@ Un único anillo para todo el sistema: `color-focus-ring`, 2 px, desfase 2 px.
 Se mide contra el fondo real que lo rodea.
 
 - El radio del anillo es el del control + 4 (10 sobre `radius-sm`).
-- `outline-offset: -4px` dentro del header, en la barra inferior y en los ítems
-  del menú de cuenta.
+- `outline-offset: -4px` en lo que toca el borde de su contenedor: Nav Link
+  del header, Nav Item de la barra inferior e ítems del menú de cuenta.
 - En `UI/Time Slot` seleccionada el anillo cae sobre la superficie, no sobre el
   ámbar (6.02:1 frente a 2.09:1): el desfase positivo **no se reduce** ahí.
 - `outline`, nunca `box-shadow`: el outline sobrevive en `forced-colors`.
@@ -741,3 +741,5 @@ Se resuelve en el control y no con un aviso de página: un aviso dentro de un
 - El tachado nunca es una clase: es `text-decoration: line-through` en el
   estado que corresponde.
 - El subrayado de enlace lo da la regla base `a { text-decoration: underline }`.
+  Excepción: wordmark, Nav Link, Nav Item y Menu Item (DESIGN.md § Enlaces de
+  navegación).

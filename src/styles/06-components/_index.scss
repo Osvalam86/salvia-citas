@@ -1,7 +1,8 @@
 // Componentes c- (uno por archivo, en orden alfabético). Correspondencia 1:1
 // con src/components/*.tsx (D5), con las excepciones declaradas en D5: c-kit y
-// c-kit-bar (vistas del catálogo), c-field (FieldText y FieldSelect) y
-// c-legend-help (lo pinta Legend.tsx).
+// c-kit-bar (vistas del catálogo), c-field (FieldText y FieldSelect),
+// c-legend-help (lo pinta Legend.tsx) y c-wordmark (lo comparten los dos
+// headers).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -9,9 +10,13 @@
 @use 'c-app-layout';
 @use 'c-avatar';
 @use 'c-back-link';
+@use 'c-bottom-nav';
+@use 'c-breadcrumb';
 @use 'c-button';
 @use 'c-checkbox';
 @use 'c-field';
+@use 'c-header-desktop';
+@use 'c-header-mobile';
 @use 'c-icon';
 @use 'c-icon-button';
 @use 'c-kit';
@@ -19,8 +24,13 @@
 @use 'c-legend';
 @use 'c-legend-help';
 @use 'c-link';
+@use 'c-menu';
+@use 'c-menu-item';
+@use 'c-nav-item';
+@use 'c-nav-link';
 @use 'c-notice';
 @use 'c-radio';
 @use 'c-status-tag';
 @use 'c-step';
 @use 'c-tag';
+@use 'c-wordmark';

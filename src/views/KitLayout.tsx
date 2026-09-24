@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router'
-import AppLayout from '../components/AppLayout.tsx'
+import AppLayout, { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import BackLink from '../components/BackLink.tsx'
 
 // Demo del shell y de o-layout en el catálogo (D9). Parámetros:
@@ -62,7 +62,7 @@ export default function KitLayout() {
   return (
     <AppLayout bar={bar}>
       <div className="c-kit">
-        <h1 className="c-kit__title">
+        <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
           Layout · aside al {side === 'start' ? 'inicio' : 'final'}
         </h1>
         <p>

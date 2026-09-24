@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . && stylelint \"src/**/*.scss\"",
+    "lint": "eslint . && stylelint \"src/**/*.scss\" && node scripts/check-breakpoints.mjs",
     "preview": "vite preview",
     "contrast": "node scripts/contrast.mjs",
     "verify": "node scripts/verify/run.mjs"

@@ -9,7 +9,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
-pnpm verify 4.3   # 4.1, 4.2 o 4.3
+pnpm verify 4.4   # 4.1 a 4.4
 ```
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
@@ -29,7 +29,7 @@ no se versiona.
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
-| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` | Una sección cada uno |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` | Una sección cada uno |
 
 ## Método
 
@@ -39,6 +39,11 @@ no se versiona.
 - **Texto al 200 %:** `html { font-size: 200% }` inyectado. Equivale a la
   ampliación solo de texto del navegador porque todo el proyecto mide en rem;
   cada medida comprueba que `html` vale 32px.
+- **200 % y chrome que decide una media query.** La inyección en `html` no
+  mueve una media query: en ella, `rem` es la letra del navegador. Con la letra
+  real al 200 %, `lg` pasa a 2048 y a 1024 sale el chrome móvil. El 200 % se
+  prueba sobre el chrome que de verdad aparece: el móvil a 320, nunca el de
+  escritorio a 1024.
 - **Palabras partidas:** para cada palabra, un `Range` sobre ella; si sus
   rectángulos caen en más de una línea, está partida. «Pudiendo caber» es la
   que cabía entera en el ancho de contenido del elemento, descontados sus
@@ -53,8 +58,14 @@ no se versiona.
 
 ## Trampas encontradas
 
-- **`Page.setFontSizes` no sirve para el 200 %:** no se mantenía entre medidas
-  (4.1). De ahí la inyección en `html`.
+- **`Page.setFontSizes` y la inyección en `html` miden cosas distintas.** La
+  inyección escala el texto pero no mueve una media query en `rem`; sirve para
+  componentes. `Page.setFontSizes` es la letra del navegador y sí la mueve;
+  hace falta para el chrome real (texto grande, `lg`). En 4.1 no se mantenía
+  entre medidas: desde 4.4, cada medida comprueba la letra del `html` (16, 24
+  o 32) en ese momento.
+- **`focus()` por script centra el elemento** en Chromium. Una medida de
+  desplazamiento al enfocar (`scroll-padding`) va con Tab real (4.4).
 - **Intro no activa un `<button>`** si el `keyDown` no lleva `text: '\r'`: sin
   el carácter no hay `keypress`. Lo mismo con Espacio y las casillas (4.2).
 - **El panel del navegador integrado** no emula `forced-colors`, no hace
@@ -73,6 +84,18 @@ no se versiona.
   por abajo; tras añadir `flex-wrap` a `c-button` el contenido arranca arriba y
   se sale solo por abajo. Lo que la contraprueba prueba, que el texto se sale,
   no cambió; la expectativa se actualizó con su porqué en el script.
+
+- **Estado en `window` tras navegar:** `go` hace una navegación completa y lo
+  borra. Lo que se guarda en la página se lee después del último `go` (4.4,
+  trazado de `caret-up`). Además, `?raw` de Vite devuelve un módulo JS, no el
+  SVG.
+- **Bordes en forced-colors:** en un enlace, un borde se fuerza a `LinkText`,
+  no a `CanvasText` (4.4).
+- **`hyphens: auto` no hace nada en Edge sobre Windows**, ni con `lang`: todo
+  corte sale de `overflow-wrap: anywhere` (4.4).
+- **Selectores globales:** un elemento nuevo del shell puede capturar un
+  `querySelector` de otra sección. El salto al contenido lleva `c-button`, y 4.1
+  acota sus botones a `main`.
 
 ## Comprobaciones manuales
 

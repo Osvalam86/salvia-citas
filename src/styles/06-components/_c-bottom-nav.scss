@@ -1,0 +1,42 @@
+@use '../02-tools' as tools;
+
+// UI/Bottom Nav (Figma 180:2647). Pieza a sangre: fondo y borde a todo el
+// ancho, interior en o-wrapper. Va en c-app-layout__bar, que la mantiene al
+// pie (sticky) y suma la zona segura.
+//
+// Alto 64 con el borde dentro: los ítems suben 1px sobre el borde superior y
+// su barra lo sustituye en su tramo, como la del header.
+//
+// Con texto grande respecto al viewport la barra queda al final del flujo y
+// los destinos pasan a filas: la etiqueta dispone del ancho de la columna.
+// Sin margen negativo, porque la barra de actual pasa al lado y no sustituye
+// ningún borde.
+.c-bottom-nav {
+  background-color: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+
+  // Tres tercios iguales: minmax(0, …) para que una etiqueta larga no ensanche
+  // su columna.
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    @include tools.large-text {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__item {
+    display: flex;
+    // stylelint-disable-next-line unit-disallowed-list -- el grosor del borde de la barra, que no escala con el texto
+    margin-block-start: -1px;
+
+    @include tools.large-text {
+      margin-block-start: 0;
+    }
+  }
+
+  &__link {
+    flex: 1;
+  }
+}

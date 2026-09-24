@@ -26,8 +26,10 @@ No empieces la sección siguiente sin confirmación.
    aria-\* y atributos de formulario que la sección siguiente necesitará.
 6. **Reglas transversales que aplican**: icono y etiqueta (flex-wrap,
    base de 8rem si hay contenido fluido), iconos con color propio en
-   forced-colors, anillo global (−4 solo en header, barra inferior e
-   ítems del menú), destino de foco programático, dashed nativo.
+   forced-colors, anillo global (−4 en lo que toca el borde de su
+   contenedor), destino de foco programático, dashed nativo, texto
+   grande respecto al viewport (`tools.large-text`: toda barra del shell
+   declara cómo se ve en ese modo, medido con `Page.setFontSizes`).
 7. **Pruebas proporcionales**: tabla componente × prueba. Solo las que
    tienen riesgo real: medida contra Figma, teclado, 200 % a 320 con
    las dos barras (clásica 15 px y superpuesta), forced-colors,

@@ -1,0 +1,14 @@
+@use '../02-tools' as tools;
+
+// Wordmark «Salvia» de los dos headers (excepción declarada a D5). heading/md
+// en tinta y sin subrayado: navegación, no un enlace dentro de un texto
+// (DESIGN.md § Enlaces de navegación). border-radius sin fondo: solo para que
+// el anillo general tenga radio 10, como c-link. Tiene margen de sobra en los
+// dos headers, así que conserva el desfase general.
+.c-wordmark {
+  @include tools.text(heading-md);
+
+  color: var(--color-text-primary);
+  text-decoration-line: none;
+  border-radius: var(--radius-sm);
+}

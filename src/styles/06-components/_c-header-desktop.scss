@@ -1,0 +1,73 @@
+@use '../02-tools' as tools;
+
+// UI/Header/Desktop (Figma 127:4170). Desde lg, así que no hay tramo que
+// resolver: el header entero está en rem y cabe en unos 46rem. Con la letra
+// del navegador al 200 % lg pasa a 2048 y aquí sale el header móvil (D7).
+//
+// Alto 82 con el borde dentro, como en Figma (trazo INSIDE): las acciones
+// llevan 16 arriba y 15 abajo alrededor del control de 50, más el borde de 1.
+// Los enlaces ocupan todo el alto y bajan 1px sobre el borde: su barra lo
+// sustituye en su tramo.
+.c-header-desktop {
+  background-color: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+
+  &__inner {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+  }
+
+  &__brand {
+    display: flex;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  &__nav {
+    display: flex;
+    align-self: stretch;
+  }
+
+  &__links {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  &__item {
+    display: flex;
+  }
+
+  &__link {
+    // stylelint-disable-next-line unit-disallowed-list -- el grosor del borde del header, que no escala con el texto
+    margin-block-end: -1px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: var(--space-4) calc(var(--space-4) - 1px);
+  }
+
+  // Grupo del disclosure: disparador y panel (useDisclosure).
+  &__account {
+    position: relative;
+  }
+
+  // Panel alineado a la derecha del disparador y 4 por debajo (pantalla 04.7).
+  // z-index 1: el panel tapa el contenido de la página, que va después.
+  &__menu {
+    position: absolute;
+    inset-block-start: calc(100% + var(--space-1));
+    inset-inline-end: 0;
+    z-index: 1;
+  }
+}
+
+// Los enlaces tocan los bordes del header: anillo hacia dentro (DESIGN.md
+// § Constantes). Fuera del bloque: Stylelint resuelve mal «&__x:pseudo».
+.c-header-desktop__link:focus-visible {
+  @include tools.focus-ring(-4px);
+}

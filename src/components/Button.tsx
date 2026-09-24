@@ -1,4 +1,4 @@
-import type { AriaAttributes, MouseEventHandler, ReactNode } from 'react'
+import type { AriaAttributes, MouseEventHandler, ReactNode, Ref } from 'react'
 import { Link as RouterLink } from 'react-router'
 import Icon from './Icon.tsx'
 import type { IconName } from './iconNames.ts'
@@ -31,11 +31,14 @@ type AsButton = BaseProps & {
   /** Con aria-expanded: el id del panel que abre (menú de cuenta, 4.4). */
   'aria-controls'?: string
   'aria-pressed'?: AriaAttributes['aria-pressed']
+  /** Para devolverle el foco por script (Escape en el menú de cuenta). */
+  ref?: Ref<HTMLButtonElement>
 }
 
 type LinkOnly = {
   type?: never
   onClick?: never
+  ref?: never
   'aria-haspopup'?: never
   'aria-expanded'?: never
   'aria-controls'?: never
@@ -60,7 +63,7 @@ export type ButtonProps = AsButton | AsLink | AsDownload
 
 // UI/Button: una sola clase c-button para las tres formas.
 export default function Button(props: ButtonProps) {
-  const { variant = 'primary', leadingIcon, trailingIcon, className, children } = props
+  const { variant = 'primary', leadingIcon, trailingIcon, className, children, ref } = props
   const classes = ['c-button', variant !== 'primary' && `c-button--${variant}`, className]
     .filter(Boolean)
     .join(' ')
@@ -76,6 +79,7 @@ export default function Button(props: ButtonProps) {
   if (props.href === undefined) {
     return (
       <button
+        ref={ref}
         type={props.type ?? 'button'}
         className={classes}
         onClick={props.onClick}

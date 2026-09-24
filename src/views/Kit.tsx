@@ -1,8 +1,9 @@
 import { useId, useState } from 'react'
 import calendarBlankUrl from '../assets/icons/calendar-blank.svg'
-import AppLayout from '../components/AppLayout.tsx'
+import AppLayout, { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import Avatar from '../components/Avatar.tsx'
 import BackLink from '../components/BackLink.tsx'
+import Breadcrumb from '../components/Breadcrumb.tsx'
 import Button, { type ButtonProps } from '../components/Button.tsx'
 import Checkbox from '../components/Checkbox.tsx'
 import FieldSelect from '../components/FieldSelect.tsx'
@@ -11,11 +12,16 @@ import Icon from '../components/Icon.tsx'
 import IconButton from '../components/IconButton.tsx'
 import Legend from '../components/Legend.tsx'
 import Link from '../components/Link.tsx'
+import Menu from '../components/Menu.tsx'
+import MenuItem from '../components/MenuItem.tsx'
+import NavItem from '../components/NavItem.tsx'
+import NavLink from '../components/NavLink.tsx'
 import Radio from '../components/Radio.tsx'
 import Notice from '../components/Notice.tsx'
 import StatusTag from '../components/StatusTag.tsx'
 import Step from '../components/Step.tsx'
 import Tag from '../components/Tag.tsx'
+import { PATHS } from '../components/destinations.ts'
 import { ICON_NAMES } from '../components/iconNames.ts'
 
 // Catálogo del sistema (D9): va también en producción. Crece con cada fase;
@@ -215,11 +221,81 @@ function NoticeDemos() {
   )
 }
 
+// Piezas sueltas de la navegación. Los headers y la barra inferior se ven en
+// su sitio, con el chrome real, en /kit/navegacion.
+function NavDemos() {
+  const menuId = useId()
+
+  return (
+    <>
+      <h3 className="c-kit__subheading">Breadcrumb</h3>
+      <div className="o-stack o-stack--gap-2">
+        <p className="c-kit__meta">Levels=3</p>
+        <Breadcrumb
+          levels={[
+            { label: 'Especialistas', href: PATHS.especialistas },
+            { label: 'Dra. Ruiz', href: '/especialistas/elena-ruiz-arellano' },
+          ]}
+          current="Tus datos"
+        />
+        <p className="c-kit__meta">Levels=2</p>
+        <Breadcrumb levels={[{ label: 'Especialistas', href: PATHS.especialistas }]} current="Dra. Ruiz" />
+      </div>
+
+      <h3 className="c-kit__subheading">Nav Link</h3>
+      <p>Sueltos miden 48; en el header ocupan todo su alto.</p>
+      <ul className="o-cluster o-cluster--gap-2 o-cluster--align-center" role="list">
+        <li>
+          <NavLink href={PATHS.especialistas} current>
+            Especialistas
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={PATHS.misCitas}>Mis citas</NavLink>
+        </li>
+      </ul>
+
+      <h3 className="c-kit__subheading">Nav Item</h3>
+      <ul className="o-cluster o-cluster--gap-2 o-cluster--align-start" role="list">
+        <li>
+          <NavItem href={PATHS.especialistas} icon="magnifying-glass" current>
+            Especialistas
+          </NavItem>
+        </li>
+        <li>
+          <NavItem href={PATHS.misCitas} icon="calendar-check">
+            Mis citas
+          </NavItem>
+        </li>
+      </ul>
+
+      <h3 className="c-kit__subheading">Menu y Menu Item</h3>
+      <p>Panel abierto, fuera de su disparador. El comportamiento, en el header de la demo.</p>
+      <Menu id={menuId} open onSelect={() => {}} className="c-kit__menu">
+        <MenuItem href={PATHS.fueraDeAlcance}>Cuenta</MenuItem>
+        <MenuItem onSelect={() => {}}>Cerrar sesión</MenuItem>
+      </Menu>
+
+      <h3 className="c-kit__subheading">Headers y Bottom Nav</h3>
+      <ul className="o-stack o-stack--gap-2" role="list">
+        <li>
+          <Link href="/kit/navegacion?sesion=iniciada&actual=especialistas">Chrome real, sesión iniciada</Link>
+        </li>
+        <li>
+          <Link href="/kit/navegacion?sesion=invitado&actual=especialistas">Chrome real, invitado</Link>
+        </li>
+      </ul>
+    </>
+  )
+}
+
 export default function Kit() {
   return (
     <AppLayout>
       <div className="c-kit">
-        <h1 className="c-kit__title">Kit del sistema</h1>
+        <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
+          Kit del sistema
+        </h1>
 
         <section className="c-kit__section" aria-labelledby="kit-tipografia">
           <h2 className="c-kit__heading" id="kit-tipografia">
@@ -399,6 +475,13 @@ export default function Kit() {
           </h2>
           <p>Estados reales: hover, foco y error con aria-invalid. La validación es al enviar.</p>
           <FormDemos />
+        </section>
+
+        <section className="c-kit__section" aria-labelledby="kit-navegacion">
+          <h2 className="c-kit__heading" id="kit-navegacion">
+            Navegación
+          </h2>
+          <NavDemos />
         </section>
 
         <section className="c-kit__section" aria-labelledby="kit-layout">

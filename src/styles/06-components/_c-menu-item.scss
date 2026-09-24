@@ -1,0 +1,31 @@
+@use '../02-tools' as tools;
+
+// UI/Menu Item (Figma 284:7265). Una sola clase para <a> y <button>. Fila de
+// 48 por construcción (12 + interlineado 24 + 12) a todo el ancho del panel:
+// toda la fila es área de clic. body/md en tinta y sin subrayado: navegación
+// (DESIGN.md § Enlaces de navegación). Nunca en rojo.
+//
+// Anillo hacia dentro (desfase −4) y sin radio: el ítem toca los bordes del
+// panel. El outline sale recto (Figma: inset 2, 236 × 44, trazo 2, radio 0).
+.c-menu-item {
+  @include tools.text(body-md);
+
+  --_bg: transparent;
+
+  display: flex;
+  inline-size: 100%;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-primary);
+  text-align: start;
+  text-decoration-line: none;
+  background-color: var(--_bg);
+  border: 0;
+
+  @include tools.hover {
+    --_bg: var(--color-action-subtle);
+  }
+
+  &:focus-visible {
+    @include tools.focus-ring(-4px);
+  }
+}

@@ -1,4 +1,10 @@
-import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, type MouseEvent, type ReactNode } from 'react'
+
+/**
+ * Destino del salto al contenido: el h1 de cada vista lleva este id y
+ * tabIndex={-1}, el mismo destino que recibe el foco al cambiar de ruta (D12).
+ */
+export const MAIN_TITLE_ID = 'contenido'
 
 type AppLayoutProps = {
   /** Header de la vista (móvil o escritorio). */
@@ -6,6 +12,15 @@ type AppLayoutProps = {
   /** Barra inferior: Bottom Nav, Booking Bar o Action Bar. Por D7, solo bajo lg. */
   bar?: ReactNode
   children: ReactNode
+}
+
+// Salto al contenido (2.4.1) sin entrada de historial: el foco va al h1 por
+// script. Sin JS, o sin destino, funciona como ancla nativa.
+function skipToContent(event: MouseEvent<HTMLAnchorElement>) {
+  const target = document.getElementById(MAIN_TITLE_ID)
+  if (!target) return
+  event.preventDefault()
+  target.focus()
 }
 
 // Shell de la app (c-app-layout). Cada vista lo compone con el chrome que le
@@ -34,6 +49,13 @@ export default function AppLayout({ header, bar, children }: AppLayoutProps) {
 
   return (
     <div className="c-app-layout">
+      <a
+        href={`#${MAIN_TITLE_ID}`}
+        className="c-button c-button--secondary c-app-layout__skip"
+        onClick={skipToContent}
+      >
+        Saltar al contenido
+      </a>
       {header}
       <main className="c-app-layout__main">
         <div className="o-wrapper o-stack o-stack--gap-6">{children}</div>

@@ -36,6 +36,13 @@
     inline-size: 100%;
   }
 
+  // Panel del menú suelto, fuera de su header: en el catálogo no puede pasar
+  // de la columna (a 320 con texto al 200 %, sus 15rem son 480). En el header
+  // no hace falta: solo existe desde lg, donde siempre cabe.
+  &__menu {
+    max-inline-size: 100%;
+  }
+
   &__specimens {
     display: flex;
     flex-direction: column;

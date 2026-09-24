@@ -1,0 +1,109 @@
+@use '../02-tools' as tools;
+
+// UI/Nav Item (Figma 180:2598). Alto 64 por construcción: 8 + icono 24 + 4 +
+// interlineado 20 + 8. Sin subrayado: navegación (DESIGN.md § Enlaces de
+// navegación). El icono hereda currentColor: mismo rol que la etiqueta, y en
+// forced-colors sigue al texto sin override.
+//
+// Padding lateral 0, desviación declarada de Figma (8): en la barra el ítem
+// llena su tercio y el texto va centrado, así que el padding lateral solo
+// cuenta cuando la etiqueta no cabe. Con 8, «Especialistas» parte por debajo
+// de 348px (a 320 al 100 %); con 0, cabe desde 300 (medido).
+//
+// Actual: cuatro señales (label, tinta en etiqueta e icono, barra superior de
+// 2 color-action) más aria-current. Hover no actual: tinta y barra
+// color-border; hover actual: barra color-action-hover.
+//
+// La barra es un borde en un ::before superpuesto, por lo mismo que en
+// c-nav-link: sobrevive a forced-colors y en reposo su estilo es none.
+//
+// Anillo hacia dentro (desfase −4) y sin radio: el ítem toca los bordes de la
+// barra. El outline sale recto (Figma: inset 2, trazo 2, radio 0).
+//
+// caption y label solo difieren en el peso: variables locales en vez de
+// tools.text(), para que el estado actual solo cambie variables (como c-step).
+//
+// Texto grande respecto al viewport (DESIGN.md): la barra queda en el flujo y
+// el ítem es una fila, como la de Menu Item (12 + icono 24 + 12 = 48), con 16
+// solo al inicio, donde va la barra de actual, y 0 al final: con 16 a los dos
+// lados, a 320 con la letra al 200 % y barra clásica el interior mide 177 y
+// «Especialistas» (178) partía. La barra pasa al lado de inicio: en una lista
+// vertical, un borde superior en una fila intermedia se lee como separador.
+// Anillo general: la fila ya no toca los bordes de una barra fija.
+.c-nav-item {
+  --_weight: var(--text-caption-weight);
+  --_fg: var(--color-text-secondary);
+  --_bar: var(--color-border);
+  --_bar-hover: var(--color-border);
+  --_bar-style: none;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  padding-block: var(--space-2);
+  font-family: var(--text-caption-family);
+  font-size: var(--text-caption-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-caption-line-height);
+  color: var(--_fg);
+  text-align: center;
+  letter-spacing: var(--text-caption-tracking);
+  text-decoration-line: none;
+
+  &::before {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    content: '';
+    border-block-start: 2px var(--_bar-style) var(--_bar);
+  }
+
+  &:focus-visible {
+    @include tools.focus-ring(-4px);
+  }
+
+  &[aria-current='page'] {
+    --_weight: var(--text-label-weight);
+    --_fg: var(--color-text-primary);
+    --_bar: var(--color-action);
+    --_bar-hover: var(--color-action-hover);
+    --_bar-style: solid;
+  }
+
+  // Después del actual, con la misma especificidad: el hover de la actual
+  // toma su --_bar-hover (color-action-hover).
+  @include tools.hover {
+    --_fg: var(--color-text-primary);
+    --_bar: var(--_bar-hover);
+    --_bar-style: solid;
+  }
+
+  // flex-wrap: el icono baja de línea antes de que la etiqueta parta
+  // (DESIGN.md § Controles con icono y etiqueta).
+  @include tools.large-text {
+    flex-flow: row wrap;
+    gap: var(--space-2);
+    padding: var(--space-3) 0 var(--space-3) var(--space-4);
+    text-align: start;
+
+    &::before {
+      inset-block: 0;
+      inset-inline-end: auto;
+      border-block-start: 0;
+      border-inline-start: 2px var(--_bar-style) var(--_bar);
+    }
+
+    &:focus-visible {
+      outline-offset: 2px;
+    }
+  }
+
+  // Última defensa si una etiqueta no cabe en su tercio (300–315px con barra
+  // de scroll clásica): guion por sílabas (lang es-MX) en lugar del corte de
+  // overflow-wrap: anywhere. Sin efecto en Edge sobre Windows (medido).
+  &__label {
+    hyphens: auto;
+  }
+}
