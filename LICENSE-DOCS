@@ -29,8 +29,8 @@ FUERA DE AMBAS LICENCIAS
   - Tipografías Fraunces e Inter: SIL Open Font License 1.1, distribuidas
     mediante los paquetes de Fontsource.
   - Iconos Phosphor (src/assets/icons/): MIT, (c) Phosphor Icons.
-  - Fotografías de avatar (src/assets/avatars/): obtenidas de UI Faces,
-    sujetas a sus términos. No se relicencian aquí.
+  - Fotografías de avatar (src/assets/avatars/): rostros generados con IA
+    (Gemini) por Osvaldo Ocampo. Excluidas de MIT y de CC BY 4.0.
 
 =======================================================================
 

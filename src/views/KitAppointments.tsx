@@ -8,7 +8,8 @@ import Notice from '../components/Notice.tsx'
 // Catálogo de 4.7 Citas y diálogos (D9). Página propia, como /kit/resultados:
 // sus botones, etiquetas y avatares no entran en las medidas de /kit.
 //
-// Datos: las cinco citas de Karla (diseño §6) con la copia de las instancias
+// Datos: las cinco citas de Karla (diseño §6), con los ids del almacén (c1–c5,
+// D13) para que «Reprogramar» llegue a la ruta real, y la copia de las instancias
 // de Figma 04.2 y 04.5, sin fotos (su origen está pendiente, DESIGN.md). La
 // estructura es la de Mis citas: una sección por grupo, con h2 y una lista, y
 // un solo diálogo para toda la página. El almacén real (D13) llega con la
@@ -39,7 +40,7 @@ const PENDING_NOTE = 'El consultorio confirma en menos de 24 horas. Te avisaremo
 
 const APPOINTMENTS: Appointment[] = [
   {
-    id: 'ruiz-2029-04-24',
+    id: 'c1',
     status: 'confirmed',
     when: 'Martes 24 de abril · 10:30',
     dateTime: '2029-04-24T10:30',
@@ -54,7 +55,7 @@ const APPOINTMENTS: Appointment[] = [
     },
   },
   {
-    id: 'molina-2029-05-08',
+    id: 'c2',
     status: 'pending',
     when: 'Martes 8 de mayo · 17:00',
     dateTime: '2029-05-08T17:00',
@@ -69,7 +70,7 @@ const APPOINTMENTS: Appointment[] = [
     },
   },
   {
-    id: 'cortes-2029-05-16',
+    id: 'c3',
     status: 'confirmed',
     when: 'Miércoles 16 de mayo · 09:30',
     dateTime: '2029-05-16T09:30',
@@ -84,7 +85,7 @@ const APPOINTMENTS: Appointment[] = [
     },
   },
   {
-    id: 'ibarra-2029-03-12',
+    id: 'c4',
     status: 'past',
     when: 'Lunes 12 de marzo · 09:00',
     dateTime: '2029-03-12T09:00',
@@ -95,7 +96,7 @@ const APPOINTMENTS: Appointment[] = [
     profileHref: '/especialistas/tomas-ibarra-solis',
   },
   {
-    id: 'serrano-2029-02-22',
+    id: 'c5',
     status: 'cancelled',
     when: 'Jueves 22 de febrero · 12:30',
     dateTime: '2029-02-22T12:30',

@@ -783,6 +783,12 @@ Fotos de avatar: rostros generados por IA, sin bata, fondo neutro, encuadre de
 cabeza y hombros, luz homogénea. Con foto: Mariana, Ruiz y Rodrigo (Figma);
 el resto, con inicial.
 
+**Clínicas.** «Clínica Doctores» y «Clínica Pedregal» sustituyen en Figma y en
+los datos a «Centro Médico Nacional» y «Hospital Ángeles Pedregal» (12 textos
+de 01.1, 01.5, 01.8 y 01.9): ningún médico ficticio en una institución real.
+Las direcciones de los datos son ficticias, salvo Roma Norte y Polanco, que
+salen de Figma.
+
 ---
 
 ## 7 · Las tres piezas que no tienen frame en Figma

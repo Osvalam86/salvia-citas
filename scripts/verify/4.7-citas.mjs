@@ -121,7 +121,7 @@ export default async function run(b, expect) {
     ],
     secundarias: true,
     popup: ['dialog button', 'dialog button', 'dialog button'],
-    destinos: ['/mis-citas/ruiz-2029-04-24/reprogramar', '/mis-citas/cortes-2029-05-16/reprogramar', '/especialistas/tomas-ibarra-solis', '/especialistas/paula-serrano-vidal'],
+    destinos: ['/mis-citas/c1/reprogramar', '/mis-citas/c3/reprogramar','/especialistas/tomas-ibarra-solis', '/especialistas/paula-serrano-vidal'],
   })
   expect('avatar decorativo y nota solo en Pending', await b.ev(`${cards}.map((li) => li.querySelector('.c-avatar').getAttribute('aria-hidden') + ' ' + Boolean(li.querySelector('.c-appointment-card__note')))`), ['true false', 'true true', 'true false', 'true false', 'true false'])
   expect('fecha: heading-sm con cifras tabulares; Cancelled en secundario y tachada', await b.ev(`${cards}.map((li) => { const s = getComputedStyle(li.querySelector('h3')); return s.fontSize + ' ' + s.fontVariantNumeric + ' ' + s.color + ' ' + s.textDecorationLine })`), [
@@ -242,13 +242,13 @@ export default async function run(b, expect) {
   expect('foco tras la navegación en cliente: el h1 de la vista', await b.ev(focused), 'H1#contenido')
   // «Reprogramar» llega a la ruta de la fase 5 (provisional desde T1).
   await clickOn(action(2, 0))
-  await waitFor('/mis-citas/cortes-2029-05-16/reprogramar')
+  await waitFor('/mis-citas/c3/reprogramar')
   expect('clic real: /kit → /kit/citas y «Reprogramar» de Cortés, sin carga completa; el foco va al h1 de la reprogramación', {
     llegada: arrival,
     reprogramar: await b.ev(`({ ruta: location.pathname, sinRecarga: window.__verifyMark === true, h1: document.querySelector('h1').textContent, foco: ${focused} })`),
   }, {
     llegada: { ruta: PAGE, sinRecarga: true, tarjetas: 5 },
-    reprogramar: { ruta: '/mis-citas/cortes-2029-05-16/reprogramar', sinRecarga: true, h1: 'Reprogramar cita', foco: 'H1#contenido' },
+    reprogramar: { ruta: '/mis-citas/c3/reprogramar', sinRecarga: true, h1: 'Dr. Iván Cortés Naranjo', foco: 'H1#contenido' },
   })
 
   // === Bloque B · Dialog y flujo de cancelar ===========================================================

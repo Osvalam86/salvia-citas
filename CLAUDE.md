@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0 y T1 hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1 y T2 hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -18,7 +18,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 
 - 4.1 Acciones: `Icon` (19 SVG en `src/assets/icons/`), `Button`,
   `IconButton`, `Link`, `BackLink`.
-- 4.2 Identidad y estado: `Avatar` (solo inicial; fotos pendientes),
+- 4.2 Identidad y estado: `Avatar` (inicial y foto; fotos en `src/data/photos.ts`),
   `Tag`, `StatusTag`, `Step`, `Notice`.
 - 4.3 Formulario: `FieldText`, `FieldSelect`, `Checkbox`, `Radio`, `Legend`.
 - 4.4 Navegación: `HeaderDesktop`, `HeaderMobile`, `Wordmark`, `Breadcrumb`,
@@ -48,20 +48,24 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `PageHeader` (`c-page-header`), `useRouteFocus` (D12), títulos (D15, también
   en `/kit`), `NavLink` con `current: 'page' | 'section'`, `pnpm verify 5.0`
   y el modo `--preview`.
+- Fase 5 · T2: datos en `src/data/` (47 especialistas, disponibilidad con
+  semilla, búsqueda, almacén de citas con ids c1–c5, escenarios, Motivo,
+  fotos), `scripts/check-data.mjs` (en `pnpm lint`, con `--contrapruebas`),
+  guardas de D1 con `replace` y 404 por `RouteError`, `/kit/estados`.
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (datos, guardas y 404, escenarios, fotos) → V1a → V1b →
+T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a → V1b →
 V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos
 
-Gestor: **pnpm** (≥11, Node ≥20), también en comprobaciones temporales.
+Gestor: **pnpm** (≥11, Node ≥22.18), también en comprobaciones temporales.
 
 ```bash
 pnpm dev        # servidor de desarrollo Vite
 pnpm build      # tsc -b && vite build (el typecheck va dentro del build)
-pnpm lint       # eslint . && stylelint "src/**/*.scss"
+pnpm lint       # eslint, stylelint, breakpoints y check-data (aserciones de D4)
 pnpm contrast   # reproduce los 31 pares de F.3 desde el SCSS compilado
 pnpm verify 4.3 # verifica una sección contra su informe (con pnpm dev; docs/verificacion.md)
 pnpm verify 5.0 --preview # flujos de foco contra pnpm build && pnpm preview
@@ -117,6 +121,9 @@ No hay test runner configurado.
 
 ## Cómo trabajamos
 
+- Nunca `Get-Content` ni `Set-Content` para leer o escribir archivos del repo
+  (mojibake en UTF-8 sin BOM, docs/verificacion.md). Solo la herramienta de
+  edición o Node.
 - **Paso a paso, con confirmación explícita antes de avanzar.** No encadenes
   fases sin confirmación del usuario.
 - En fases largas, un commit por bloque cerrado y verificado.

@@ -515,6 +515,16 @@ export default function Kit() {
           </p>
         </section>
 
+        <section className="c-kit__section" aria-labelledby="kit-estados">
+          <h2 className="c-kit__heading" id="kit-estados">
+            Estados de demo
+          </h2>
+          <p>Un enlace a cada estado de las 32 pantallas, con los escenarios de D8.</p>
+          <p>
+            <Link href="/kit/estados">Ver estados de demo</Link>
+          </p>
+        </section>
+
         <section className="c-kit__section" aria-labelledby="kit-layout">
           <h2 className="c-kit__heading" id="kit-layout">
             Layout

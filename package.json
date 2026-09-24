@@ -5,13 +5,13 @@
   "type": "module",
   "packageManager": "pnpm@11.21.0",
   "engines": {
-    "node": ">=20",
+    "node": ">=22.18",
     "pnpm": ">=11"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . && stylelint \"src/**/*.scss\" && node scripts/check-breakpoints.mjs",
+    "lint": "eslint . && stylelint \"src/**/*.scss\" && node scripts/check-breakpoints.mjs && node scripts/check-data.mjs",
     "preview": "vite preview",
     "contrast": "node scripts/contrast.mjs",
     "verify": "node scripts/verify/run.mjs"

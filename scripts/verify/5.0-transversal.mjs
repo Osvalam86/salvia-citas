@@ -1,21 +1,27 @@
 // 5.0 Transversal (T1): las rutas de D1 con su h1, su título (D15) y su
 // chrome; el foco de ruta (D12, useRouteFocus) en PUSH, POP, cambio solo de
 // search, carga inicial y location.state.focus; la página genérica y el 404.
+// T2: guardas de D1 (404 lanzado, redirecciones con replace y Atrás), los
+// enlaces de /kit/estados, las fotos de avatar y check-data --contrapruebas.
 // `previewFlows` repite los flujos de foco contra pnpm preview (sin
 // StrictMode): pnpm verify 5.0 --preview.
+import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { clientNavigation } from './navegacion.mjs'
 
 const RUIZ = '/especialistas/elena-ruiz-arellano'
+const AVATARS = 'src/assets/avatars'
 const ROUTES = [
   ['/', 'Encuentra a tu especialista', 'Especialistas · Salvia', ['Especialistas', 'page'], 'Especialistas'],
-  [RUIZ, 'Perfil del especialista', 'Perfil del especialista · Salvia', ['Especialistas', 'true'], null],
-  [`${RUIZ}/confirmar`, 'Confirma tu cita', 'Confirma tu cita · Salvia', ['Especialistas', 'true'], null],
-  [`${RUIZ}/datos`, 'Tus datos', 'Tus datos · Salvia', ['Especialistas', 'true'], null],
-  ['/citas/ruiz-2029-04-24/confirmada', 'Tu cita está reservada', 'Cita reservada · Salvia', ['Especialistas', 'true'], null],
+  [RUIZ, 'Dra. Elena Ruiz Arellano', 'Dra. Elena Ruiz Arellano · Salvia', ['Especialistas', 'true'], null],
+  [`${RUIZ}/confirmar?fecha=2029-04-24&hora=10:30`, 'Confirma tu cita', 'Confirma tu cita · Salvia', ['Especialistas', 'true'], null],
+  [`${RUIZ}/datos?fecha=2029-04-24&hora=10:30`, 'Tus datos', 'Tus datos · Salvia', ['Especialistas', 'true'], null],
+  ['/citas/c1/confirmada', 'Tu cita está reservada', 'Cita reservada · Salvia', ['Especialistas', 'true'], null],
   ['/mis-citas', 'Mis citas', 'Mis citas · Salvia', ['Mis citas', 'page'], 'Mis citas'],
-  ['/mis-citas/cortes-2029-05-16/reprogramar', 'Reprogramar cita', 'Reprogramar cita · Salvia', ['Mis citas', 'true'], null],
+  ['/mis-citas/c3/reprogramar', 'Dr. Iván Cortés Naranjo', 'Reprogramar cita · Dr. Iván Cortés Naranjo · Salvia', ['Mis citas', 'true'], null],
   ['/fuera-de-alcance', 'Esta sección no forma parte del caso de estudio', 'Fuera del caso de estudio · Salvia', null, ''],
   ['/no-existe', 'No encontramos esta página', 'No encontramos esta página · Salvia', null, ''],
 ]
@@ -93,11 +99,51 @@ async function titlesAfterClientNav(b, expect) {
   expect('document.title tras navegar en cliente (/mis-citas → / → Atrás)', seen, ['Mis citas · Salvia', 'Especialistas · Salvia', 'Mis citas · Salvia'])
 }
 
+// Carga completa que acepta una redirección de la guarda: espera a que el
+// documento nuevo (su entrada de navegación es la URL pedida) tenga su h1.
+const land = async (b, url) => {
+  await b.send('Page.navigate', { url: new URL(url, await b.ev('location.origin')).href })
+  for (let i = 0; i < 100; i++) {
+    await sleep(100)
+    const ready = await b.ev(`(() => { const n = performance.getEntriesByType('navigation')[0]; return Boolean(n && decodeURIComponent(n.name).endsWith(${JSON.stringify(url)}) && document.readyState === 'complete' && document.querySelector('main h1')) })()`).catch(() => false)
+    if (ready) break
+  }
+  await sleep(300)
+  return b.ev("({ ruta: location.pathname + location.search, h1: document.querySelector('main h1').textContent, idx: history.state?.idx })")
+}
+
+// Navegación en cliente sin enlace: React Router atiende el popstate como un
+// POP y pasa por las guardas (redirección o 404) y por el foco de ruta.
+const clientGo = async (b, path) => {
+  await b.ev(`(history.pushState({ usr: null, key: 'verify', idx: (history.state?.idx ?? 0) + 1 }, '', ${JSON.stringify(path)}), dispatchEvent(new PopStateEvent('popstate', { state: history.state })), true)`)
+  await sleep(600)
+  return b.ev(`({ ruta: location.pathname + location.search, h1: document.querySelector('main h1').textContent, foco: ${focused} })`)
+}
+
+// Guardas en una navegación en cliente: el foco va al h1 del destino final.
+async function guardFocus(b, expect) {
+  await b.metrics(1280, 900, 1)
+  await b.go('/kit/estados')
+  const redirected = await clientGo(b, `${RUIZ}/datos`)
+  // Atrás tras la redirección: vuelve a /kit/estados, no a /datos (que
+  // redirigiría otra vez). Con redirect en vez de replace, la redirección
+  // añade una entrada y Atrás cae en /datos (D1, medido en T2).
+  await back(b, '/kit/estados')
+  expect('Atrás tras una redirección de la guarda: vuelve a la página anterior, no a la URL que redirige', await b.ev('location.pathname'), '/kit/estados')
+  await b.go('/kit/estados')
+  const missing = await clientGo(b, '/especialistas/no-existe')
+  expect('guardas en navegación en cliente: la redirección y el 404 llevan el foco al h1 del destino', { redireccion: redirected, noExiste: missing }, {
+    redireccion: { ruta: RUIZ, h1: 'Dra. Elena Ruiz Arellano', foco: 'H1#contenido' },
+    noExiste: { ruta: '/especialistas/no-existe', h1: 'No encontramos esta página', foco: 'H1#contenido' },
+  })
+}
+
 export async function previewFlows(b, expect) {
   await pushByClick(b, expect)
   await pop(b, expect)
   await focusState(b, expect)
   await titlesAfterClientNav(b, expect)
+  await guardFocus(b, expect)
 }
 
 export default async function run(b, expect) {
@@ -236,6 +282,82 @@ export default async function run(b, expect) {
     'superpuesta /fuera-de-alcance': zoomOk(256),
     'superpuesta /no-existe': zoomOk(256, ['encontramos']),
   })
+
+  // --- T2: guardas de D1 y 404 lanzado desde la guarda ------------------------------------------------------------
+  // En carga completa: la redirección sustituye (idx 0, sin entrada nueva).
+  await b.metrics(1280, 900, 1)
+  const guards = {}
+  for (const path of [
+    '/especialistas/no-existe',
+    '/especialistas/no-existe/datos',
+    `${RUIZ}/datos`,
+    `${RUIZ}/confirmar?fecha=2029-04-24&hora=09:00`,
+    '/citas/c9/confirmada',
+    '/mis-citas/c2/reprogramar',
+    '/mis-citas/c9/reprogramar',
+  ]) {
+    guards[path] = await land(b, path)
+  }
+  const notFound = (ruta) => ({ ruta, h1: 'No encontramos esta página', idx: 0 })
+  expect('guardas (D1): slug o id desconocidos → 404 en su URL; sin hora libre → a la reserva con los mismos parámetros; cita no Confirmada → Mis citas', guards, {
+    '/especialistas/no-existe': notFound('/especialistas/no-existe'),
+    '/especialistas/no-existe/datos': notFound('/especialistas/no-existe/datos'),
+    [`${RUIZ}/datos`]: { ruta: RUIZ, h1: 'Dra. Elena Ruiz Arellano', idx: 0 },
+    [`${RUIZ}/confirmar?fecha=2029-04-24&hora=09:00`]: { ruta: `${RUIZ}?fecha=2029-04-24&hora=09:00`, h1: 'Dra. Elena Ruiz Arellano', idx: 0 },
+    '/citas/c9/confirmada': notFound('/citas/c9/confirmada'),
+    '/mis-citas/c2/reprogramar': { ruta: '/mis-citas', h1: 'Mis citas', idx: 0 },
+    '/mis-citas/c9/reprogramar': notFound('/mis-citas/c9/reprogramar'),
+  })
+  // Contraprueba de cada guarda: su caso válido pasa (tabla de rutas, arriba:
+  // /confirmar y /datos con las 10:30 del 24, /citas/c1 y /mis-citas/c3).
+  await b.go('/especialistas/no-existe')
+  expect('404 lanzado por la guarda: título de D15 y chrome sin pestaña actual', await b.ev("({ title: document.title, actual: document.querySelector('.c-header-desktop [aria-current]') })"), { title: 'No encontramos esta página · Salvia', actual: null })
+
+  await guardFocus(b, expect)
+
+  // --- T2: /kit/estados -------------------------------------------------------------------------------------------
+  await b.go('/kit/estados')
+  const stateLinks = await b.ev("[...document.querySelectorAll('main .c-kit__section a')].map((a) => a.getAttribute('href'))")
+  const landed = {}
+  for (const href of stateLinks) landed[href] = (await land(b, decodeURIComponent(href))).h1
+  expect(
+    `/kit/estados: los ${stateLinks.length} enlaces llegan a su vista (solo /no-existe al 404)`,
+    Object.entries(landed).filter(([, h1]) => h1 === 'No encontramos esta página').map(([href]) => href),
+    ['/no-existe'],
+  )
+
+  // --- T2: fotos de avatar ------------------------------------------------------------------------------------------
+  // WebP simple (RIFF, WEBP y un único trozo VP8: sin EXIF, XMP ni ICCP) y
+  // tamaño leído de la cabecera del fotograma VP8.
+  const webp = {}
+  for (const file of fs.readdirSync(AVATARS).sort()) {
+    const buffer = fs.readFileSync(path.join(AVATARS, file))
+    const chunks = []
+    for (let offset = 12; offset + 8 <= buffer.length; offset += 8 + buffer.readUInt32LE(offset + 4) + (buffer.readUInt32LE(offset + 4) % 2)) chunks.push(buffer.toString('ascii', offset, offset + 4))
+    webp[file] = `${buffer.readUInt16LE(26) & 0x3fff}×${buffer.readUInt16LE(28) & 0x3fff} ${chunks.join(' ')}`
+  }
+  expect('fotos: 6 WebP (96 y 192 por persona), cuadradas y sin metadatos (solo el trozo VP8)', webp, Object.fromEntries(
+    ['elena-ruiz-arellano', 'mariana-cifuentes-poza', 'rodrigo-alcantara-vela'].flatMap((slug) => [[`${slug}-192.webp`, '192×192 VP8 '], [`${slug}-96.webp`, '96×96 VP8 ']]),
+  ))
+  const photoState = "[...document.querySelectorAll('#estados-fotos-lista img')].map((i) => i.width + ' ' + i.currentSrc.split('/').pop().replace(/-[\\w]{8}\\.webp$/, '.webp').replace(/\\?.*$/, '') + ' ' + (i.complete && i.naturalWidth > 0))"
+  const photos = {}
+  for (const scale of [1, 2]) {
+    await b.metrics(1280, 900, scale)
+    await b.go('/kit/estados')
+    await b.ev("Promise.all([...document.querySelectorAll('#estados-fotos-lista img')].map((i) => i.decode().catch(() => null))).then(() => true)")
+    photos[`${scale}x`] = await b.ev(photoState)
+    await b.shot(`fotos-${scale}x.png`, await b.rect("document.getElementById('estados-fotos-lista')", 8))
+  }
+  await b.metrics(1280, 900, 1)
+  expect('fotos en /kit/estados: Small (48) y Medium (64) cargadas; el srcset elige 96 en 1x y 192 en 2x para Medium', photos, {
+    '1x': ['48 mariana-cifuentes-poza-96.webp true', '64 mariana-cifuentes-poza-96.webp true', '48 elena-ruiz-arellano-96.webp true', '64 elena-ruiz-arellano-96.webp true', '48 rodrigo-alcantara-vela-96.webp true', '64 rodrigo-alcantara-vela-96.webp true'],
+    '2x': ['48 mariana-cifuentes-poza-96.webp true', '64 mariana-cifuentes-poza-192.webp true', '48 elena-ruiz-arellano-96.webp true', '64 elena-ruiz-arellano-192.webp true', '48 rodrigo-alcantara-vela-96.webp true', '64 rodrigo-alcantara-vela-192.webp true'],
+  })
+
+  // --- T2: datos (check-data con sus contrapruebas) -----------------------------------------------------------------
+  const contra = spawnSync(process.execPath, ['scripts/check-data.mjs', '--contrapruebas'], { encoding: 'utf8' })
+  const lines = contra.stdout.split('\n').filter((l) => l.startsWith('✓') || l.startsWith('✗'))
+  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 21, siguenPasando: [] })
 
   // --- Resto de pintado en una navegación real hacia una vista -----------------------------------------------
   await b.metrics(1350, 900, 1)

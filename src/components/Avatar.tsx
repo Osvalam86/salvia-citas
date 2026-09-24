@@ -9,7 +9,7 @@ type AvatarProps = {
   size: keyof typeof PIXELS
   /** Respaldo cuando no hay foto, mientras carga o si no carga. */
   initial: string
-  /** Foto de la persona. Hasta decidir su origen (DESIGN.md, Pendientes) solo la usa la demo del respaldo. */
+  /** Foto de la persona (src/data/photos.ts). Sin ella, o si falla, la inicial. */
   photo?: AvatarPhoto
   /** Atributo loading del img: lazy por debajo del pliegue (Result Card). */
   loading?: 'eager' | 'lazy'

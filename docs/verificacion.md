@@ -27,7 +27,7 @@ no se versiona.
 | Archivo | Qué hace |
 |---|---|
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
-| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1) |
+| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
@@ -177,6 +177,14 @@ no se versiona.
   respaldo al `h1` se prueba con Atrás hacia esa entrada (T1).
 - **`pnpm verify --preview` mide el build.** Tras cambiar código hay que
   `pnpm build` y reiniciar la preview; si no, mide el build anterior (T1).
+- **`redirect` añade una entrada; `replace`, no.** En un loader, `redirect`
+  empuja una entrada nueva también en carga completa, y Atrás cae en la URL
+  que redirige (T2).
+- **El WebP del canvas de Chromium lleva perfil ICC.** `toDataURL('image/webp')`
+  escribe VP8X + ICCP + VP8. Para un WebP sin metadatos, se conserva solo el
+  trozo VP8 en el formato simple (T2).
+- **Navegar en cliente sin enlace:** `pushState` y un `popstate` hacen que
+  React Router pase por las guardas como en un POP (`clientGo` en 5.0) (T2).
 
 ## Comprobaciones manuales
 
@@ -193,3 +201,4 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |
 | Foco de ruta sin el hook | Quitar `useRouteFocus()` de `RootLayout` y `pnpm verify 4.7`: la llegada a `/kit/citas` y a la reprogramación dejan el foco en `body` (36/38). Medido al construirlo; revertir | T1 |
 | `h1` sin `tabIndex` | Quitar `tabIndex={-1}` del `h1` en `PageHeader.tsx` y `pnpm verify 5.0`: los tres PUSH (clic en el header y en la barra, Intro) dejan el foco en `body`, no en el enlace pulsado: la vista nueva vuelve a montar el chrome y el enlace deja de existir. Medido al construirlo; revertir | T1 |
+| Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |

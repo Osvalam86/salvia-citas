@@ -640,6 +640,12 @@ más la del 404:
 mismo `errorElement`: `h1` «No encontramos esta página» y «Ir a
 Especialistas».
 
+**Redirecciones con `replace`, no con `redirect`.** Medido en T2: `redirect`
+añade una entrada de historial (`idx` 1 en carga completa) y Atrás vuelve a
+la URL que redirige, que redirige otra vez, sin salida; `replace` la
+sustituye (`idx` 0) y Atrás vuelve a la página anterior. `pnpm verify 5.0`
+lo comprueba.
+
 Parámetros en la URL: en V1, `q`, `ubicacion`, filtros, `orden` y `pagina`;
 de V2 a V4, `fecha` y `hora`. Razón: varias piezas del diseño son `<a>` y
 necesitan un `href` real (Page Link, «Ver todos los especialistas», el Back
@@ -741,6 +747,10 @@ del 23 cuenta como pasada.
 - Líneas de especialidad literales de Figma en los fijos; «· N años» en los
   generados.
 
+Clínicas: una por colonia (Condesa, Del Valle, Doctores, Nápoles, Pedregal,
+Polanco, Roma Norte). «Clínica Doctores» y «Clínica Pedregal» sustituyen a
+dos instituciones reales (diseño §6).
+
 Los 4 fijos de 01.1 (Figma, `specialty` de cada Result Card):
 
 | Médico                     | Línea de especialidad                    | Área del filtro |
@@ -760,6 +770,13 @@ orden alfabético, con «Ciudad de México» como inicial (toda la ciudad,
 **Motivo de consulta:** «Primera consulta», «Seguimiento», «Revisión de
 estudios», «Segunda opinión», «Otro motivo».
 
+**Fotos de avatar (valor propio).** Recorte cuadrado por foto: de los ojos a
+la barbilla, el 30 % del lado; los ojos al 40 % desde arriba; centrado en la
+cara. Razón: una regla por la cabeza entera (pelo incluido) dejaba a Ruiz,
+con el pelo recogido, más pequeña que Mariana a 48 y 64 px; midiendo la cara,
+las tres quedan iguales (comparado renderizado). WebP simple (solo el trozo
+VP8) a calidad 0,9, de 96 y 192 px.
+
 **`scripts/check-data.mjs`**, encadenado en `pnpm lint` (importa el TS de
 `src/data/`), falla si deja de cumplirse cualquiera de estos hechos:
 
@@ -777,6 +794,13 @@ estudios», «Segunda opinión», «Otro motivo».
   orden.
 - Cada opción de cada filtro, sin consulta, da ≥1 resultado; cada
   ubicación, sin consulta, da ≥1.
+- Slugs únicos. Citas: reservar con Ruiz reutiliza c1; una reserva nueva
+  toma el siguiente id del contador (c6); cancel y reschedule cambian la
+  cita; el aviso de reprogramada es de un solo uso; `ocupada` no toca el
+  almacén; `lenta` tarda entre 1500 y 1700 ms.
+
+`--contrapruebas`: una mutación por aserción que la rompe (salvo las semanas,
+un hecho del calendario).
 
 **D5 · Componentes React frente a parciales SCSS.** Estilos solo en
 `src/styles/` por capas. Componentes en `src/components/NombreComponente.tsx`,
@@ -864,8 +888,11 @@ Confirmada, y el flujo de reserva reserva justo esa cita. Almacén en memoria
 sembrado con las 5 citas de la §6; completar el flujo **reemplaza** la cita de
 Ruiz en lugar de duplicarla. Todo se reinicia al recargar.
 La reserva **reutiliza el id sembrado** de la cita de Ruiz
-(`ruiz-2029-04-24`): así `/citas/:id/confirmada` aguanta una recarga, porque
-el almacén se reinicia con la semilla y ese id sigue en ella.
+(`c1`): así `/citas/:id/confirmada` aguanta una recarga, porque el almacén se
+reinicia con la semilla y ese id sigue en ella. **Ids opacos:** c1–c5 para
+las sembradas (Ruiz, Molina, Cortés, Ibarra, Serrano) y un contador para las
+nuevas (c6…), de modo que la URL no lleva una fecha que pueda contradecir la
+página. Reservar con Ruiz en otra fecha u hora conserva c1.
 Los avisos que cruzan una navegación (reprogramada) son de un solo uso y
 viven en el almacén, no en `history.state`: tras recargar, el almacén se
 reinicia y el aviso no debe volver.
@@ -896,11 +923,11 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4 ✓   | **`overflow-wrap: anywhere` en filas flex sin wrap. Cerrado en 4.7.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobado componente a componente de 4.1 a 4.7 al 200 % con las dos barras. **En 4.6**, a 320 al 100 % y al 200 % con las dos barras: ninguna palabra partida en días y números del calendario, mes, leyenda, chips (día de la semana y número), etiquetas de franja y horas; los números y horas llevan `white-space: nowrap` y las filas que los contienen pasan a menos columnas (tira, horas) o se desplazan (calendario) en vez de encoger. La Booking Bar (título, meta y botón), con la letra del navegador a 20, 24 y 32: sin palabras partidas. **En 4.7**, `UI/Appointment Card` a 320: sin palabras partidas al 100 %; al 200 % solo parten palabras más anchas que su elemento (interior de la tarjeta 175/190, de la acción 77/92), y la fila del avatar lleva `flex-wrap` (contraprueba: sin él, al nombre le quedan 55 y parten los 16 nombres). `UI/Dialog` con la letra a 24 y a 32 y al 200 % a 320: ninguna palabra partida pudiendo caber; con barra clásica a 32 parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior (226 y 128, con `dialog-compact`) |
-| 5 · T2 | **Fotos de avatar. Decidido:** solo Mariana, Ruiz y Rodrigo (las que llevan foto en Figma), rostros generados por Osvaldo con IA (Gemini); el resto con inicial. Los originales quedan fuera del repo y de su historial. WebP cuadrado sin metadatos, `<slug>-96.webp` y `<slug>-192.webp` en `src/assets/avatars/`, con `srcset`; recorte por foto (las tres caras al mismo tamaño y altura en el círculo), con captura a 48 y 64 antes de cerrar T2. `NOTICE` las excluye de MIT y CC BY |
+| 5 · T2 ✓ | **Fotos de avatar. Cerrado en T2:** Mariana, Ruiz y Rodrigo, rostros generados con IA (Gemini); el resto con inicial. `<slug>-96.webp` y `-192.webp` en `src/assets/avatars/` (`src/data/photos.ts`, `srcset` con descriptores de ancho); recorte en D4; originales fuera del repo (`.avatares-originales/`, ignorada). `LICENSE-DOCS` las excluye de MIT y CC BY |
 | 5 · V3 | **Atrás tras un ancla nativa no restaura el scroll.** Decidido (diseño §5.3): el resumen de errores enfoca el campo por script, sin entrada de historial; se mide en V3. `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5 · V1a | **Línea base en la cabecera de resultados.** El panel 01.0 fija `align-items: last baseline`; se mide en V1a. `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
 | 5 · V2a / V2b | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
-| 5 · T2 | **Opciones de Motivo de consulta.** Decididas en D4; se implementan en T2. El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
+| 5 · T2 ✓ | **Opciones de Motivo de consulta. Cerrado en T2:** `src/data/reasons.ts` (D4). El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5 · V3 | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
 | Skill ✓ | **Parche para `bemit-scss`: reset de `fieldset` y `legend`. Cerrado.** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles` y en la skill del repo |
