@@ -82,6 +82,24 @@ export default defineConfig([
         // o-cluster lleva gap, también el 0, y o-cluster además alineación.
         // Un olvido y una decisión no deben verse iguales.
         ...objectModifierRules,
+        // Reloj simulado (D4): hoy es el lunes 23 de abril de 2029. Ninguna
+        // fecha sale del reloj real; todas parten de src/data/clock.ts.
+        {
+          selector: "NewExpression[callee.name='Date'], CallExpression[callee.object.name='Date'][callee.property.name='now']",
+          message: 'Reloj real prohibido (D4): usa TODAY o NOW de src/data/clock.ts.',
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@internationalized/date',
+              importNames: ['today', 'now'],
+              message: 'Reloj real prohibido (D4): usa TODAY o NOW de src/data/clock.ts.',
+            },
+          ],
+        },
       ],
     },
   },

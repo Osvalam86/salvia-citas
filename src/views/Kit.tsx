@@ -494,6 +494,16 @@ export default function Kit() {
           </p>
         </section>
 
+        <section className="c-kit__section" aria-labelledby="kit-fecha-hora">
+          <h2 className="c-kit__heading" id="kit-fecha-hora">
+            Fecha y hora
+          </h2>
+          <p>Day Chip, Calendar, Calendar Day, Time Slot y Booking Bar, en su propia página.</p>
+          <p>
+            <Link href="/kit/fecha-hora">Ver fecha y hora</Link>
+          </p>
+        </section>
+
         <section className="c-kit__section" aria-labelledby="kit-layout">
           <h2 className="c-kit__heading" id="kit-layout">
             Layout

@@ -1,8 +1,9 @@
 // Componentes c- (uno por archivo, en orden alfabético). Correspondencia 1:1
 // con src/components/*.tsx (D5), con las excepciones declaradas en D5: c-kit y
 // c-kit-bar (vistas del catálogo), c-field (FieldText y FieldSelect),
-// c-legend-help (lo pinta Legend.tsx) y c-wordmark (lo comparten los dos
-// headers).
+// c-legend-help (lo pinta Legend.tsx), c-wordmark (lo comparten los dos
+// headers), c-day-strip y c-slot-list (contenedores de UI/Day Chip y UI/Time
+// Slot, que no son de los 34).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -10,10 +11,15 @@
 @use 'c-app-layout';
 @use 'c-avatar';
 @use 'c-back-link';
+@use 'c-booking-bar';
 @use 'c-bottom-nav';
 @use 'c-breadcrumb';
 @use 'c-button';
+@use 'c-calendar';
+@use 'c-calendar-day';
 @use 'c-checkbox';
+@use 'c-day-chip';
+@use 'c-day-strip';
 @use 'c-field';
 @use 'c-filter-trigger';
 @use 'c-header-desktop';
@@ -35,7 +41,9 @@
 @use 'c-pagination';
 @use 'c-radio';
 @use 'c-result-card';
+@use 'c-slot-list';
 @use 'c-status-tag';
 @use 'c-step';
 @use 'c-tag';
+@use 'c-time-slot';
 @use 'c-wordmark';

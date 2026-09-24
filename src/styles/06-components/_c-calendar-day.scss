@@ -1,0 +1,110 @@
+@use '../02-tools' as tools;
+
+// UI/Calendar Day (Figma 180:4527). El elemento es el botón de la celda de
+// RAC; el td no lleva clase (lo pinta RAC) pero sí aria-selected.
+//
+// Alto 50 por construcción: borde 1 + 12 + 24 + 12 + 1. Available sin borde
+// visible: 1px transparente, que en forced-colors conserva el contorno.
+// padding-inline 0: el 9/8 de Figma solo cuenta en HUG; en la rejilla la
+// celda está en FILL y el número va centrado. El número no parte (nowrap):
+// ninguna fecha se lee partida (DESIGN.md § Fecha y hora).
+//
+// Estados:
+// - Full (--full): borde punteado, número tachado en secundario y body-md.
+//   Seleccionable, sin aria-disabled.
+// - Past y fuera de rango: aria-disabled de RAC, body-md secundario, sin
+//   borde ni hover (RAC no emite data-hovered en un día desactivado).
+// - Seleccionado: relleno y borde color-action, texto color-on-action; si
+//   está lleno, conserva el tachado.
+// - Hoy: aria-current="date" y punto de 4 bajo el número (__today).
+.c-calendar-day {
+  @include tools.text(body-strong);
+
+  --_fg: var(--color-text-primary);
+  --_bg: transparent;
+  --_bg-hover: var(--color-action-subtle);
+  --_border: transparent;
+  --_border-hover: transparent;
+  --_border-style: solid;
+  --_weight: var(--text-body-strong-weight);
+  --_decoration: none;
+  // La celda de RAC es un div role="button": no hereda la mano de
+  // :where(button) del reset. Mano en todo día seleccionable, también el
+  // lleno; cursor normal fuera de rango y en Blank (aria-disabled de RAC).
+  --_cursor: pointer;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--space-3);
+  font-weight: var(--_weight);
+  font-variant-numeric: tabular-nums;
+  color: var(--_fg);
+  text-decoration-line: var(--_decoration);
+  white-space: nowrap;
+  cursor: var(--_cursor);
+  background-color: var(--_bg);
+  border: 1px var(--_border-style) var(--_border);
+  border-radius: var(--radius-sm);
+
+  &[data-hovered] {
+    --_bg: var(--_bg-hover);
+    --_border: var(--_border-hover);
+  }
+
+  &--full {
+    --_fg: var(--color-text-secondary);
+    --_border: var(--color-border-strong);
+    --_border-hover: var(--color-border-strong);
+    --_border-style: dashed;
+    --_weight: var(--text-body-md-weight);
+    --_decoration: line-through;
+  }
+
+  &[aria-disabled='true'] {
+    --_fg: var(--color-text-secondary);
+    --_weight: var(--text-body-md-weight);
+    --_cursor: default;
+  }
+
+  // Punto de hoy: en Figma 02.2, 4 × 4 a 6 del borde exterior inferior,
+  // centrado y del color del número; el absoluto se mide desde dentro del
+  // borde de 1, así que 5. Dibujado con borde y no con fondo: en forced-colors
+  // el fondo desaparece.
+  &__today {
+    position: absolute;
+    inset-block-end: 0.3125rem;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    border: 0.125rem solid currentcolor;
+    border-radius: var(--radius-pill);
+  }
+}
+
+// Seleccionado: el ARIA está en el td de RAC, padre del botón.
+:where([aria-selected='true']) > .c-calendar-day {
+  --_fg: var(--color-on-action);
+  --_bg: var(--color-action);
+  --_bg-hover: var(--color-action-hover);
+  --_border: var(--color-action);
+  --_border-hover: var(--color-action-hover);
+  --_border-style: solid;
+}
+
+.c-calendar-day:focus-visible {
+  @include tools.focus-ring;
+}
+
+// forced-colors: el seleccionado solo se distingue por el relleno, que el modo
+// sustituye; sin esto se vería igual que un día libre (DESIGN.md § Fecha y
+// hora, medido en 4.6).
+@media (forced-colors: active) {
+  :where([aria-selected='true']) > .c-calendar-day {
+    --_fg: SelectedItemText;
+    --_bg: SelectedItem;
+    --_bg-hover: SelectedItem;
+    --_border: SelectedItem;
+    --_border-hover: SelectedItem;
+  }
+}

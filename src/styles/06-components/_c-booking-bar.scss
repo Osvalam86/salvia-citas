@@ -1,0 +1,77 @@
+@use '../02-tools' as tools;
+
+// UI/Booking Bar (Figma 219:4901). Pieza a sangre: fondo y borde superior a
+// todo el ancho; el interior es o-wrapper (DESIGN.md § Tramo intermedio). El
+// shell la fija al pie (c-app-layout__bar).
+//
+// Alto 74 con el borde dentro, como en Figma (trazo INSIDE): borde 1 + 11 +
+// botón 50 + 12. Resumen fluido y botón Primary intrínseco, separados 16.
+//
+// flex-wrap con base de 9.5rem en el resumen: la línea más ancha que tiene
+// que caber sin partir es la meta, icono 20 + 4 + «Presencial · 30 min»: 150
+// en Figma (126) y ≈ 152 en el navegador (medido; con 150 quedaba una franja
+// de 2 px en la que el botón volvía al lado y la meta partía). El título, «jue
+// 17 may · 17:00», mide 135. Con «Confirmar hora» (167) a 375 al resumen le
+// quedan 160: cabe. Cuando el botón no deja esos 152, baja de línea: por
+// debajo de ~327 px de viewport con barra superpuesta (~342 con la clásica)
+// la barra mide 134 en vez de 74 (DESIGN.md § Fecha y hora).
+.c-booking-bar {
+  background-color: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+
+  &__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: calc(var(--space-3) - 1px) var(--space-3);
+  }
+
+  &__summary {
+    flex: 1 1 9.5rem;
+  }
+
+  &__title {
+    @include tools.text(body-strong);
+
+    color: var(--color-text-primary);
+  }
+
+  // Icono y texto: el icono baja de línea antes de que el texto parta
+  // (DESIGN.md § Controles con icono y etiqueta). El icono toma el color de
+  // la línea: secundario, o de error en Missing (color, icono y texto).
+  &__meta {
+    @include tools.text(caption);
+
+    --_fg: var(--color-text-secondary);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    align-items: center;
+    color: var(--_fg);
+  }
+
+  &__meta--error {
+    --_fg: var(--color-error-text);
+  }
+
+  &__meta-text {
+    flex: 1 1 8rem;
+  }
+
+  // Texto grande respecto al viewport: el shell la saca de la posición fija
+  // y aquí pasa a una columna, resumen arriba y botón a ancho completo (una
+  // acción de bloque en móvil, §3.6).
+  @include tools.large-text {
+    &__inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__summary {
+      flex: none;
+    }
+  }
+}

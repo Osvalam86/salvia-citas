@@ -261,6 +261,9 @@ uso.
 - **Cada barra futura (`UI/Booking Bar`, `Action Bar`) declara en su plan
   cómo se ve en este modo.** La regla del shell ya la saca de la posición
   fija; su interior lo decide su plan.
+- `UI/Booking Bar` (4.6): una columna, resumen arriba y botón a ancho
+  completo. Medido con `Page.setFontSizes` a 24 y 32 en 320 y a 20 en 375
+  (§ Fecha y hora).
 
 **Desviación de Figma: Nav Item con `padding-inline: 0`** (Figma: 8). En la
 barra, el ítem llena su tercio con el texto centrado; el padding lateral solo
@@ -373,7 +376,8 @@ sobre etiquetas cortas que habrían cabido; es el precio de no partir palabras.
 En 4.5 la heredan la ubicación y la disponibilidad de `UI/Result Card` (base
 `8rem`) y `UI/Page Link`. El avatar de la tarjeta sigue la misma regla con un
 umbral de contenedor (`result-card-identity`): sube antes de que el nombre
-parta.
+parta. En 4.6, la meta de `UI/Booking Bar` (reloj o aviso + texto, base
+`8rem`) y `UI/Time Slot` (check + hora).
 
 **Límite medido.** Al 200 % a 320 con barra de scroll clásica (15 px), el
 interior de un `UI/Button` a ancho completo mide 143 px (158 con barra
@@ -419,6 +423,73 @@ Entre `lg` y ese ancho va en dos filas (`flex-wrap`).
 **Filter Trigger.** Chromium calcula el nombre como «Filtrar y ordenar , 1
 filtro aplicado»: el texto oculto está fuera del flujo y se separa como un
 bloque. No se pronuncia.
+
+---
+
+## Fecha y hora
+
+**Componentes y excepciones a D5.** `DayStrip.tsx` ↔ `c-day-strip`: los
+siete radios de `UI/Day Chip` con el mismo `name`. El `fieldset`, la legend
+«Elige fecha», «Ver mes completo» y la navegación de semana son patrón de
+pantalla (fase 5). `SlotList.tsx` ↔ `c-slot-list`: un `ListBoxItem` no existe
+fuera de su `ListBox`, así que sin la lista no hay `UI/Time Slot`. Ninguno de
+los dos es uno de los 34.
+
+**Qué es RAC y qué es nativo.** Tira: radios nativos (Tab entra en el
+marcado, las flechas mueven y seleccionan). Calendario: `Calendar` de RAC,
+con `render` en la celda (spike R3). Horas: `ListBox` con `layout="grid"`,
+camino B del spike. Booking Bar: nativa; su envío lleva `form=` porque vive en
+el hueco de barra del shell, fuera de `main` y del `form`.
+
+**Valores derivados.**
+
+| Valor | Dónde | Derivación |
+| --- | --- | --- |
+| `2.0625rem` y un séptimo como tope | columna de la tira | «dom» ≈ 31 en caption + bordes 2. Sin el padding de `space-1`: el contenido va centrado y el padding de Figma solo cuenta en HUG. Caben 7 a 320 con las dos barras |
+| `4.8125rem` y un tercio como tope | columna de horas | check 20 + 8 + hora 45 + bordes 4 = 77. `UI/Time Slot` va sin padding lateral por la misma razón. Caben 3 a 320 con las dos barras (83 y 88) |
+| `9.5rem` | base del resumen de `UI/Booking Bar` | la línea más ancha es la meta: icono 20 + 4 + texto, 150 en Figma y ≈ 152 en el navegador (con 150 quedaba una franja de 2 px con la meta partida) |
+| `calc(space-3 − 1px)` | padding superior de `UI/Booking Bar` | 74 con el borde dentro, como `c-header-mobile` |
+| `0.3125rem` | punto de hoy | 6 desde el borde exterior − 1 de borde (Figma 02.2: y 40 en la celda de 50) |
+| `21.75rem + 2 × space-1` | alto mínimo del envoltorio de la rejilla | cabecera L–D 20 + 8 hasta la primera semana (4 de padding del `th` + 4 de `border-spacing`) + 6 semanas × 50 + 5 huecos × 4 = 28 + 320 = **348**; + 4 + 4 de reserva del anillo = **356** |
+| `7 × 1.4375rem + 8 × space-1` | ancho mínimo de la rejilla | número de dos cifras en body-strong (21) + bordes, y los 8 `border-spacing`. Al 100 % no se alcanza nunca |
+
+**Alto de 6 semanas.** El `320` de la descripción de `UI/Calendar` (6 × 50
++ 5 × 4) es solo la rejilla de semanas; el mínimo va en un envoltorio que
+contiene también la cabecera de días, así que suma los 28 de la cabecera. En
+el envoltorio y no en la tabla: una tabla reparte el alto sobrante entre sus
+filas.
+
+**Texto ampliado.** Tira y horas pasan a menos columnas antes de partir letras
+(al 200 % a 320: 3 y 1). El calendario conserva sus 7 columnas y se desplaza
+en horizontal dentro de su envoltorio (excepción 2D de 1.4.10); las flechas
+llevan la celda enfocada a la vista (medido). El envoltorio reserva 4 px por
+cada lado (padding + margen negativo) para que el anillo de las celdas del
+borde no quede recortado; con esa reserva la tabla llena justo la caja de
+padding y `overflow-x: auto` nunca pinta barra vertical.
+
+**`UI/Booking Bar` a 320 al 100 %. Coste declarado:** fuera del modo de
+texto grande, por debajo de ~327 px de viewport (barra de scroll superpuesta)
+o ~342 (clásica) al resumen no le quedan 152 y el botón baja de línea: la
+barra mide 134 en vez de 74. Barrido de 320 a 345 sin alturas intermedias.
+En Figma solo existe 375.
+
+**forced-colors.** Día y chip seleccionados en `SelectedItem` /
+`SelectedItemText`: solo se distinguían por el relleno, que el modo
+sustituye. Edge los respeta sin `forced-color-adjust` (medido). La hora
+seleccionada conserva borde 2, check y peso.
+
+**Lo que añade RAC y no se quita con su API pública.** Un `h2` oculto con el
+mes («abril de 2029»), un botón oculto «Siguiente» (`tabIndex -1`) y la
+cabecera de días con `aria-hidden` (el nombre de cada día ya la incluye). La
+rejilla se nombra «abril de 2029», sin duplicar el mes. El anuncio del mes al
+pulsar «Mes siguiente» lo hace la región viva propia de RAC.
+
+**Teclado.** Inicio y Fin van al principio y al fin de la semana (APG) y
+cambian de mes como las flechas; RAC los llevaría al principio y fin del mes,
+y se interceptan. Sin salir de `minValue` ni `maxValue` (con estos datos el
+recorte no se ejerce: hoy es lunes y el día 90 es domingo). Si «Mes anterior»
+desaparece con el foco dentro, RAC lo lleva al día enfocado del mes nuevo; el
+foco no se pierde.
 
 ---
 
@@ -574,7 +645,10 @@ control; `Legend.tsx` pinta dos bloques, `c-legend` y `c-legend-help`, porque
 la ayuda va fuera de `<legend>` y un elemento BEM no puede vivir fuera de su
 bloque; `c-wordmark` (`Wordmark.tsx`) no es uno de los 34 componentes: lo
 comparten los dos headers. `c-filter-trigger` se mezcla sobre `c-button` en
-el mismo nodo y solo aloja `__count`: la anatomía es la del botón. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+el mismo nodo y solo aloja `__count`: la anatomía es la del botón.
+`c-day-strip` (`DayStrip.tsx`) y `c-slot-list` (`SlotList.tsx`) son los
+contenedores de `UI/Day Chip` y `UI/Time Slot`, sin ser de los 34 (§ Fecha y
+hora). Los hooks (`useDisclosure`, `useMediaQuery`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -630,7 +704,7 @@ vista 3 no.
 
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible |
+| 4     | **`overflow-wrap: anywhere` en filas flex sin wrap.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobar cada componente al 200 % de texto y confirmar que ninguna palabra parte donde había un espacio disponible. **En 4.6**, a 320 al 100 % y al 200 % con las dos barras: ninguna palabra partida en días y números del calendario, mes, leyenda, chips (día de la semana y número), etiquetas de franja y horas; los números y horas llevan `white-space: nowrap` y las filas que los contienen pasan a menos columnas (tira, horas) o se desplazan (calendario) en vez de encoger. La Booking Bar (título, meta y botón), con la letra del navegador a 20, 24 y 32: sin palabras partidas. Sigue abierta para 4.7 |
 | 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
 | 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
@@ -649,9 +723,12 @@ vista 3 no.
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 7     | **Zona segura en un iPhone real.** `viewport-fit=cover` y `env(safe-area-inset-*)` en `c-app-layout` (laterales) y en su hueco de barra (inferior) no se pudieron probar: en headless `env()` vale 0. Comprobar en vertical y horizontal con notch que el contenido no queda bajo el notch, que la franja bajo el indicador de inicio se pinta con la superficie y que la barra no queda bajo él |
-| Figma · Osvaldo | **Descripción de `UI/Result Card`.** «40rem» → 36rem y «160» → 200 |
 | 5     | **Lista en carga completa.** Solo tiene `li aria-hidden`, y el lector anuncia «lista, 0 elementos». La vista decide cómo exponerla |
 | 5     | **Foco al cambiar de página.** ¿`h1` por la regla de ruta, o `h2` «Resultados»? |
 | 5     | **Foto de la tarjeta.** `sizes` (48 o 64 según el contenedor) y `loading="lazy"` por debajo del pliegue: `ResultCard` aún no lo expone |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
+| 5     | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
+| 5     | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; con recarga no pasa. Reproducido por Osvaldo en su Chrome (Windows, barra clásica) y por `pnpm verify 4.6` (Edge sin interfaz, 1350): 4932 píxeles distintos de la página recargada en x 68–304, y 849–879, persistentes a los 4 s, en la misma región del documento que ocupaban los avatares en `/kit` (y 2476–2572). **Disparador:** página de origen desplazada + navegación en cliente + desplazamiento con rueda (no con `scrollTo` ni con clic por script); sin nodo en el DOM; desaparece con el árbol de capas de CDP activo. **Hipótesis:** el compositor de Chromium reutiliza teselas de la página anterior sin repintarlas. No lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario. La reproducción se volvió intermitente tras recompilar; sin los avatares dio 0, pero no es concluyente (un resto de una región vacía también es blanco). La prueba en 8087662 (`/kit` → `/kit/resultados`) no llegó a hacerse. La comprobación queda en ✗ en `pnpm verify 4.6`. Las vistas navegan en cliente entre sí: resolver antes de cerrar la fase 5 |
+| 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |
+| 7     | **Carga diferida por ruta.** 4.6 lleva el JS de 393 a 595 kB (gzip 121 → 183) y Vite avisa del chunk de más de 500 kB. Medido en 8087662 y en 4.6 |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |

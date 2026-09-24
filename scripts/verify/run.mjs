@@ -9,6 +9,7 @@ const SECTIONS = {
   '4.3': './4.3-formulario.mjs',
   '4.4': './4.4-navegacion.mjs',
   '4.5': './4.5-busqueda.mjs',
+  '4.6': './4.6-fecha-hora.mjs',
 }
 
 const section = process.argv[2]

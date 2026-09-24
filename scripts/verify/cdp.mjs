@@ -128,6 +128,11 @@ export async function open(name) {
       fs.writeFileSync(path.join(out, file), Buffer.from(data, 'base64'))
       return path.join('scripts/verify/out', name, file)
     },
+    // Guarda una captura ya tomada (base64) en la carpeta de la sección.
+    saveBase64: (file, data) => {
+      fs.writeFileSync(path.join(out, file), Buffer.from(data, 'base64'))
+      return path.join('scripts/verify/out', name, file)
+    },
     // Tabula desde el principio de la página hasta que el foco llega al destino.
     tabTo: async (expr) => {
       await ev('document.activeElement?.blur(), window.scrollTo(0, 0), true')

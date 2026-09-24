@@ -86,7 +86,7 @@ Sustituye el elemento de la celda y permite poner nuestro `aria-label`.
 | Mayo de 2029 | **5** filas aun con lunes primero. «Siempre 6 filas» se resuelve por CSS con un alto mínimo de 6 filas; RAC no tiene prop para forzarlo |
 | `isToday` de RAC | Usa el reloj real: ninguna celda de 2029 lo recibe. «Hoy» se calcula siempre contra `TODAY` de los datos simulados |
 | `minValue` = hoy | Los días pasados llevan `aria-disabled`, no tienen `tabindex` y las flechas no entran en ellos (← desde el 23 no se mueve) |
-| «Mes anterior» en el mes de `minValue` | RAC lo marca `disabled` y `data-disabled` (comprobado); en mayo llega habilitado. **Propuesta, sin probar:** ocultarlo con `visibility: hidden` sobre ese atributo, para que el avance conserve su sitio |
+| «Mes anterior» en el mes de `minValue` | RAC lo marca `disabled` y `data-disabled` (comprobado); en mayo llega habilitado. ~~Ocultarlo con `visibility: hidden`~~ **Corregido en 4.6:** se omite (no se renderiza) y el mes pasa al inicio, como en Figma 02.2 y 02.5; «Mes siguiente» conserva su sitio. Si tenía el foco, RAC lo lleva al día enfocado del mes nuevo (medido) |
 | `value` controlado | Con `value` siempre definido, el foco inicial cae en la fecha seleccionada y no en el hoy real (2026) |
 
 ---
@@ -126,6 +126,12 @@ entero, sin partir de la etiqueta de RAC:
   de abril de 2029, seleccionado» · «domingo, 29 de abril de 2029, sin
   horarios».
 
+**Formato final (4.6), el de la descripción de `UI/Calendar Day` en Figma:**
+`{fecha} [, hoy], {N horarios libres | 1 horario libre | sin horarios} [, seleccionado]`,
+con la fecha sin la coma de `Intl` («martes 24 de abril de 2029, 6 horarios
+libres, seleccionado»). Fuera de rango, solo la fecha. El segmento
+«seleccionado» sigue pendiente de la fase 7 (§ 4.2).
+
 **Coste, aceptado:** se pierde también «Última fecha disponible» en `maxValue`
 (90 días). El límite ya lo comunican la ausencia de «Mes siguiente» y los días
 no enfocables, así que no se añade como segmento.
@@ -147,13 +153,18 @@ El `<Heading />` de RAC pintó «rac-abril-lunes, abril de 2029»: antepone el
 `aria-label` del calendario al mes, en texto **visible** y en minúscula. El
 diseño pide el mes en `heading/sm`.
 
-**Solución:** encabezado propio. Un `h2`/`h3` según el contexto, con el texto
-calculado desde el mes visible del estado del calendario
-(`CalendarStateContext`, que RAC exporta) y el formato del maestro
-`UI/Calendar` en Figma. No se usa `<Heading />`. Queda por decidir al construir
-cómo se nombra el calendario (`aria-label` fijo o `aria-labelledby` al
-encabezado propio); la rejilla de RAC concatena el nombre del calendario con
-el mes.
+**Solución:** mes propio, calculado desde el mes visible del estado del
+calendario (`CalendarStateContext`, que RAC exporta) y con el formato del
+maestro `UI/Calendar` en Figma («Abril 2029»). No se usa `<Heading />`.
+
+**Corregido en 4.6:** el mes **no es un encabezado** (el panel 02.0 enumera
+los de la vista 2 y no lo incluye): es un `p`. El calendario no recibe ni
+`aria-label` ni `aria-labelledby`: RAC nombra la rejilla «abril de 2029», sin
+duplicar el mes (medido). Con un `aria-labelledby` al mes, según el código de
+`useCalendarGrid` (sin medir), RAC añadiría su propio `aria-label` con el mes y
+el nombre saldría duplicado. RAC añade además un `h2`
+oculto con el mes y un botón oculto «Siguiente», que su API pública no deja
+quitar (DESIGN.md § Fecha y hora; lector en la fase 7).
 
 ### 2.5 · El cast `as CalendarDate`
 

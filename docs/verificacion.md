@@ -9,7 +9,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
-pnpm verify 4.5   # 4.1 a 4.5
+pnpm verify 4.6   # 4.1 a 4.6
 ```
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
@@ -25,11 +25,11 @@ no se versiona.
 | Archivo | Qué hace |
 |---|---|
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación |
-| `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas, `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
+| `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
-| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` | Una sección cada uno |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` · `4.6-fecha-hora.mjs` | Una sección cada uno |
 
 ## Método
 
@@ -106,6 +106,31 @@ no se versiona.
 - **Margen de +0,5 del detector de palabras:** una palabra 0,3 px más ancha
   que su elemento sale como «pudiendo caber» («experiencia», 175,3 en 175). Se
   declara con la cifra; no se relaja la regla (4.5).
+- **El arnés siempre navega con carga completa** (`Page.navigate`), así que
+  nunca prueba la navegación en cliente de React Router. Desde 4.6 hay una
+  comprobación que llega con un clic real en «Ver fecha y hora» desde `/kit`,
+  baja con la rueda y compara con la página recargada. Con ella apareció un
+  resto de pintado de `/kit` (DESIGN.md, pendiente de la fase 5): sin nodo en
+  el DOM, disparado por página de origen desplazada + navegación en cliente +
+  rueda (con `scrollTo` o un clic por script no sale), que desaparece con el
+  árbol de capas de CDP activo. Hipótesis sin confirmar: el compositor de
+  Chromium reutiliza teselas de la página anterior. La reproducción se volvió
+  intermitente tras recompilar. La comprobación queda en ✗ (4.6).
+- **Capturas: píxeles, no bytes.** Dos PNG del mismo viewport pueden
+  codificarse distinto; se comparan píxel a píxel en un canvas de la página
+  (4.6).
+- **Dos `pnpm verify` a la vez comparten el puerto 9400** de Edge: el segundo
+  se conecta al navegador del primero y le navega la página (una pasada de 4.2
+  falló así en 4.6). Las secciones se ejecutan una detrás de otra.
+- **Git Bash convierte `/kit/…` en una ruta de Windows** cuando va como
+  argumento de un script (`Page.navigate: Cannot navigate to invalid URL`).
+  Con `MSYS_NO_PATHCONV=1` llega tal cual (4.6).
+- **RAC pinta su número si `children` devuelve `null`** en `CalendarCell`
+  (vuelve al contenido por defecto). La celda en blanco borra `children` en su
+  `render` (4.6).
+- **Una tabla con margen negativo dentro de un `overflow-x: auto`** sobresale
+  lo que mida el margen y el navegador pinta barra vertical (`overflow-y` pasa
+  a `auto`): el envoltorio del calendario reserva el margen con padding (4.6).
 
 ## Comprobaciones manuales
 
@@ -117,3 +142,5 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Aviso de desarrollo de la región viva | Montar el `Notice` de región viva del kit ya abierto (`useState(true)`), recargar `/kit` y ver en la consola «Notice delivery="live" montado ya abierto…». Revertir | 4.2 |
 | Anuncio real con lector de pantalla | NVDA y VoiceOver: región viva de `Notice`, ayuda de `Legend` por `aria-describedby`. Pendiente de la fase 7 | 4.2, 4.3 |
 | Zona segura y Safari | iPhone real y Safari de macOS. Pendiente de la fase 7 | 3 |
+| Inicio/Fin sin la intercepción de `Calendar` | Quitar el `onKeyDownCapture` del envoltorio, Tab al 24 en `/kit/fecha-hora`, ← al 23 y Fin: el foco va al 30 de abril (fin de mes de RAC), no al domingo 29. Medido al construirlo; revertir | 4.6 |
+| Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |

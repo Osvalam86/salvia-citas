@@ -1,0 +1,80 @@
+@use '../02-tools' as tools;
+
+// UI/Time Slot (Figma 180:4474). Alto 50 por construcción: borde 1 + 12 + 24
+// + 12 + 1; contenido centrado. Ancho FILL en la rejilla de c-slot-list.
+// Sin padding lateral: el space-2 de Figma solo cuenta en HUG; con él, a 320
+// la seleccionada (83–88) dejaba al check sin sitio y bajaba de línea.
+//
+// Estados (ARIA de RAC, más data-hovered, que no tiene equivalente):
+// - Seleccionada (aria-selected): relleno color-accent, borde 2 color-action,
+//   check de 20 y body-strong. El borde de 2 se compensa con 1px menos de
+//   padding vertical (11): mide 50 como el resto.
+// - Llena (aria-disabled): borde punteado, hora tachada en secundario, sin
+//   hover. RAC emite data-hovered también sobre ella (camino B del spike).
+//
+// Anillo: el general, desfase 2. Cae sobre la superficie que rodea la celda
+// (6.02:1); sobre el ámbar de la seleccionada daría 2.09:1, así que el desfase
+// no se reduce aquí (diseño §3.1).
+.c-time-slot {
+  @include tools.text(body-md);
+
+  --_fg: var(--color-text-primary);
+  --_bg: var(--color-surface);
+  --_bg-hover: var(--color-action-subtle);
+  --_border: var(--color-border-strong);
+  --_border-hover: var(--color-action);
+  --_border-style: solid;
+  // stylelint-disable-next-line unit-disallowed-list -- grosor de borde: no escala con el texto
+  --_border-width: 1px;
+  --_pad-block: var(--space-3);
+  --_weight: var(--text-body-md-weight);
+  --_decoration: none;
+  --_cursor: pointer;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--_pad-block) 0;
+  font-weight: var(--_weight);
+  font-variant-numeric: tabular-nums;
+  color: var(--_fg);
+  text-decoration-line: var(--_decoration);
+  white-space: nowrap;
+  cursor: var(--_cursor);
+  background-color: var(--_bg);
+  border: var(--_border-width) var(--_border-style) var(--_border);
+  border-radius: var(--radius-sm);
+
+  &[data-hovered] {
+    --_bg: var(--_bg-hover);
+    --_border: var(--_border-hover);
+  }
+
+  // El acento no cambia en hover: no es un color interactivo.
+  &[aria-selected='true'] {
+    --_bg: var(--color-accent);
+    --_bg-hover: var(--color-accent);
+    --_border: var(--color-action);
+    --_border-hover: var(--color-action-hover);
+    // stylelint-disable unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    --_border-width: 2px;
+    --_pad-block: calc(var(--space-3) - 1px);
+    // stylelint-enable unit-disallowed-list
+    --_weight: var(--text-body-strong-weight);
+  }
+
+  &[aria-disabled='true'] {
+    --_fg: var(--color-text-secondary);
+    --_bg-hover: var(--color-surface);
+    --_border-hover: var(--color-border-strong);
+    --_border-style: dashed;
+    --_decoration: line-through;
+    --_cursor: default;
+  }
+}
+
+.c-time-slot:focus-visible {
+  @include tools.focus-ring;
+}

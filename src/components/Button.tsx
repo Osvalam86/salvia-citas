@@ -25,6 +25,11 @@ type AsButton = BaseProps & {
   download?: never
   /** submit en formularios. El envío nunca se deshabilita. */
   type?: 'button' | 'submit'
+  /**
+   * id del formulario al que envía, cuando el botón vive fuera de él: el
+   * envío de UI/Booking Bar está en la barra del shell, fuera de main.
+   */
+  form?: string
   onClick?: MouseEventHandler<HTMLButtonElement>
   'aria-haspopup'?: AriaAttributes['aria-haspopup']
   'aria-expanded'?: AriaAttributes['aria-expanded']
@@ -37,6 +42,7 @@ type AsButton = BaseProps & {
 
 type LinkOnly = {
   type?: never
+  form?: never
   onClick?: never
   ref?: never
   'aria-haspopup'?: never
@@ -81,6 +87,7 @@ export default function Button(props: ButtonProps) {
       <button
         ref={ref}
         type={props.type ?? 'button'}
+        form={props.form}
         className={classes}
         onClick={props.onClick}
         aria-describedby={props['aria-describedby']}

@@ -1,0 +1,99 @@
+@use '../02-tools' as tools;
+
+// UI/Day Chip (Figma 180:4834). Alto 62 por construcción: borde 1 + 8 +
+// caption 20 + body-strong 24 + 8 + 1; padding lateral space-1. El radio
+// nativo, invisible, ocupa el chip entero (como c-radio): el clic en cualquier
+// punto lo marca y el anillo se dibuja en el chip.
+//
+// Estados:
+// - Full (--full): borde punteado y día tachado en secundario (strike/md).
+//   Seleccionable, sin aria-disabled.
+// - Hover: color-action-subtle y, en Available, borde color-action.
+// - Seleccionado (:checked): relleno y borde color-action, textos en
+//   color-on-action; si está lleno, conserva el tachado.
+.c-day-chip {
+  --_bg: var(--color-surface);
+  --_bg-hover: var(--color-action-subtle);
+  --_border: var(--color-border-strong);
+  --_border-hover: var(--color-action);
+  --_border-style: solid;
+  --_weekday: var(--color-text-secondary);
+  --_day: var(--color-text-primary);
+  --_day-weight: var(--text-body-strong-weight);
+  --_day-decoration: none;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2) var(--space-1);
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: var(--_bg);
+  border: 1px var(--_border-style) var(--_border);
+  border-radius: var(--radius-sm);
+
+  @include tools.hover {
+    --_bg: var(--_bg-hover);
+    --_border: var(--_border-hover);
+  }
+
+  &__input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    appearance: none;
+    cursor: pointer;
+    opacity: 0;
+  }
+
+  &__weekday {
+    @include tools.text(caption);
+
+    color: var(--_weekday);
+  }
+
+  &__day {
+    @include tools.text(body-strong);
+
+    font-weight: var(--_day-weight);
+    font-variant-numeric: tabular-nums;
+    color: var(--_day);
+    text-decoration-line: var(--_day-decoration);
+  }
+
+  &--full {
+    --_border-hover: var(--color-border-strong);
+    --_border-style: dashed;
+    --_day: var(--color-text-secondary);
+    --_day-weight: var(--text-body-md-weight);
+    --_day-decoration: line-through;
+  }
+
+  &:has(:checked) {
+    --_bg: var(--color-action);
+    --_bg-hover: var(--color-action-hover);
+    --_border: var(--color-action);
+    --_border-hover: var(--color-action-hover);
+    --_border-style: solid;
+    --_weekday: var(--color-on-action);
+    --_day: var(--color-on-action);
+  }
+}
+
+// El anillo del input no se ve (opacity 0): se dibuja en el chip.
+.c-day-chip:has(:focus-visible) {
+  @include tools.focus-ring;
+}
+
+// forced-colors: como en c-calendar-day, el seleccionado solo tenía el relleno.
+@media (forced-colors: active) {
+  .c-day-chip:has(:checked) {
+    --_bg: SelectedItem;
+    --_bg-hover: SelectedItem;
+    --_border: SelectedItem;
+    --_border-hover: SelectedItem;
+    --_weekday: SelectedItemText;
+    --_day: SelectedItemText;
+  }
+}

@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.5 hechas.
+Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.6 hechas.
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -30,8 +30,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   Stacked/Row y Loading), `FilterTrigger`, `Pagination`, `PageLink` y
   `LoadMore`; `Avatar` con `--avatar-size` y la foto sobre la inicial; demo
   en `/kit/resultados`.
+- 4.6 Fecha y hora: `Calendar` y `CalendarDay` (RAC), `DayChip` +
+  `DayStrip` (radios nativos), `TimeSlot` + `SlotList` (ListBox de RAC),
+  `BookingBar`; textos de fecha en `src/components/dates.ts`; reloj simulado
+  en `src/data/clock.ts` (`TODAY`, `NOW`, `MAX_DATE`) con lint contra el reloj
+  real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
+  `/kit/fecha-hora`. Abierto: resto de pintado tras navegar en cliente
+  (DESIGN.md, pendiente de la fase 5; ✗ declarado en `pnpm verify 4.6`).
 
-Siguiente: 4.6 Fecha y hora.
+Siguiente: 4.7 Citas y diálogos.
 
 ## Comandos
 

@@ -1,0 +1,114 @@
+@use '../02-tools' as tools;
+
+// UI/Calendar (Figma 180:4532). Navegación de 48, mes en heading/sm, cabecera
+// L–D en caption y rejilla de 7 columnas con huecos de 4; leyenda decorativa.
+// Separaciones de Figma: 16 entre navegación, tabla y leyenda; 8 entre la
+// cabecera y la primera semana; 4 entre semanas y entre días.
+//
+// La rejilla es la tabla de RAC (role="grid"): no se le cambia el display,
+// que en Chromium quitaría los roles implícitos de filas y celdas. Los huecos
+// salen de border-spacing, que también separa los bordes exteriores: el margen
+// negativo los devuelve a la columna.
+.c-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  // Mes centrado entre los dos botones; sin «Mes anterior» (mes de minValue),
+  // al inicio, como en Figma 02.2 y 02.5.
+  &__nav {
+    --_month-align: center;
+
+    display: flex;
+    align-items: center;
+  }
+
+  &__nav--from-start {
+    --_month-align: start;
+  }
+
+  &__month {
+    @include tools.text(heading-sm);
+
+    flex: 1;
+    color: var(--color-text-primary);
+    text-align: var(--_month-align);
+  }
+
+  // Siempre el alto de 6 semanas (descripción de UI/Calendar): cabecera 20 +
+  // 8 + 6 × 50 + 5 × 4 = 348. Mayo tiene 5: sin el mínimo, la leyenda subiría.
+  // En el envoltorio y no en la tabla: una tabla reparte el alto sobrante
+  // entre sus filas.
+  //
+  // Con el texto ampliado la semana puede no caber (al 200 % a 320, celdas de
+  // 27 para números de 41): la rejilla es contenido en dos dimensiones y se
+  // desplaza en horizontal dentro de este envoltorio (excepción de 1.4.10) en
+  // vez de partir números o montar unos sobre otros.
+  //
+  // Reserva del anillo: el envoltorio sale 4 por cada lado (padding + margen
+  // negativo, sin mover nada de sitio). El anillo (desfase 2 + grosor 2) de
+  // las celdas de la primera y la última fila y columna cae en esa reserva y
+  // el desplazamiento no lo recorta. La tabla, con su margen de −4, llena
+  // justo la caja de padding: nada sobra en vertical, así que overflow-x:
+  // auto (que convierte overflow-y en auto) nunca pinta barra vertical.
+  &__body {
+    min-block-size: calc(1.25rem + var(--space-2) + 6 * 3.125rem + 5 * var(--space-1) + 2 * var(--space-1));
+    padding: var(--space-1);
+    margin: calc(-1 * var(--space-1));
+    overflow-x: auto;
+  }
+
+  // Ancho mínimo: 7 celdas de número de dos cifras en body-strong (21 en
+  // Figma) + bordes, y los 8 huecos. Al 100 % no se alcanza nunca.
+  &__grid {
+    inline-size: calc(100% + 2 * var(--space-1));
+    min-inline-size: calc(7 * 1.4375rem + 8 * var(--space-1));
+    margin: calc(-1 * var(--space-1));
+    table-layout: fixed;
+    border-spacing: var(--space-1);
+    border-collapse: separate;
+  }
+
+  // 4 del border-spacing + 4 aquí = 8 hasta la primera semana.
+  &__weekday {
+    @include tools.text(caption);
+
+    padding: 0 0 var(--space-1);
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  &__legend {
+    @include tools.text(caption);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    color: var(--color-text-secondary);
+  }
+
+  &__legend-item {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  &__swatch {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    border-radius: var(--radius-sm);
+  }
+
+  &__swatch--full {
+    border: 1px dashed var(--color-border-strong);
+  }
+
+  // El mismo punto que marca hoy en la rejilla (c-calendar-day__today).
+  &__dot {
+    border: 0.125rem solid var(--color-text-primary);
+    border-radius: var(--radius-pill);
+  }
+}

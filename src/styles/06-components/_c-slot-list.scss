@@ -1,0 +1,36 @@
+@use '../02-tools' as tools;
+
+// Lista de horas (excepción a D5, SlotList.tsx; capa «Slot List» de Figma).
+// Franjas separadas 24; en cada una, etiqueta en body-strong, 8 hasta la
+// rejilla y horas en filas de 3 con huecos de 12 (Figma 02.1: 106.33 a 343;
+// 02.5: 122 a 390).
+//
+// La rejilla va en la propia sección (group): RAC no admite DOM entre la
+// sección y sus opciones (spike-rac § 2.1). Tres columnas como mucho: la
+// columna nunca baja de un tercio del ancho, que es el tope real (no caben
+// cuatro). Por debajo, el mínimo es el contenido de la hora seleccionada sin
+// padding lateral (c-time-slot no lo lleva en la rejilla): check 20 + 8 +
+// hora 45 + bordes 4 = 77 (4.8125rem). Caben 3 a 320 con las dos barras (83
+// y 88); con el texto ampliado pasan a dos o a una columna en vez de bajar el
+// check o partir «10:3|0».
+.c-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+
+  &__group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(max(4.8125rem, (100% - 2 * var(--space-3)) / 3), 1fr));
+    gap: var(--space-3);
+  }
+
+  // El hueco de la rejilla es 12 y hasta las horas van 8: el margen resta la
+  // diferencia (no hay otra forma sin un div entre la sección y sus opciones).
+  &__label {
+    @include tools.text(body-strong);
+
+    grid-column: 1 / -1;
+    margin-block-end: calc(var(--space-2) - var(--space-3));
+    color: var(--color-text-primary);
+  }
+}

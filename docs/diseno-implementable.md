@@ -141,7 +141,10 @@ Se mide contra el fondo real que lo rodea.
 - Un indicador superpuesto (barra de pestaña actual, `::after`,
   `box-shadow: inset`) no entra en el layout y en reposo no existe.
 - Ningún estado se comunica solo con color. Ocupado o lleno = borde punteado +
-  tachado. Seleccionado = color + borde + glifo + peso.
+  tachado. Seleccionado = color + borde + glifo + peso donde el componente
+  tiene glifo (`UI/Time Slot`). En `UI/Calendar Day` y `UI/Day Chip` no cabe:
+  el seleccionado invierte relleno y texto, y en `forced-colors` pasa a
+  `SelectedItem` / `SelectedItemText` (DESIGN.md § Fecha y hora).
 
 ### 3.3 Estados y disponibilidad
 
@@ -375,7 +378,20 @@ Available sin borde visible. Full punteado y tachado, **seleccionable**. Past en
 `caret-right`), mes en `heading/sm`, cabecera L–D en `caption`, **siempre 6
 filas** (alto estable) y leyenda «Sin horarios» / «Hoy» decorativa.
 
-**`UI/Day Chip`** — la semana entera en 7 columnas, **sin scroll horizontal**.
+- El mes **no es un encabezado** (el panel 02.0 enumera los encabezados de la
+  vista 2 y no lo incluye). RAC nombra la rejilla con el mes («abril de 2029»).
+- Nombre de cada día, compuesto entero:
+  `{fecha} [, hoy], {N horarios libres | 1 horario libre | sin horarios} [, seleccionado]`,
+  con la fecha sin coma («martes 24 de abril de 2029»). Fuera de rango, solo la
+  fecha.
+- En el mes de `minValue`, «Mes anterior» se omite y el mes pasa al inicio
+  (Figma 02.2 y 02.5); si el botón tenía el foco, RAC lo lleva al día enfocado
+  del mes nuevo.
+- Inicio y Fin: principio y fin de la semana, cambiando de mes como las
+  flechas.
+
+**`UI/Day Chip`** — la semana entera en 7 columnas mientras quepan, **sin
+scroll horizontal**; con el texto ampliado, menos columnas y varias filas.
 Alto 62, `caption` + `body/strong`, con borde visible porque es un control
 suelto. Sin recuento en el chip: el recuento va en el subtítulo y en el nombre
 accesible, que empieza por el texto visible (criterio 2.5.3).

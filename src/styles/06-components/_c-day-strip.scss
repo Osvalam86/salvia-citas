@@ -1,0 +1,15 @@
+// Tira semanal (excepción a D5, DayStrip.tsx): siete UI/Day Chip en FILL con
+// huecos de 4 (Figma 02.1: 45.57 a 343), sin scroll horizontal.
+//
+// Siete columnas mientras quepan: la columna nunca baja de un séptimo del
+// ancho, que es el tope real (no caben ocho). El mínimo es el día de la
+// semana más ancho («dom», ≈ 31 en caption) + bordes = 2.0625rem, sin el
+// padding de space-1: el contenido va centrado y el padding de Figma solo
+// cuenta en HUG (como c-calendar-day). Así caben 7 a 320 con las dos barras;
+// con el texto ampliado la tira pasa a menos columnas y a varias filas en vez
+// de partir letras (DESIGN.md § Fecha y hora).
+.c-day-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(2.0625rem, (100% - 6 * var(--space-1)) / 7), 1fr));
+  gap: var(--space-1);
+}
