@@ -301,7 +301,8 @@ el mismo `container-name`, sin un segundo nombre
 | `result-card-identity` | el `li` (contenedor `result-card`)                 | 14rem (224) | Por debajo, el avatar va encima del encabezado  | Al encabezado le quedan 8rem: bordes 2px + padding 2rem + avatar 3rem + hueco 0,75rem + 8rem. Al 100 % no ocurre (el `li` más estrecho mide 273); al 200 % a 320 sí (448 en px) |
 | `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
 | `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
-| `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe                   |
+| `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Medido a 320 con la letra a 32: el interior del botón pasa de 32 (partían «mi» y «cita») a 128 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y a 158 con la superpuesta. Con la clásica aún parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior; con la superpuesta, ninguna |
+| `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe. El velo no lleva padding lateral: la query mide su caja de contenido, y el margen lo resta el panel |
 | `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
 
 **Costes declarados de `appointment-card` (40rem).**
@@ -505,6 +506,23 @@ y se interceptan. Sin salir de `minValue` ni `maxValue` (con estos datos el
 recorte no se ejerce: hoy es lunes y el día 90 es domingo). Si «Mes anterior»
 desaparece con el foco dentro, RAC lo lleva al día enfocado del mes nuevo; el
 foco no se pierde.
+
+---
+
+## Citas y diálogos
+
+**`UI/Dialog` es un `<dialog>` nativo con `showModal()`.** El elemento es el
+velo y el contenedor `dialog`; el panel es su hijo. Capa superior sin
+`z-index` y fondo `inert`. Un clic en el velo no cierra: es un `alertdialog`
+destructivo y solo lo cierran sus dos botones y Escape (que equivale a
+mantener).
+
+- **Teclado.** Tab y Mayús+Tab pueden salir al marco del navegador
+  (comportamiento nativo de `<dialog>` en Chromium), pero nunca llegan a la
+  página.
+- **forced-colors.** El velo conserva el alfa: Canvas al 45 %, no opaco. El
+  panel, también en Canvas, solo se separa del fondo por su contorno: el borde
+  transparente, forzado a CanvasText.
 
 ---
 

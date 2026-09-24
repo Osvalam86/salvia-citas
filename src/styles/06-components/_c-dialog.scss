@@ -1,0 +1,117 @@
+@use '../02-tools' as tools;
+
+// UI/Dialog (Figma 284:6340). El <dialog> es el velo: ocupa el viewport
+// exacto y es el contenedor `dialog`, porque ::backdrop no puede serlo
+// (DESIGN.md § Contenedores). Se anulan los estilos del navegador que lo
+// encogen o lo separan del borde (max-inline-size, max-block-size, margin,
+// border, padding, inset) y el ::backdrop queda transparente: el velo lo pinta
+// el propio elemento.
+//
+// __panel se centra con margin: auto dentro de una rejilla: si es más alto que
+// el velo (texto grande), los márgenes pasan a 0 y el velo se desplaza desde
+// arriba, sin perder la parte superior como con align-items: center.
+//
+// El velo no lleva padding lateral: una container query mide la caja de
+// contenido, y con padding el umbral dependería de él (DESIGN.md §
+// Contenedores: el umbral es un ancho exterior). El margen lateral de space-4
+// lo resta el panel; el vertical sí es padding del velo, que no afecta al
+// ancho.
+//
+// - Compacto (base, velo por debajo de 18.75rem: solo con texto grande): el
+//   panel llena el velo sin margen lateral y con padding space-4. Con los tres
+//   márgenes en rem (velo, panel y botón), a 320 con la letra a 32 al
+//   interior del botón le quedaban 32 px y partían «mi» y «cita»; sin margen y
+//   con space-4, 128 con barra clásica y 158 con la superpuesta (DESIGN.md §
+//   Contenedores). Con la letra a 16 solo ocurre por debajo de 300 px.
+// - Stacked desde 18.75rem (dialog-compact): el panel llena el velo menos
+//   space-4 a cada lado (343 a 375); botones apilados a todo el ancho,
+//   Mantener arriba.
+// - Row desde 32rem de velo (dialog): panel de 30rem (480), botones
+//   intrínsecos a la derecha, en el mismo orden.
+//
+// forced-colors: el velo conserva el alfa (Canvas al 45 %, no opaco) y el
+// panel, también en Canvas, solo se separa del fondo por su contorno, el borde
+// transparente forzado a CanvasText.
+.c-dialog {
+  container: dialog / inline-size;
+  inset: 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100%;
+  max-block-size: none;
+  margin: 0;
+  padding: var(--space-4) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--color-text-primary);
+  background-color: color-mix(in srgb, var(--color-scrim) 45%, transparent);
+  border: 0;
+
+  &::backdrop {
+    background-color: transparent;
+  }
+
+  // Solo abierto: la regla del navegador que lo oculta cerrado
+  // (dialog:not([open])) perdería frente a un display de autor.
+  &[open] {
+    display: grid;
+  }
+
+  // Sin trazo visible: flota sobre el velo. El borde transparente conserva el
+  // contorno en forced-colors (diseño §3.2); el padding le resta 1px para que
+  // el panel mida lo de Figma (343 × 296 y 480 × 210), que no tiene trazo.
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    inline-size: 100%;
+    margin: auto;
+    // stylelint-disable-next-line unit-disallowed-list -- el borde transparente mide 1px y no escala
+    padding: calc(var(--space-4) - 1px);
+    background-color: var(--color-surface);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    @include tools.container(dialog, dialog-compact) {
+      inline-size: calc(100% - 2 * var(--space-4));
+      // stylelint-disable-next-line unit-disallowed-list -- el borde transparente mide 1px y no escala
+      padding: calc(var(--space-5) - 1px);
+    }
+
+    @include tools.container(dialog, dialog) {
+      inline-size: 30rem;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  &__title {
+    @include tools.text(heading-md);
+
+    text-wrap: balance;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    @include tools.container(dialog, dialog) {
+      flex-flow: row wrap;
+      justify-content: flex-end;
+    }
+  }
+
+  // Mezcla sobre c-button: FILL en Stacked, HUG en Row.
+  &__action {
+    inline-size: 100%;
+
+    @include tools.container(dialog, dialog) {
+      inline-size: auto;
+    }
+  }
+}
