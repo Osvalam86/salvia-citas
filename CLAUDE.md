@@ -36,7 +36,8 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   en `src/data/clock.ts` (`TODAY`, `NOW`, `MAX_DATE`) con lint contra el reloj
   real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
   `/kit/fecha-hora`. Abierto: resto de pintado tras navegar en cliente
-  (DESIGN.md, bloque T0; ✗ declarado en `pnpm verify 4.6`).
+  (DESIGN.md; T0 lo acotó sin aislar la condición: estable en
+  `pnpm verify 4.6`, 0 de 80 en pasadas aisladas; ✗ declarado).
 - 4.7 Citas y diálogos: `AppointmentCard` (el `li` es el contenedor; Row
   desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
   el velo; umbrales `dialog-compact` y `dialog`). Una sola instancia del
@@ -45,7 +46,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   declarado en `pnpm verify 4.7`, bloque T1).
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (resto de pintado) → T1 (rutas, foco de ruta, títulos, página genérica,
+T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (rutas, foco de ruta, títulos, página genérica,
 `--preview`) → T2 (datos, guardas y 404, escenarios, fotos) → V1a → V1b →
 V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.

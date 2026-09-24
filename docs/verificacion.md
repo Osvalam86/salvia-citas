@@ -26,6 +26,7 @@ no se versiona.
 |---|---|
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
+| `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
@@ -107,15 +108,27 @@ no se versiona.
   que su elemento sale como «pudiendo caber» («experiencia», 175,3 en 175). Se
   declara con la cifra; no se relaja la regla (4.5).
 - **El arnés siempre navega con carga completa** (`Page.navigate`), así que
-  nunca prueba la navegación en cliente de React Router. Desde 4.6 hay una
-  comprobación que llega con un clic real en «Ver fecha y hora» desde `/kit`,
-  baja con la rueda y compara con la página recargada. Con ella apareció un
-  resto de pintado de `/kit` (DESIGN.md, pendiente de la fase 5): sin nodo en
-  el DOM, disparado por página de origen desplazada + navegación en cliente +
-  rueda (con `scrollTo` o un clic por script no sale), que desaparece con el
-  árbol de capas de CDP activo. Hipótesis sin confirmar: el compositor de
-  Chromium reutiliza teselas de la página anterior. La reproducción se volvió
-  intermitente tras recompilar. La comprobación queda en ✗ (4.6).
+  nunca prueba la navegación en cliente de React Router. `navegacion.mjs` la
+  prueba con un clic real, la rueda y la comparación con la recarga. Con
+  ella apareció un resto de pintado de `/kit` (DESIGN.md, Pendientes): sin
+  nodo en el DOM y reproducido también en Chrome real, sin CDP. **Ronda T0:**
+  estable en `pnpm verify 4.6` (3 de 3, 4932 px a 1350 con barra clásica) y
+  0 de 80 en pasadas aisladas, con Edge y perfil nuevos (anchos, barras,
+  ventana visible y cuatro preparaciones previas). La causa es un estado
+  que deja la sesión larga de 4.6, sin aislar. Lo que la lectura de 4.6
+  dejó escrito como «intermitente» y como «la primera navegación de la
+  sesión» era esa dependencia. Anterior a T0 y aún cierto: con `scrollTo` o
+  un clic por script no sale; desaparece con el árbol de capas de CDP
+  activo; hipótesis sin confirmar, el compositor reutiliza teselas de la
+  página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`,
+  ni quitar el desplazador del calendario; la prueba `/kit` →
+  `/kit/resultados` de 8087662 no llegó a hacerse. La línea es un ✗ declarado
+  (`explicado: false`): un 0 medido no la pasa a ✓ (T0).
+- **La rueda con el viewport emulado.** Con `setDeviceMetricsOverride` a
+  375 en una ventana de 1280, un `mouseWheel` en x = 600 (fuera del viewport
+  emulado) sí desplaza la página: medido, baja al final (2014 de 2014), igual
+  que en x = 187. `toBottom` usa el centro (`innerWidth / 2`) por claridad,
+  no por un fallo (T0).
 - **Capturas: píxeles, no bytes.** Dos PNG del mismo viewport pueden
   codificarse distinto; se comparan píxel a píxel en un canvas de la página
   (4.6).

@@ -3,6 +3,7 @@
 // son las de Figma: maestros y pantallas 02.1, 02.2, 02.5 y 02.7.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
+import { clientNavigation, pixelDiff, viewport } from './navegacion.mjs'
 import { lintLines, typeErrorLines } from './static.mjs'
 
 const PAGE = '/kit/fecha-hora'
@@ -581,55 +582,25 @@ export default async function run(b, expect) {
   await b.metrics(1280, 900, 1)
 
   // --- Navegación en cliente desde /kit ---------------------------------------------------------------
-  // El arnés navega con carga completa (Page.navigate); esta comprobación
-  // llega con un clic real en «Ver fecha y hora», baja al final con la rueda
-  // y compara el viewport con el de la misma página recargada.
-  const viewport = async () => (await b.send('Page.captureScreenshot', { format: 'png' })).data
-  const toBottom = async () => {
-    for (let i = 0; i < 20; i++) await b.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 600, y: 400, deltaX: 0, deltaY: 400 })
-    await sleep(600)
-  }
-  // Píxeles distintos entre dos capturas, no bytes: dos PNG del mismo viewport
-  // pueden codificarse distinto.
-  const pixelDiff = (a, c) => `(async () => {
-    const load = (d) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + d })
-    const px = (img) => { const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const g = cv.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data }
-    const images = await Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(c)})])
-    const w = images[0].width, [p, q] = images.map(px)
-    let n = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1
-    for (let i = 0; i < p.length; i += 4) {
-      if (p[i] === q[i] && p[i + 1] === q[i + 1] && p[i + 2] === q[i + 2]) continue
-      n++
-      const k = i / 4, x = k % w, y = Math.floor(k / w)
-      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y)
-    }
-    return n === 0 ? 0 : n + ' en ' + [x0, y0, x1, y1].join(',')
-  })()`
-  // La primera navegación en cliente de la sesión es la que deja el resto de
-  // pintado (medido: las siguientes salen limpias). Se captura también 4 s
-  // después, para distinguir un retraso de pintado de un resto persistente.
+  // Clic real en «Ver fecha y hora», bajada con la rueda y comparación con la
+  // página recargada (navegacion.mjs). La medida se imprime, pero la línea es
+  // un ✗ declarado mientras el resto de pintado no esté explicado o mitigado
+  // con contraprueba (DESIGN.md, Pendientes, T0: no reproducido en 40
+  // pasadas). Un 0 aquí no lo explica: el defecto era intermitente.
   const client = {}
   let counterNav = null
   for (const width of [1350, 375]) {
     await b.overlayScrollbars(false)
     await b.metrics(width, 900, 1)
-    await b.go('/kit')
-    const { x, y } = await b.ev(`(() => { const a = [...document.querySelectorAll('a')].find((e) => e.textContent === 'Ver fecha y hora'); a.scrollIntoView({ block: 'center' }); const r = a.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
-    await b.click(x, y)
-    for (let i = 0; i < 50 && (await b.ev('location.pathname')) !== PAGE; i++) await sleep(100)
-    await b.ev('document.fonts.ready.then(() => true)')
-    await sleep(400)
-    await toBottom()
-    const state = await b.ev("({ ruta: location.pathname, carga: performance.getEntriesByType('navigation')[0].name.endsWith('/kit'), avatares: document.querySelectorAll('.c-avatar').length, mains: document.querySelectorAll('main').length })")
-    const afterClient = await viewport()
-    await sleep(4000)
-    const later = await viewport()
-    await b.go(PAGE)
-    await toBottom()
-    const afterReload = await viewport()
-    client[width] = { ...state, pixelesDistintosDeLaRecarga: await b.ev(pixelDiff(afterClient, afterReload)), cuatroSegundosDespues: await b.ev(pixelDiff(later, afterReload)) }
+    const { afterClient, afterReload, ...result } = await clientNavigation(b, {
+      from: '/kit',
+      link: 'Ver fecha y hora',
+      to: PAGE,
+      state: "({ avatares: document.querySelectorAll('.c-avatar').length, mains: document.querySelectorAll('main').length })",
+    })
+    client[width] = result
     // Si difieren, las dos capturas quedan en out/4.6 para mirarlas.
-    if (client[width].pixelesDistintosDeLaRecarga !== 0) {
+    if (result.pixelesDistintosDeLaRecarga !== 0) {
       await b.saveBase64(`navegacion-cliente-${width}.png`, afterClient)
       await b.saveBase64(`navegacion-recarga-${width}.png`, afterReload)
     }
@@ -638,11 +609,15 @@ export default async function run(b, expect) {
     if (width === 1350) {
       await b.ev("(() => { const bar = [...document.querySelectorAll('#kit-barras-variantes .c-booking-bar')].pop(), a = document.createElement('span'); a.className = 'c-avatar c-avatar--small'; a.textContent = 'E'; a.style.cssText = 'position:absolute;left:40px;top:4px'; bar.style.position = 'relative'; bar.append(a); return true })()")
       await sleep(100)
-      counterNav = { avatares: await b.ev("document.querySelectorAll('.c-avatar').length"), pixelesDistintos: (await b.ev(pixelDiff(afterReload, await viewport()))) !== 0 }
+      counterNav = { avatares: await b.ev("document.querySelectorAll('.c-avatar').length"), pixelesDistintos: (await b.ev(pixelDiff(afterReload, await viewport(b)))) !== 0 }
     }
   }
-  const clientOk = { ruta: PAGE, carga: true, avatares: 0, mains: 1, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0 }
-  expect('navegación en cliente /kit → /kit/fecha-hora (clic real, sin recarga): sin restos de /kit en el DOM y el viewport del final idéntico, píxel a píxel, al de la página recargada', client, { 1350: clientOk, 375: clientOk })
+  const clientOk = { ruta: PAGE, sinRecarga: true, estado: { avatares: 0, mains: 1 }, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0 }
+  expect(
+    'navegación en cliente /kit → /kit/fecha-hora (clic real, sin recarga): sin restos de /kit en el DOM ni en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, T0)',
+    { ...client, explicado: false },
+    { 1350: clientOk, 375: clientOk, explicado: true },
+  )
   expect('contraprueba: un avatar detrás de la última barra se detecta en el DOM y en los píxeles', counterNav, { avatares: 1, pixelesDistintos: true })
   await b.metrics(1280, 900, 1)
 
