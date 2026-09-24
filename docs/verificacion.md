@@ -9,7 +9,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
-pnpm verify 4.6   # 4.1 a 4.6
+pnpm verify 4.7   # 4.1 a 4.7
 ```
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
@@ -29,7 +29,7 @@ no se versiona.
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
-| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` · `4.6-fecha-hora.mjs` | Una sección cada uno |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` · `4.6-fecha-hora.mjs` · `4.7-citas.mjs` | Una sección cada uno |
 
 ## Método
 
@@ -131,6 +131,26 @@ no se versiona.
 - **Una tabla con margen negativo dentro de un `overflow-x: auto`** sobresale
   lo que mida el margen y el navegador pinta barra vertical (`overflow-y` pasa
   a `auto`): el envoltorio del calendario reserva el margen con padding (4.6).
+- **`pnpm dev` y la preview no ejecutan igual los efectos.** En desarrollo, `StrictMode`
+  monta, desmonta y vuelve a montar cada componente nuevo, y repite sus efectos. Un fallo de
+  orden puede quedar oculto: con el `close()` del diálogo en un efecto en vez de en el
+  manejador, en desarrollo el foco llegaba al título del aviso (el efecto repetido corría con
+  el diálogo ya cerrado) y en `pnpm preview` caía en `body`, porque con el diálogo abierto la
+  página es `inert`. `pnpm verify` corre contra `pnpm dev`: los flujos de foco que dependen del
+  orden de los efectos se miden también contra la preview (DESIGN.md, Pendientes, fase 5) (4.7).
+- **Una container query mide la caja de contenido.** Con padding lateral en el velo, el umbral
+  de `dialog` (32rem) se evaluaba sobre viewport − 32 y a 512 seguía en Stacked. El velo solo
+  lleva padding vertical; el margen lateral lo resta el panel (4.7).
+- **Un contenedor con `overflow: auto` pinta su propia barra clásica.** Cuando el velo del
+  diálogo se desplaza (texto grande), resta 15 px al panel: el interior del botón a 320 con la
+  letra a 32 es 128, no 143 (4.7).
+- **Errores de consola de rutas aún inexistentes.** Un clic real en un enlace a una ruta de la
+  fase 5 llega al 404 de React Router, que escribe 2 errores. `4.7-citas.mjs` los retira solo
+  en ese paso y los comprueba aparte (DESIGN.md, Pendientes, fase 5) (4.7).
+- **Codificación al editar desde PowerShell 5.1.** `Get-Content` lee un UTF-8 sin BOM como
+  ANSI (tildes dobles, «Ã¡»); `Set-Content` escribe por defecto en la codificación ANSI del
+  sistema, y con `-Encoding UTF8` añade BOM. Los scripts se editan con un editor, con Node o
+  con la herramienta Edit, nunca con esos cmdlets (4.7).
 
 ## Comprobaciones manuales
 
@@ -143,4 +163,5 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Anuncio real con lector de pantalla | NVDA y VoiceOver: región viva de `Notice`, ayuda de `Legend` por `aria-describedby`. Pendiente de la fase 7 | 4.2, 4.3 |
 | Zona segura y Safari | iPhone real y Safari de macOS. Pendiente de la fase 7 | 3 |
 | Inicio/Fin sin la intercepción de `Calendar` | Quitar el `onKeyDownCapture` del envoltorio, Tab al 24 en `/kit/fecha-hora`, ← al 23 y Fin: el foco va al 30 de abril (fin de mes de RAC), no al domingo 29. Medido al construirlo; revertir | 4.6 |
+| Cierre del diálogo en un efecto | Quitar `dialog.current?.close()` de `confirm` en `Dialog.tsx`, `pnpm build` y `pnpm preview`: en `/kit/citas`, cancelar la cita de Molina deja el foco en `body` en vez de en «Cita cancelada». En `pnpm dev` no se reproduce (`StrictMode`). Medido al construirlo; revertir | 4.7 |
 | Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |

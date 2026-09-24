@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.6 hechas.
+Estado actual: fases 1 a 4 cerradas.
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -37,8 +37,14 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
   `/kit/fecha-hora`. Abierto: resto de pintado tras navegar en cliente
   (DESIGN.md, pendiente de la fase 5; ✗ declarado en `pnpm verify 4.6`).
+- 4.7 Citas y diálogos: `AppointmentCard` (el `li` es el contenedor; Row
+  desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
+  el velo; umbrales `dialog-compact` y `dialog`). Una sola instancia del
+  diálogo por lista; al cancelar, aviso Success con el foco en su título.
+  Demo en `/kit/citas`. Abierto: foco al `h1` al cambiar de ruta (✗
+  declarado en `pnpm verify 4.7`, pendiente de la fase 5).
 
-Siguiente: 4.7 Citas y diálogos.
+Siguiente: fase 5, vistas 1 → 4.
 
 ## Comandos
 
@@ -65,9 +71,9 @@ No hay test runner configurado.
    `node.description` del componente en Figma.
 2. **`DESIGN.md`** — contrato de la capa de estilos: decisiones de traducción de
    tokens **cerradas** (no se reabren), pares tipográficos, breakpoint único
-   (`lg` 64rem) y gutter de escritorio, container queries (`result-card`,
-   `appointment-card`, `dialog`, `slot-picker`), constantes sin variable en Figma, reglas de React Aria y pares de contraste
-   prohibidos.
+   (`lg` 64rem) y gutter de escritorio, container queries (umbrales y
+   derivación en § Contenedores), constantes sin variable en Figma, reglas de
+   React Aria y pares de contraste prohibidos.
 3. **Skills del proyecto en `.claude/skills/`** — `bemit-scss` (arquitectura
    ITCSS, nomenclatura y prefijos; manda sobre `DESIGN.md` en eso),
    `semantic-markup` (marcado y ARIA), `theme-tokens` (generar la capa
