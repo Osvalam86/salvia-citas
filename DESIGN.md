@@ -616,23 +616,29 @@ reintroducirlos:
 
 ---
 
-## Decisiones de arquitectura (D1–D14)
+## Decisiones de arquitectura (D1–D15)
 
 Tomadas en la planeación de la fase de código. No se reabren sin acuerdo
 explícito.
 
-**D1 · Rutas y estado.** Las 32 pantallas son estados de 8 rutas:
+**D1 · Rutas, estado y guardas.** Las 32 pantallas son estados de 8 rutas,
+más la del 404:
 
-| Ruta                             | Vista                            | Estado dentro de la ruta                                           |
-| -------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
-| `/`                              | V1 · Búsqueda                    | Carga, vacío, hoja de filtros, conmutador «Avisarme»               |
-| `/especialistas/:slug`           | V2 · reserva                     | Sin horarios, Missing, hoja del calendario                         |
-| `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil) | —                                                                  |
-| `/especialistas/:slug/datos`     | V3                               | Errores, reserva fallida                                           |
-| `/citas/:id/confirmada`          | V4 · confirmación                | —                                                                  |
-| `/mis-citas`                     | V4 · Mis citas                   | Diálogo, aviso de cancelada, aviso de reprogramada, menú de cuenta |
-| `/mis-citas/:id/reprogramar`     | V2 · reprogramación              | Los mismos que la V2                                               |
-| `/fuera-de-alcance`              | Página genérica                  | —                                                                  |
+| Ruta                             | Vista                                    | Estado dentro de la ruta                                               | Guarda                                                                                                             |
+| -------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `/`                              | V1 · Búsqueda                            | Carga, vacío (por consulta o por filtros), hoja de filtros, conmutador | Un parámetro con valor desconocido se ignora                                                                       |
+| `/especialistas/:slug`           | V2 · reserva                             | Sin horarios, Missing, hoja del calendario                             | Slug desconocido → 404. `fecha` fuera de rango u `hora` no libre se ignoran (estado inicial de D2)                 |
+| `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil)         | —                                                                      | Slug desconocido → 404. Sin `fecha` y `hora` libres → redirige a `/especialistas/:slug` con los mismos parámetros |
+| `/especialistas/:slug/datos`     | V3                                       | Errores, reserva fallida                                               | Igual que `/confirmar`                                                                                             |
+| `/citas/:id/confirmada`          | V4 · confirmación                        | —                                                                      | Id que no está en el almacén → 404                                                                                 |
+| `/mis-citas`                     | V4 · Mis citas                           | Diálogo, avisos de cancelada y reprogramada, menú de cuenta            | —                                                                                                                  |
+| `/mis-citas/:id/reprogramar`     | V4b · reprogramación (selector de la V2) | Los de la V2                                                           | Id desconocido → 404. Cita que no está Confirmada → redirige a `/mis-citas` (solo Confirmed ofrece «Reprogramar») |
+| `/fuera-de-alcance`              | Página genérica                          | —                                                                      | —                                                                                                                  |
+| `*`                              | 404                                      | —                                                                      | —                                                                                                                  |
+
+**404.** Ruta `*` y `throw` con estado 404 desde la guarda de la ruta, con el
+mismo `errorElement`: `h1` «No encontramos esta página» y «Ir a
+Especialistas».
 
 Parámetros en la URL: en V1, `q`, `ubicacion`, filtros, `orden` y `pagina`;
 de V2 a V4, `fecha` y `hora`. Razón: varias piezas del diseño son `<a>` y
@@ -647,7 +653,15 @@ cambio de tamaño no pierde la posición.
 `/especialistas/:slug/confirmar` existe en cualquier viewport, pero solo el
 «Continuar» de móvil lleva a ella.
 
-Hasta la fase 5, `/` redirige a `/kit`.
+**Retroceso con la consulta conservada** (panel 02.0: nombran adónde llevan,
+nunca `history.back()`). Los parámetros de V1 (`q`, `ubicacion`, filtros,
+`orden`, `pagina`) viajan sin cambios, junto a `fecha` y `hora`, de V2 a V4;
+no comparten nombre. El Back Link y el breadcrumb «Especialistas» de V2, V3
+y la confirmación reconstruyen `/?…` con ellos, y el nivel del médico,
+`/especialistas/:slug?…`. Al abrir una página desde un enlace sin ellos,
+llevan a `/`. La reprogramación no los lleva: su retroceso es `/mis-citas`.
+
+El catálogo sigue en `/kit` (D9).
 
 **D2 · Estado del selector de la vista 2.** Un reducer `useSlotPicker` en la
 composición, con cuatro valores: `{ date, time, visibleWeek, visibleMonth }`.
@@ -658,6 +672,12 @@ texto de estado, «día lleno» y el estado de la Booking Bar se derivan. Reglas
 - Navegar de semana no cambia la fecha.
 - La hoja del calendario tiene su propio borrador, que solo se aplica con «Ver
   horarios del martes 24». Cerrarla lo descarta.
+- **Estado inicial sin parámetros.** `date` nunca es `null`: en la reserva,
+  el primer día con horas libres desde hoy (el 24 con estos datos); en la
+  reprogramación, el primer día con horas libres de la semana de la cita
+  actual (el martes 15 de mayo). `time` empieza en `null`. Figma 02.1
+  equivale a `?fecha=2029-04-24&hora=10:30`; 02.7 y 02.8, a
+  `?fecha=2029-05-17&hora=17:00`.
 
 Fechas con `CalendarDate` de `@internationalized/date`, declarado como
 dependencia directa. Nunca `DateValue` (ver `spike-rac.md` § 2.5).
@@ -674,22 +694,89 @@ vista dentro de un componente del kit.
 `Record<ISODate, Slot[]>`. Los días declarados en §5.2 y §5.4 van literales.
 «Lleno» se deriva de `slots.every(s => !s.available)` y nunca es un campo
 propio, así tira, calendario y lista no pueden contradecirse.
+**Ningún día publicado es `[]`**: `[].every()` es `true` y daría por lleno un
+día sin horas. El domingo se publica con la franja de mañana y todas sus
+horas ocupadas, de modo que «La agenda … está completa» y la leyenda «Sin
+horarios» dicen la verdad. Los domingos declarados (29 de abril; 6, 13, 20 y
+27 de mayo) salen de la regla, no de una excepción.
+
+**Generación.** Plantilla de Figma (09:00–11:30 y 16:00–18:30 cada 30 min)
+de lunes a sábado; domingo, 09:00–11:30. Mariana va desfasada un cuarto de
+hora (09:15–11:45 y 16:15–19:45), por su 19:15. La ocupación sale de un
+generador con semilla (mulberry32 sobre slug + fecha + hora), nunca de
+`Math.random`: las capturas deben ser estables. Los días declarados se
+escriben encima. Franjas: Mañana antes de las 12:00 y Tarde desde las 12:00.
+Reservar o reprogramar no cambia la disponibilidad (declarado).
+
+**`publishedUntil`** por médico: límite de la generación y del selector
+(`maxValue = min(MAX_DATE, publishedUntil)`). **Full** (Result Card) se
+deriva: ningún hueco libre entre `NOW` y `publishedUntil`. «Próximo cupo en
+{mes}» también: el mes del día siguiente a `publishedUntil`. Rodrigo:
+`publishedUntil` el 30 de abril, con abril entero ocupado.
+
+**Orden «Disponibilidad más próxima».** Clave: el primer hueco libre; para
+un Full, el día siguiente a `publishedUntil` a las 00:00. Los generados
+tienen abril ocupado y su primer hueco a partir del 2 de mayo: no empatan
+con Rodrigo. Entre iguales, por nombre (colación es-MX). «Años de
+experiencia»: descendente. «Cercanía»: `distanceKm`, un dato del médico.
 
 Reloj: `TODAY` y `NOW` en `src/data/clock.ts`; `new Date()` y `today()`
 prohibidos por lint. **`NOW` = lunes 23 de abril de 2029, 09:00** — anterior
 al 19:15 de Mariana y al 10:30 de la cita de Ruiz, como exige el recordatorio
 de 04.1. **`maxValue` = 90 días desde `TODAY`.**
+Una hora está libre solo si empieza **después** de `NOW`: la de las 09:00
+del 23 cuenta como pasada.
 
-Script de aserciones que falla si los datos dejan de cumplir los hechos
-declarados: el 23 y el 29 de abril llenos; el 24 con 6 horas libres y la
-primera a las 10:30; los días llenos de mayo exactamente los de la lista; el
-17 de mayo con 8 libres; mayo con 5 semanas y abril con 6.
+**Universo.**
 
-Huecos que el documento no cubre y se resuelven al llegar a ellos, proponiendo
-antes un patrón explícito: horas del 25 al 28 de abril y del resto de mayo;
-disponibilidad de Cortés en abril y de Ruiz en mayo. **Se generan los 30
-cardiólogos que faltan hasta 34**: son datos, no diseño; el documento solo fija
-los 4 de la primera página.
+- Área Cardiología: 34 (los 4 de 01.1 y 30 generados).
+- Los 4 médicos de Mis citas que no son de cardiología.
+- Generados en Pediatría, Ginecología, Medicina interna y Traumatología
+  (Dermatología ya tiene a Molina).
+- Oftalmología, Medicina general y Nutrición clínica no tienen opción de
+  filtro: se alcanzan por consulta o sin filtro.
+- `q` busca una subcadena, sin distinguir mayúsculas ni acentos, en el
+  nombre, la línea de especialidad y el área. Ejemplo: «Cardiología»
+  encuentra a Rodrigo por el área, aunque su línea diga «Electrofisiología».
+- Líneas de especialidad literales de Figma en los fijos; «· N años» en los
+  generados.
+
+Los 4 fijos de 01.1 (Figma, `specialty` de cada Result Card):
+
+| Médico                     | Línea de especialidad                    | Área del filtro |
+| -------------------------- | ---------------------------------------- | --------------- |
+| Dra. Mariana Cifuentes Poza | Cardiología pediátrica · 15 años        | Cardiología     |
+| Dra. Elena Ruiz Arellano   | Cardiología · 12 años de experiencia     | Cardiología     |
+| Dr. Joaquín Bermúdez Lara  | Cardiología intervencionista · 8 años    | Cardiología     |
+| Dr. Rodrigo Alcántara Vela | Electrofisiología · 20 años              | Cardiología     |
+
+Cortés, en su perfil (02.7, 02.8): «Oftalmología · 9 años de experiencia»,
+área Oftalmología (§6).
+
+**Ubicación.** Las opciones se derivan de las colonias de las clínicas, en
+orden alfabético, con «Ciudad de México» como inicial (toda la ciudad,
+`ubicacion` ausente), que es el valor que muestra Figma.
+
+**Motivo de consulta:** «Primera consulta», «Seguimiento», «Revisión de
+estudios», «Segunda opinión», «Otro motivo».
+
+**`scripts/check-data.mjs`**, encadenado en `pnpm lint` (importa el TS de
+`src/data/`), falla si deja de cumplirse cualquiera de estos hechos:
+
+- Ruiz: el 23 y el 29 de abril llenos; el 24 con 6 horas libres y la
+  primera a las 10:30.
+- Cortés: los días llenos de mayo son exactamente los de la lista; el 15 de
+  mayo con al menos una libre; el 17 con 8 libres; el 16 a las 09:30
+  ocupada.
+- Primer hueco libre: Mariana, hoy a las 19:15; Joaquín, el 26 a las 17:00.
+- Rodrigo es Full con «mayo».
+- Mayo tiene 5 semanas y abril 6.
+- Ningún día publicado es `[]` y ninguna hora libre empieza en o antes de
+  `NOW`.
+- La búsqueda de 01.1 da 34 y su primera página es la de Figma, en su
+  orden.
+- Cada opción de cada filtro, sin consulta, da ≥1 resultado; cada
+  ubicación, sin consulta, da ≥1.
 
 **D5 · Componentes React frente a parciales SCSS.** Estilos solo en
 `src/styles/` por capas. Componentes en `src/components/NombreComponente.tsx`,
@@ -728,6 +815,10 @@ comprobación que falle si difieren.
 sin backend. Parámetro `?escenario=` (`ocupada`, `lenta`); el vacío se produce
 de forma natural con una consulta sin coincidencias. Más una página de
 desarrollo con enlaces a cada estado.
+`lenta`: cada búsqueda y cada «Ver más» tardan 1500 ms. `ocupada`: el envío
+válido de V3 devuelve la reserva fallida. Vacío de ejemplo: la consulta de
+01.3, «Neurocirugía pediátrica». La página de estados es `/kit/estados`,
+con el catálogo (D9).
 
 **D9 · Catálogo.** Ruta `/kit` en lugar de Storybook: cero dependencias y la
 misma cascada global. **Va también en producción**, no solo en desarrollo: un
@@ -751,14 +842,40 @@ declaran con la familia sin sufijo como respaldo.
 hace falta: el foco se mueve al `h1` al navegar, y sin restauración de scroll
 esa gestión pelea con la posición que recuerda el navegador.
 
+**Foco de ruta (`useRouteFocus` en la ruta raíz).** Al cambiar `pathname`
+(no en la carga inicial), `focus({ preventScroll: true })` en `#contenido`:
+el scroll lo decide `<ScrollRestoration>` (arriba en PUSH, posición
+guardada en POP). Un cambio solo de `search` no mueve el foco: lo decide la
+vista. Una navegación puede nombrar otro destino en `location.state.focus`
+(volver de reprogramar → título del aviso). **Si ese destino no existe, el
+foco va al `h1`:** `history.state` sobrevive a la recarga y a Atrás, pero el
+aviso del almacén no (D13). Contraprueba en T1: volver de reprogramar,
+recargar `/mis-citas` y comprobar que el foco no se pierde.
+
 **D13 · La cita de la Dra. Ruiz.** El 24 a las 10:30 ya está en Mis citas como
 Confirmada, y el flujo de reserva reserva justo esa cita. Almacén en memoria
 sembrado con las 5 citas de la §6; completar el flujo **reemplaza** la cita de
 Ruiz en lugar de duplicarla. Todo se reinicia al recargar.
+La reserva **reutiliza el id sembrado** de la cita de Ruiz
+(`ruiz-2029-04-24`): así `/citas/:id/confirmada` aguanta una recarga, porque
+el almacén se reinicia con la semilla y ese id sigue en ella.
+Los avisos que cruzan una navegación (reprogramada) son de un solo uso y
+viven en el almacén, no en `history.state`: tras recargar, el almacén se
+reinicia y el aviso no debe volver.
 
 **D14 · Legend con encabezado.** `UI/Legend` recibe una prop opcional de nivel
-de encabezado. La vista 2 la usa (`<legend><h2>Elige fecha</h2></legend>`); la
-vista 3 no.
+de encabezado. La vista 2 la usa (`<legend><h2>Elige fecha</h2></legend>`) y
+la vista 3 también, en «Datos del paciente» y «Antes de confirmar» (reabierta
+en la fase 5 por el panel 03.0: sin ella, sus secciones quedaban fuera de la
+navegación por encabezados, mientras que el resumen y «Tu cita» sí estaban).
+Sin cambio visual; se verifica con el esquema de encabezados.
+
+**D15 · Títulos de página** (2.4.2), con `<title>` de React 19 en cada vista:
+«Especialistas · Salvia», «{Nombre del médico} · Salvia», «Confirma tu cita ·
+Salvia», «Tus datos · Salvia», «Cita reservada · Salvia» (Figma, panel
+04.0), «Mis citas · Salvia», «Reprogramar cita · {Nombre del médico} ·
+Salvia», «Fuera del caso de estudio · Salvia» y «No encontramos esta página ·
+Salvia».
 
 ---
 
@@ -767,16 +884,16 @@ vista 3 no.
 | Fase  | Pendiente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 4 ✓   | **`overflow-wrap: anywhere` en filas flex sin wrap. Cerrado en 4.7.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobado componente a componente de 4.1 a 4.7 al 200 % con las dos barras. **En 4.6**, a 320 al 100 % y al 200 % con las dos barras: ninguna palabra partida en días y números del calendario, mes, leyenda, chips (día de la semana y número), etiquetas de franja y horas; los números y horas llevan `white-space: nowrap` y las filas que los contienen pasan a menos columnas (tira, horas) o se desplazan (calendario) en vez de encoger. La Booking Bar (título, meta y botón), con la letra del navegador a 20, 24 y 32: sin palabras partidas. **En 4.7**, `UI/Appointment Card` a 320: sin palabras partidas al 100 %; al 200 % solo parten palabras más anchas que su elemento (interior de la tarjeta 175/190, de la acción 77/92), y la fila del avatar lleva `flex-wrap` (contraprueba: sin él, al nombre le quedan 55 y parten los 16 nombres). `UI/Dialog` con la letra a 24 y a 32 y al 200 % a 320: ninguna palabra partida pudiendo caber; con barra clásica a 32 parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior (226 y 128, con `dialog-compact`) |
-| 5     | **Fotos de avatar.** UI Faces no permite su uso en proyectos públicos. Opciones: rostros generados por Osvaldo con una herramienta cuyos términos le cedan el uso (coherente con el diseño: rostros IA, sin bata, fondo neutro), o Unsplash (licencia válida para el repo, pero son personas reales presentadas como médicos ficticios). Decidir antes de las vistas. En cualquier caso, `NOTICE` las excluye de MIT y CC BY. Formato previsto: WebP cuadrado sin metadatos, `-96` y `-192` por persona, con `srcset` |
-| 5     | **Atrás tras un ancla nativa no restaura el scroll.** `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
-| 5     | **Línea base en la cabecera de resultados.** `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
-| 5     | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
-| 5     | **Opciones de Motivo de consulta.** El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
-| 5     | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
+| 5 · T2 | **Fotos de avatar. Decidido:** solo Mariana, Ruiz y Rodrigo (las que llevan foto en Figma), rostros generados por Osvaldo con IA (Gemini); el resto con inicial. Los originales quedan fuera del repo y de su historial. WebP cuadrado sin metadatos, `<slug>-96.webp` y `<slug>-192.webp` en `src/assets/avatars/`, con `srcset`; recorte por foto (las tres caras al mismo tamaño y altura en el círculo), con captura a 48 y 64 antes de cerrar T2. `NOTICE` las excluye de MIT y CC BY |
+| 5 · V3 | **Atrás tras un ancla nativa no restaura el scroll.** Decidido (diseño §5.3): el resumen de errores enfoca el campo por script, sin entrada de historial; se mide en V3. `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
+| 5 · V1a | **Línea base en la cabecera de resultados.** El panel 01.0 fija `align-items: last baseline`; se mide en V1a. `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
+| 5 · V2a / V2b | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
+| 5 · T2 | **Opciones de Motivo de consulta.** Decididas en D4; se implementan en T2. El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
+| 5 · V3 | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
 | Skill ✓ | **Parche para `bemit-scss`: reset de `fieldset` y `legend`. Cerrado.** (`assets/scaffold/styles/03-generic/_reset.scss`). Antes: nada. Después: `:where(fieldset) { border: 0; padding: 0; min-inline-size: 0 }` y `:where(legend) { padding: 0 }`. Razón: el borde, el padding y el `min-inline-size: min-content` del navegador hacen que un `fieldset` no encoja por debajo de su contenido y rompa a 320; el padding de la `legend` desalinea el texto con la columna. Aplicado en `src/styles` y en la skill del repo |
 | 7     | **Anuncio real de `UI/Notice` en región viva.** Comprobar con NVDA y VoiceOver que Success (`role="status"`) y Error (`role="alert"`) se anuncian al aparecer sin mover el foco, y si se lee también «Cerrar aviso». En 4.2 solo se verificó la estructura: la región existe vacía antes del mensaje y el contenido se inserta dentro |
-| 6     | **Ruta `/fuera-de-alcance`.** Destino de Ayuda, Cuenta, Iniciar sesión, Crear cuenta y «Cerrar sesión» (botón que navega). Hasta entonces, el kit llega al 404 de React Router |
+| 5 · T1 | **Ruta `/fuera-de-alcance`.** (Era de la fase 6, absorbida en la 5.) Destino de Ayuda, Cuenta, Iniciar sesión, Crear cuenta y «Cerrar sesión» (botón que navega). Hasta entonces, el kit llega al 404 de React Router |
 | 7     | **Menú de cuenta y navegación con lector.** Que NVDA y VoiceOver anuncien «expandido/contraído» en el disparador y la página actual en las dos navs |
 | 7     | **`hyphens: auto` en Nav Item.** Sin efecto en Edge sobre Windows (medido). Comprobar en Safari (iOS y macOS) y en Chrome Android |
 | 7     | **Texto grande con el ajuste real del navegador.** Comprobar el modo con el tamaño de letra del navegador en escritorio (Chrome, Firefox, Safari) y en Android (Chrome, ajuste de tamaño de texto o zoom de página): que la barra pase al flujo en 320–430 con la letra grande y no al 100 % |
@@ -785,18 +902,19 @@ vista 3 no.
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 7     | **Zona segura en un iPhone real.** `viewport-fit=cover` y `env(safe-area-inset-*)` en `c-app-layout` (laterales) y en su hueco de barra (inferior) no se pudieron probar: en headless `env()` vale 0. Comprobar en vertical y horizontal con notch que el contenido no queda bajo el notch, que la franja bajo el indicador de inicio se pinta con la superficie y que la barra no queda bajo él |
-| 5     | **Lista en carga completa.** Solo tiene `li aria-hidden`, y el lector anuncia «lista, 0 elementos». La vista decide cómo exponerla |
-| 5     | **Foco al cambiar de página.** ¿`h1` por la regla de ruta, o `h2` «Resultados»? |
-| 5     | **Foto de la tarjeta.** `sizes` (48 o 64 según el contenedor) y `loading="lazy"` por debajo del pliegue: `ResultCard` aún no lo expone |
+| 5 · V1a | **Título del vacío cuando `q` no es un área o especialidad.** El copy de 01.3 pone la consulta en minúsculas porque es una especialidad; `q` también busca por nombre (`q=Molina` daría «especialistas en molina»). Decidir la forma del título en V1a. Además, el foco tras «Buscar en toda la Ciudad de México» (vacío por colonia) es un cambio solo de `search` (D12): lo decide el plan de V1a |
+| 5 · V1a | **Lista en carga completa.** Solo tiene `li aria-hidden`, y el lector anuncia «lista, 0 elementos». La vista decide cómo exponerla |
+| 5 · V1a | **Foco al cambiar de página.** ¿`h1` por la regla de ruta, o `h2` «Resultados»? |
+| 5 · V1a | **Foto de la tarjeta.** `sizes` (48 o 64 según el contenedor) y `loading="lazy"` por debajo del pliegue: `ResultCard` aún no lo expone |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
-| 5     | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
-| 5     | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; con recarga no pasa. Reproducido por Osvaldo en su Chrome (Windows, barra clásica) y por `pnpm verify 4.6` (Edge sin interfaz, 1350): 4932 píxeles distintos de la página recargada en x 68–304, y 849–879, persistentes a los 4 s, en la misma región del documento que ocupaban los avatares en `/kit` (y 2476–2572). **Disparador:** página de origen desplazada + navegación en cliente + desplazamiento con rueda (no con `scrollTo` ni con clic por script); sin nodo en el DOM; desaparece con el árbol de capas de CDP activo. **Hipótesis:** el compositor de Chromium reutiliza teselas de la página anterior sin repintarlas. No lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario. La reproducción se volvió intermitente tras recompilar; sin los avatares dio 0, pero no es concluyente (un resto de una región vacía también es blanco). La prueba en 8087662 (`/kit` → `/kit/resultados`) no llegó a hacerse. La comprobación queda en ✗ en `pnpm verify 4.6`. Las vistas navegan en cliente entre sí: resolver antes de cerrar la fase 5 |
-| 5     | **Foco al cambiar de ruta.** D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
-| 5     | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
-| 5     | **Filtro de consola en `4.7-citas.mjs`.** El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |
-| 5     | **Próximas vacía.** Si se cancelan todas las citas próximas, la sección no tiene diseño. En `/kit/citas` la sección desaparece (sin `h2` vacío); la vista 4 decide |
-| 5     | **Subtítulo con 0 citas.** «Tienes 0 citas próximas» no existe en el diseño (sí «Tienes N citas próximas»; el singular «Tienes 1 cita próxima» es derivado). En el kit el subtítulo desaparece con 0; la vista 4 decide |
-| 5     | **Flujos de foco contra la preview.** `pnpm verify` corre contra `pnpm dev`, con `StrictMode`, que vuelve a ejecutar los efectos y puede ocultar un fallo de orden (docs/verificacion.md, Trampas). Medir contra `pnpm preview` los flujos de foco de las vistas que dependen del orden de los efectos: cierre del diálogo → título del aviso, «Ver más», resumen de errores, reserva fallida |
+| 5 · V2a | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
+| 5 · T0 | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto).** Se acota en una ronda (T0) con tres salidas: (a) una mitigación que viva en la app, con contraprueba (`--disable-gpu-rasterization` y otros flags del navegador solo diagnostican); (b) reproducción mínima fuera de la app → defecto de Chromium, declarado con aprobación de Osvaldo; (c) sin reproducir → «no reproducido en N pasadas», que no cierra el pendiente. La comprobación nunca pasa a ✓ si el defecto no está explicado o mitigado con contraprueba. De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; con recarga no pasa. Reproducido por Osvaldo en su Chrome (Windows, barra clásica) y por `pnpm verify 4.6` (Edge sin interfaz, 1350): 4932 píxeles distintos de la página recargada en x 68–304, y 849–879, persistentes a los 4 s, en la misma región del documento que ocupaban los avatares en `/kit` (y 2476–2572). **Disparador:** página de origen desplazada + navegación en cliente + desplazamiento con rueda (no con `scrollTo` ni con clic por script); sin nodo en el DOM; desaparece con el árbol de capas de CDP activo. **Hipótesis:** el compositor de Chromium reutiliza teselas de la página anterior sin repintarlas. No lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario. La reproducción se volvió intermitente tras recompilar; sin los avatares dio 0, pero no es concluyente (un resto de una región vacía también es blanco). La prueba en 8087662 (`/kit` → `/kit/resultados`) no llegó a hacerse. La comprobación queda en ✗ en `pnpm verify 4.6`. Las vistas navegan en cliente entre sí: resolver antes de cerrar la fase 5 |
+| 5 · T1 | **Foco al cambiar de ruta.** D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
+| 5 · V4a | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
+| 5 · T1 | **Filtro de consola en `4.7-citas.mjs`.** El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |
+| 5 · V4a | **Próximas vacía.** Si se cancelan todas las citas próximas, la sección no tiene diseño. En `/kit/citas` la sección desaparece (sin `h2` vacío); la vista 4 decide |
+| 5 · V4a | **Subtítulo con 0 citas.** «Tienes 0 citas próximas» no existe en el diseño (sí «Tienes N citas próximas»; el singular «Tienes 1 cita próxima» es derivado). En el kit el subtítulo desaparece con 0; la vista 4 decide |
+| 5 · T1 → V4b | **Flujos de foco contra la preview.** Método (`pnpm verify 5.N --preview`) en T1; cada bloque mide los suyos. `pnpm verify` corre contra `pnpm dev`, con `StrictMode`, que vuelve a ejecutar los efectos y puede ocultar un fallo de orden (docs/verificacion.md, Trampas). Medir contra `pnpm preview` los flujos de foco de las vistas que dependen del orden de los efectos: cierre del diálogo → título del aviso, «Ver más», resumen de errores, reserva fallida |
 | 7     | **Foco devuelto al disparador tras `close()` en Safari y Firefox.** `UI/Dialog` lo devuelve de forma explícita (`returnFocus`) además del nativo; solo se midió en Edge |
 | 7     | **`alertdialog` con lector.** Que NVDA y VoiceOver anuncien el título y el cuerpo al abrir (`aria-labelledby` y `aria-describedby`), y que el foco inicial en «Mantener mi cita» no tape el anuncio |
 | 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |

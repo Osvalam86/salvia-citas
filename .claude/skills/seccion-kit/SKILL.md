@@ -1,6 +1,6 @@
 ---
 name: seccion-kit
-description: Plan y cierre de una sección de componentes del kit de Salvia (fase 4). Usar SIEMPRE al preparar el plan de una sección antes de escribir código y al entregar su informe de cierre.
+description: Plan y cierre de una sección de componentes del kit de Salvia (fase 4). Usar SIEMPRE al preparar el plan de una sección antes de escribir código y al entregar su informe de cierre. Para los bloques de la fase 5, usar `vista`.
 ---
 
 # Sección del kit: plan y cierre

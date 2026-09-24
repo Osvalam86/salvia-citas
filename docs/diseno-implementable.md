@@ -48,6 +48,12 @@ páginas **ya cargadas**: Figma las carga bajo demanda, así que ese listado pue
 omitir páginas enteras. Para inventariarlas, `use_figma` con
 `figma.root.children` y `setCurrentPageAsync` en cada página antes de leerla.
 
+**Paneles de decisiones (NN.0).** Son anteriores a algunas decisiones de
+este documento; cuando discrepan, manda el documento. Casos conocidos: los
+paneles 03.0 y 04.0 dan `role` a avisos que además reciben el foco (§4.6:
+o foco o región viva), y el 04.0 hace de «Cerrar sesión» un envío de
+formulario (DESIGN.md: botón que navega).
+
 ### 2.1 Tokens
 
 Tres colecciones en Figma, un solo modo (`Value`): no hay dark mode en diseño y
@@ -509,16 +515,36 @@ página.
   grupo a su opción inicial y deja el foco en el botón.
 - En móvil, hoja «Filtrar y ordenar» a pantalla completa (su contenido no cabe
   en el viewport): cabecera fija de 64 con título y botón de cierre, cuerpo con
-  scroll, pie fijo con «Limpiar» Secondary intrínseco y «Ver 34 resultados»
-  Primary fluido.
+  scroll, pie fijo con «Limpiar» Secondary intrínseco y «Ver N resultados»
+  Primary fluido (el total que daría el borrador; «Ver 1 resultado», «Ver 0
+  resultados»: nunca se deshabilita).
 - Grupos: Ordenar por · Especialidad · Modalidad · Disponibilidad. En escritorio
   «Ordenar por» no va en el aside, va en la cabecera de resultados.
 
-**Vacío:** una consulta nueva limpia los filtros, así que el vacío lo causa solo
-la consulta y el copy lo nombra. Bloque en el sitio de la lista con el marco de
-la tarjeta, alineado a la izquierda: placa de 48 `color-surface-muted` con
-`magnifying-glass`, título `heading/sm` (`h2`), ayuda `body/md` secundaria y
-«Ver todos los especialistas» Secondary (enlace a la búsqueda sin consulta).
+**Vacío por consulta:** una consulta nueva limpia los filtros; si la consulta
+(con su ubicación) no da nada, el copy nombra la consulta. Bloque en el sitio
+de la lista con el marco de la tarjeta, alineado a la izquierda: placa de 48
+`color-surface-muted` con `magnifying-glass`, título `heading/sm` (`h2`),
+ayuda `body/md` secundaria y «Ver todos los especialistas» Secondary (enlace a
+la búsqueda sin consulta). Copy de 01.3 y 01.6, con la consulta «Neurocirugía
+pediátrica»: «No encontramos especialistas en neurocirugía pediátrica» /
+«Prueba con otra especialidad, amplía la ubicación o revisa la ortografía.».
+
+**Vacío por colonia** (sin frame; copy propuesto): la consulta da resultados
+en toda la ciudad, pero ninguno en la colonia elegida. Mismo bloque, con
+título «No encontramos especialistas en {consulta} en {colonia}», ayuda
+«Prueba en toda la Ciudad de México o en otra colonia.» y, en lugar de «Ver
+todos los especialistas», «Buscar en toda la Ciudad de México» Secondary
+(enlace que conserva `q` y quita `ubicacion`). Razón: con el copy de 01.3 el
+título culparía a la consulta, que sí tiene resultados, y «Ver todos» tiraría
+también la consulta; la acción deshace solo lo que causó el vacío.
+
+**Vacío por filtros** (sin frame; copy propio aprobado): la consulta da
+resultados, pero la combinación de filtros no. Mismo bloque, con título
+«Ningún especialista cumple estos filtros», ayuda «Quita algún filtro para
+ver más resultados.» y «Limpiar filtros» Secondary (`<button>`). Al pulsarlo,
+el botón desaparece y el foco va al nombre de la primera tarjeta, el mismo
+destino que «Ver más». Si la consulta ya da 0, manda el vacío por consulta.
 
 **Carga:** cuatro tarjetas `Loading` (el tamaño de página), sin paginación ni
 «Ver más» porque el total no se conoce; el disparador conserva su contador y el
@@ -570,11 +596,13 @@ Primary a ancho completo). Sin asa de arrastre: no hay gesto implementado.
 **Escritorio:** perfil en la cabecera (avatar Large + `h1` en `display` +
 especialidad + meta), tarjeta de pantalla con el selector (columna de calendario
 de 360 fija + horas fluidas, filas de 3) y **sección** derecha «Tu cita» con la
-cita elegida, duración, lugar, política y «Continuar». En código es una
+cita elegida, duración, lugar, política y «Continuar con tus datos» (Figma
+02.5). En código es una
 `section` con `aria-labelledby` **dentro del `form`**, no un `aside`: contiene
 el envío. La tarjeta apila calendario y horas cuando su interior se estrecha.
 
-**«Continuar»:** siempre Primary activo con validación al enviar. Sin hora, la
+**Envío («Continuar» en la Booking Bar, «Continuar con tus datos» en la
+sección):** siempre Primary activo con validación al enviar. Sin hora, la
 barra pasa a `Missing`, el foco va al primer accionable de la sección de horas y
 `aria-describedby` apunta al mensaje.
 
@@ -621,7 +649,11 @@ varía): contenedor `color-surface` con borde 2 `color-error`, `radius-md`,
 padding 16; encabezado con icono en ranura 20 × 24 + `h2` en `body/strong`
 `color-error-text`; lista de `UI/Link`, uno por campo, **con el nombre del
 campo, no el mensaje**. Título «Corrige 3 campos para continuar». Recibe el
-foco al enviar.
+foco al enviar. Cada enlace es `<a href="#campo">`. El clic lo intercepta el
+script: foco en el control con `focus({ preventScroll: true })` y después su
+etiqueta (o la legend de su grupo) se desplaza a la vista, sin entrada de
+historial. Se mide que la etiqueta queda visible y sin tapar por la barra
+(2.4.11).
 
 Escenario de error: correo `karla@`, motivo sin elegir, privacidad sin marcar.
 
@@ -658,12 +690,19 @@ inferior. Pasos (Done · Done · Current) · insignia de éxito (placa
 `color-success-surface` con `check` en `color-success`, **único uso de la
 familia success** fuera de los avisos) · `h1` «Tu cita está reservada» + nota
 con el correo. Resumen sin la fila de modalidad (la dice la etiqueta) +
-«Agregar a mi calendario» Secondary (`<a download>` a un `.ics`). Aviso Info
+«Agregar a mi calendario» Secondary (`<a download>` a un `.ics`). Nombre
+accesible «Agregar a mi calendario (archivo .ics)», con el sufijo
+visualmente oculto: empieza por el texto visible (2.5.3) y anuncia la
+descarga. El `.ics` lleva `DTSTART` y `DTEND` en UTC con `Z` (Ciudad de
+México no tiene horario de verano), sin `TZID` ni `VTIMEZONE` (RFC 5545). Aviso Info
 «Qué sigue». Pie solo con «Ver mis citas» Primary.
 
 **Confirmación (escritorio):** el resumen pasa a la columna principal y el aside
 lleva pasos, «Qué sigue» y «Ver mis citas». En la confirmación la cita es el
-contenido: en el aside dejaba la columna principal vacía.
+contenido: en el aside dejaba la columna principal vacía. Breadcrumb
+`Levels=3` «Especialistas / Dra. Ruiz / Cita reservada» (Figma 04.4). En las
+dos plataformas, el foco va al `h1` y `document.title` es «Cita reservada ·
+Salvia» (panel 04.0).
 
 **Mis citas:** destino de primer nivel, con barra inferior en móvil y pestaña
 actual en el header de escritorio. **Secciones, no pestañas**: Próximas y
@@ -738,22 +777,24 @@ duplicado de maquetación. La cita Realizada no es de la Dra. Ruiz porque
 «Agendar seguimiento» con ella duplicaría la cita del 24.
 
 Fotos de avatar: rostros generados por IA, sin bata, fondo neutro, encuadre de
-cabeza y hombros, luz homogénea.
+cabeza y hombros, luz homogénea. Con foto: Mariana, Ruiz y Rodrigo (Figma);
+el resto, con inicial.
 
 ---
 
 ## 7 · Las tres piezas que no tienen frame en Figma
 
 Su copy está cerrado; el diseño no las dibujó porque serían clones con otro
-texto.
+texto. Se construyen en la fase 5, con las vistas que las usan.
 
 **1 · Página genérica de destinos fuera de alcance.** Título «Esta sección no
 forma parte del caso de estudio» con enlace de vuelta. Destino de Ayuda, Cuenta,
 Iniciar sesión, Crear cuenta, Cerrar sesión y el aviso de privacidad.
 
 **2 · Aviso Success de reprogramación.** `UI/Notice` Tone=Success, título «Cita
-reprogramada», cuerpo «Tu cita pasó al jueves 17 de mayo, 17:00.». El médico no
-se nombra porque el aviso aparece sobre su propia tarjeta. El foco va a su
+reprogramada», cuerpo «Tu cita pasó al jueves 17 de mayo, 17:00.». Va en el
+mismo sitio que «Cita cancelada», tras el encabezado de la página. El médico
+no se nombra: la tarjeta, que no cambia de sección, lo nombra. El foco va a su
 título y la tarjeta cambia de fecha sin salir de Próximas.
 
 **3 · Conmutador «Avisarme» → «Te avisaremos».** El CTA de `UI/Result Card`

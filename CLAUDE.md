@@ -36,15 +36,19 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   en `src/data/clock.ts` (`TODAY`, `NOW`, `MAX_DATE`) con lint contra el reloj
   real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
   `/kit/fecha-hora`. Abierto: resto de pintado tras navegar en cliente
-  (DESIGN.md, pendiente de la fase 5; ✗ declarado en `pnpm verify 4.6`).
+  (DESIGN.md, bloque T0; ✗ declarado en `pnpm verify 4.6`).
 - 4.7 Citas y diálogos: `AppointmentCard` (el `li` es el contenedor; Row
   desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
   el velo; umbrales `dialog-compact` y `dialog`). Una sola instancia del
   diálogo por lista; al cancelar, aviso Success con el foco en su título.
   Demo en `/kit/citas`. Abierto: foco al `h1` al cambiar de ruta (✗
-  declarado en `pnpm verify 4.7`, pendiente de la fase 5).
+  declarado en `pnpm verify 4.7`, bloque T1).
 
-Siguiente: fase 5, vistas 1 → 4.
+Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
+T0 (resto de pintado) → T1 (rutas, foco de ruta, títulos, página genérica,
+`--preview`) → T2 (datos, guardas y 404, escenarios, fotos) → V1a → V1b →
+V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+la 5.
 
 ## Comandos
 
@@ -77,8 +81,9 @@ No hay test runner configurado.
 3. **Skills del proyecto en `.claude/skills/`** — `bemit-scss` (arquitectura
    ITCSS, nomenclatura y prefijos; manda sobre `DESIGN.md` en eso),
    `semantic-markup` (marcado y ARIA), `theme-tokens` (generar la capa
-   settings desde Figma) y `seccion-kit` (plan y cierre de cada sección de
-   la fase 4). `bemit-scss` trae un scaffold de `styles/` en
+   settings desde Figma), `seccion-kit` (plan y cierre de cada sección de
+   la fase 4) y `vista` (plan y cierre de cada bloque de la fase 5).
+   `bemit-scss` trae un scaffold de `styles/` en
    `assets/scaffold/`.
 
 ## Arquitectura y reglas que cruzan archivos
@@ -137,8 +142,8 @@ No hay test runner configurado.
 | 2    | tools, generic, elements (reset, foco global, `a` subrayado)                                         |
 | 3    | objects de layout                                                                                    |
 | 4    | Los 34 componentes del kit, con sus estados y su accesibilidad                                       |
-| 5    | Vistas 1 → 4, par móvil/escritorio por vista                                                         |
-| 6    | Las tres piezas sin frame: página genérica, aviso Success de reprogramación, conmutador «Avisarme»   |
+| 5    | Vistas 1 → 4, par móvil/escritorio por vista, y las tres piezas sin frame (página genérica en T1, conmutador «Avisarme» en V1b y V2b, aviso de reprogramación en V4b) |
+| 6    | Absorbida en la 5: las piezas sin frame las necesitan las vistas que las usan                        |
 | 7    | Auditoría (teclado, lector de pantalla, contraste en navegador) y despliegue                         |
 
 ## Calidad
