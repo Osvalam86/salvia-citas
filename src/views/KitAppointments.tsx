@@ -144,6 +144,7 @@ export default function KitAppointments() {
     <AppLayout>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
+          <title>Citas y diálogos · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Citas y diálogos
           </h1>

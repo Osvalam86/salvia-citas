@@ -163,6 +163,7 @@ export default function KitDateTime() {
     <AppLayout bar={!isDesktop && bar ? <BookingBar {...bar} /> : undefined}>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
+          <title>Fecha y hora · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Fecha y hora
           </h1>

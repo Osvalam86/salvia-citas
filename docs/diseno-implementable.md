@@ -277,7 +277,10 @@ botón Secondary con el nombre y `caret-down` que abre `UI/Menu`.
 **`UI/Header/Mobile`** — alto 64, wordmark + «Ayuda».
 
 **`UI/Nav Link`** — el actual lleva `body/strong`, tinta y barra de 2 px
-`color-action` (tres señales + `aria-current="page"`); el resto `body/md` y
+`color-action` (tres señales + `aria-current`): `"page"` en el destino
+(`/`, `/mis-citas`) y `"true"` en sus subpáginas (perfil, datos, confirmación,
+reprogramación), donde el enlace no lleva a la página actual; las dos se ven
+igual; el resto `body/md` y
 `color-text-secondary`, sin barra; en hover, barra `color-border`.
 
 **`UI/Nav Item`** y **`UI/Bottom Nav`** — barra inferior de tres destinos:

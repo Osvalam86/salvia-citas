@@ -6,6 +6,8 @@
 //
 // Actual: tres señales (body/strong, tinta y barra de 2 color-action) más
 // aria-current, nunca solo color. Hover no actual: tinta y barra color-border.
+// aria-current vale "page" en el destino y "true" en sus subpáginas (el perfil
+// cuelga de Especialistas): las dos se ven igual, como en Figma.
 //
 // La barra es un indicador superpuesto (::after absoluto, fuera del layout) y
 // es un BORDE, no un fondo: en forced-colors un fondo se fuerza al del lienzo
@@ -42,7 +44,7 @@
     border-block-end: 2px var(--_bar-style) var(--_bar);
   }
 
-  &[aria-current='page'] {
+  &[aria-current] {
     --_weight: var(--text-body-strong-weight);
     --_fg: var(--color-text-primary);
     --_bar: var(--color-action);

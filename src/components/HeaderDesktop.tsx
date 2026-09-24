@@ -10,7 +10,9 @@ import { PATHS, type HeaderDestination } from './destinations.ts'
 type HeaderDesktopProps = {
   /** Pestaña actual. La decide la vista: la reprogramación marca «Mis citas». */
   current?: HeaderDestination
-} & ({ session: 'guest'; userName?: never } | { session: 'signed-in'; userName: string })
+  /** «section» en una subpágina del destino actual (Nav Link, aria-current="true"). */
+  currentKind?: 'page' | 'section'
+} &({ session: 'guest'; userName?: never } | { session: 'signed-in'; userName: string })
 
 const LINKS: { key: HeaderDestination | 'ayuda'; href: string; label: string }[] = [
   { key: 'especialistas', href: PATHS.especialistas, label: 'Especialistas' },
@@ -56,7 +58,11 @@ export default function HeaderDesktop(props: HeaderDesktopProps) {
             <ul className="c-header-desktop__links" role="list">
               {LINKS.map(({ key, href, label }) => (
                 <li className="c-header-desktop__item" key={key}>
-                  <NavLink href={href} current={props.current === key} className="c-header-desktop__link">
+                  <NavLink
+                    href={href}
+                    current={props.current === key ? (props.currentKind ?? 'page') : undefined}
+                    className="c-header-desktop__link"
+                  >
                     {label}
                   </NavLink>
                 </li>

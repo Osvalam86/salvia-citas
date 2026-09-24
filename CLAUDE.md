@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas.
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0 y T1 hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -42,12 +42,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
   el velo; umbrales `dialog-compact` y `dialog`). Una sola instancia del
   diálogo por lista; al cancelar, aviso Success con el foco en su título.
-  Demo en `/kit/citas`. Abierto: foco al `h1` al cambiar de ruta (✗
-  declarado en `pnpm verify 4.7`, bloque T1).
+  Demo en `/kit/citas`.
+- Fase 5 · T1: las 8 rutas de D1 y el 404 (`src/views/`, provisionales salvo
+  la página genérica y el 404), `ViewLayout` (chrome por ruta, D7),
+  `PageHeader` (`c-page-header`), `useRouteFocus` (D12), títulos (D15, también
+  en `/kit`), `NavLink` con `current: 'page' | 'section'`, `pnpm verify 5.0`
+  y el modo `--preview`.
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (rutas, foco de ruta, títulos, página genérica,
-`--preview`) → T2 (datos, guardas y 404, escenarios, fotos) → V1a → V1b →
+T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (datos, guardas y 404, escenarios, fotos) → V1a → V1b →
 V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
@@ -60,7 +63,8 @@ pnpm dev        # servidor de desarrollo Vite
 pnpm build      # tsc -b && vite build (el typecheck va dentro del build)
 pnpm lint       # eslint . && stylelint "src/**/*.scss"
 pnpm contrast   # reproduce los 31 pares de F.3 desde el SCSS compilado
-pnpm verify 4.3 # verifica una sección del kit contra su informe (con pnpm dev; docs/verificacion.md)
+pnpm verify 4.3 # verifica una sección contra su informe (con pnpm dev; docs/verificacion.md)
+pnpm verify 5.0 --preview # flujos de foco contra pnpm build && pnpm preview
 pnpm preview    # sirve dist/
 ```
 

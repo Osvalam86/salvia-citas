@@ -246,7 +246,7 @@ function NavDemos() {
       <p>Sueltos miden 48; en el header ocupan todo su alto.</p>
       <ul className="o-cluster o-cluster--gap-2 o-cluster--align-center" role="list">
         <li>
-          <NavLink href={PATHS.especialistas} current>
+          <NavLink href={PATHS.especialistas} current="page">
             Especialistas
           </NavLink>
         </li>
@@ -293,6 +293,7 @@ export default function Kit() {
   return (
     <AppLayout>
       <div className="c-kit">
+        <title>Kit del sistema · Salvia</title>
         <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
           Kit del sistema
         </h1>

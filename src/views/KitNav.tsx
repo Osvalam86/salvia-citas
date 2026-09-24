@@ -45,6 +45,7 @@ export default function KitNav() {
               current="Chrome real"
             />
           )}
+          <title>{`Navegación · ${isDesktop ? 'escritorio' : 'móvil'} · Kit · Salvia`}</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Navegación · {isDesktop ? 'escritorio' : 'móvil'}
           </h1>

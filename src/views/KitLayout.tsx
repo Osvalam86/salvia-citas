@@ -62,6 +62,7 @@ export default function KitLayout() {
   return (
     <AppLayout bar={bar}>
       <div className="c-kit">
+        <title>{`Layout · aside al ${side === 'start' ? 'inicio' : 'final'} · Kit · Salvia`}</title>
         <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
           Layout · aside al {side === 'start' ? 'inicio' : 'final'}
         </h1>

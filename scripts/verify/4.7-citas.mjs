@@ -236,26 +236,19 @@ export default async function run(b, expect) {
   await clickOn("[...document.querySelectorAll('a')].find((e) => e.textContent === 'Ver citas y diálogos')")
   await waitFor(PAGE)
   const arrival = await b.ev("({ ruta: location.pathname, sinRecarga: window.__verifyMark === true, tarjetas: document.querySelectorAll('.c-appointment-card').length })")
-  // ✗ declarado: el paso del foco al h1 al cambiar de ruta (D12) aún no existe
-  // y el foco queda en body. Pasará sin tocar la comprobación cuando la fase 5
-  // lo implemente.
-  expect('foco tras la navegación en cliente: el h1 de la vista (✗ declarado: DESIGN.md, Pendientes, fase 5, «Foco al cambiar de ruta»)', await b.ev("(() => { const a = document.activeElement; return a.tagName + (a.id ? '#' + a.id : '') })()"), 'H1#contenido')
-  // La ruta de reprogramación es de la fase 5: hoy llega al 404 de React
-  // Router, que escribe en la consola. Esos errores se retiran aquí, solo los
-  // de este paso, y se comprueban aparte.
-  const before = b.consoleErrors.length
+  // Foco de ruta (D12, useRouteFocus, T1). Contraprueba manual en
+  // docs/verificacion.md: sin el hook, el foco queda en body.
+  const focused = "(() => { const a = document.activeElement; return a.tagName + (a.id ? '#' + a.id : '') })()"
+  expect('foco tras la navegación en cliente: el h1 de la vista', await b.ev(focused), 'H1#contenido')
+  // «Reprogramar» llega a la ruta de la fase 5 (provisional desde T1).
   await clickOn(action(2, 0))
   await waitFor('/mis-citas/cortes-2029-05-16/reprogramar')
-  // Filtro de consola, pendiente de la fase 5: retirarlo cuando exista
-  // /mis-citas/:id/reprogramar.
-  expect('clic real: /kit → /kit/citas y «Reprogramar» de Cortés, sin carga completa', {
+  expect('clic real: /kit → /kit/citas y «Reprogramar» de Cortés, sin carga completa; el foco va al h1 de la reprogramación', {
     llegada: arrival,
-    reprogramar: await b.ev("({ ruta: location.pathname, sinRecarga: window.__verifyMark === true, error: document.querySelector('h3')?.textContent })"),
-    consola: b.consoleErrors.splice(before),
+    reprogramar: await b.ev(`({ ruta: location.pathname, sinRecarga: window.__verifyMark === true, h1: document.querySelector('h1').textContent, foco: ${focused} })`),
   }, {
     llegada: { ruta: PAGE, sinRecarga: true, tarjetas: 5 },
-    reprogramar: { ruta: '/mis-citas/cortes-2029-05-16/reprogramar', sinRecarga: true, error: '404 Not Found' },
-    consola: Array(2).fill('Error handled by React Router default ErrorBoundary: ErrorResponseImpl'),
+    reprogramar: { ruta: '/mis-citas/cortes-2029-05-16/reprogramar', sinRecarga: true, h1: 'Reprogramar cita', foco: 'H1#contenido' },
   })
 
   // === Bloque B · Dialog y flujo de cancelar ===========================================================

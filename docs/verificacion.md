@@ -10,6 +10,8 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
 pnpm verify 4.7   # 4.1 a 4.7
+pnpm verify 5.0   # bloques de la fase 5
+pnpm verify 5.0 --preview   # flujos de foco contra pnpm build && pnpm preview (:4173)
 ```
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
@@ -24,7 +26,8 @@ no se versiona.
 
 | Archivo | Qué hace |
 |---|---|
-| `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación |
+| `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
+| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
@@ -165,6 +168,16 @@ no se versiona.
   sistema, y con `-Encoding UTF8` añade BOM. Los scripts se editan con un editor, con Node o
   con la herramienta Edit, nunca con esos cmdlets (4.7).
 
+- **`<title>` de React 19 y el de `index.html`.** React inserta el suyo antes
+  del estático y `document.title` devuelve el primero: gana el de la vista.
+  Medido en T1; si cambiara el orden, las comprobaciones de títulos de 5.0
+  lo detectan (T1).
+- **Recargar no es navegar.** Una recarga con `location.state.focus` es una
+  carga inicial: el hook de foco no actúa y el foco queda en `body`. El
+  respaldo al `h1` se prueba con Atrás hacia esa entrada (T1).
+- **`pnpm verify --preview` mide el build.** Tras cambiar código hay que
+  `pnpm build` y reiniciar la preview; si no, mide el build anterior (T1).
+
 ## Comprobaciones manuales
 
 No se automatizan; se repiten a mano cuando cambia lo que prueban.
@@ -178,3 +191,5 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Inicio/Fin sin la intercepción de `Calendar` | Quitar el `onKeyDownCapture` del envoltorio, Tab al 24 en `/kit/fecha-hora`, ← al 23 y Fin: el foco va al 30 de abril (fin de mes de RAC), no al domingo 29. Medido al construirlo; revertir | 4.6 |
 | Cierre del diálogo en un efecto | Quitar `dialog.current?.close()` de `confirm` en `Dialog.tsx`, `pnpm build` y `pnpm preview`: en `/kit/citas`, cancelar la cita de Molina deja el foco en `body` en vez de en «Cita cancelada». En `pnpm dev` no se reproduce (`StrictMode`). Medido al construirlo; revertir | 4.7 |
 | Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |
+| Foco de ruta sin el hook | Quitar `useRouteFocus()` de `RootLayout` y `pnpm verify 4.7`: la llegada a `/kit/citas` y a la reprogramación dejan el foco en `body` (36/38). Medido al construirlo; revertir | T1 |
+| `h1` sin `tabIndex` | Quitar `tabIndex={-1}` del `h1` en `PageHeader.tsx` y `pnpm verify 5.0`: los tres PUSH (clic en el header y en la barra, Intro) dejan el foco en `body`, no en el enlace pulsado: la vista nueva vuelve a montar el chrome y el enlace deja de existir. Medido al construirlo; revertir | T1 |

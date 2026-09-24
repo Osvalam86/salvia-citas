@@ -114,6 +114,7 @@ export default function KitResults() {
     <AppLayout>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
+          <title>Búsqueda y resultados · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Búsqueda y resultados
           </h1>
@@ -127,7 +128,7 @@ export default function KitResults() {
             Result Card
           </h2>
           <p>
-            Stacked por defecto; Row cuando el li alcanza 32rem. El CTA de la tarjeta llena es un
+            Stacked por defecto; Row cuando el li alcanza 36rem. El CTA de la tarjeta llena es un
             conmutador. La última tarjeta está en carga: fuera del árbol accesible.
           </p>
           <ul className="o-stack o-stack--gap-4" role="list" id="kit-lista-estados">

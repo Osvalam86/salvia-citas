@@ -1,0 +1,13 @@
+@use '../02-tools' as tools;
+
+// Encabezado de página de las vistas (PageHeader.tsx). No es uno de los 34
+// (excepción declarada en D5). El h1 usa page-title: heading/lg por debajo de
+// lg y display desde lg, sin media query aquí (DESIGN.md § Paso derivado).
+.c-page-header {
+  display: flex;
+  flex-direction: column;
+
+  &__title {
+    @include tools.text(page-title);
+  }
+}
