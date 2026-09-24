@@ -325,7 +325,22 @@ Loading). La tarjeta **no es interactiva**, solo su CTA.
   `onerror` que vuelve a la inicial.
 
 **`UI/Pagination`** y **`UI/Page Link`** (escritorio) — 9 páginas, 34 resultados
-a 4 por página. Truncado: primera, última, actual y vecinas, «…» en los saltos.
+a 4 por página. Truncado: primera, última, actual y vecinas; «…» en los saltos
+de dos o más páginas. Un salto de una sola página muestra el número: la celda
+«…» ocuparía lo mismo.
+
+| Actual | Fila |
+|---|---|
+| 1 | **1** 2 … 9 Siguiente |
+| 2 | Anterior 1 **2** 3 … 9 Siguiente |
+| 3 | Anterior 1 2 **3** 4 … 9 Siguiente |
+| 4 | Anterior 1 2 3 **4** 5 … 9 Siguiente |
+| 5 | Anterior 1 … 4 **5** 6 … 9 Siguiente |
+| 6 | Anterior 1 … 5 **6** 7 8 9 Siguiente |
+| 7 | Anterior 1 … 6 **7** 8 9 Siguiente |
+| 8 | Anterior 1 … 7 **8** 9 Siguiente |
+| 9 | Anterior 1 … 8 **9** |
+
 «Anterior» se omite en la primera página y «Siguiente» en la última — **sin
 variante no disponible**: un `aria-disabled` se vería activo. Sin resumen
 propio: el recuento vive en la cabecera de resultados, que es la región

@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.4 hechas.
+Estado actual: fases 1 a 3 cerradas; fase 4 en curso, con 4.1–4.5 hechas.
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -26,8 +26,12 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   en `AppLayout`; modo de texto grande (`tools.large-text`); `useDisclosure`
   y `useMediaQuery` en `src/hooks/`; demo del chrome real en
   `/kit/navegacion`.
+- 4.5 Búsqueda y resultados: `ResultCard` (el `li` es el contenedor;
+  Stacked/Row y Loading), `FilterTrigger`, `Pagination`, `PageLink` y
+  `LoadMore`; `Avatar` con `--avatar-size` y la foto sobre la inicial; demo
+  en `/kit/resultados`.
 
-Siguiente: 4.5 Búsqueda y resultados.
+Siguiente: 4.6 Fecha y hora.
 
 ## Comandos
 
@@ -100,6 +104,9 @@ No hay test runner configurado.
   silencio. Todo valor o decisión que no esté en `DESIGN.md` o `docs/` se
   presenta como propuesta con su razón **antes** de escribir código, nunca
   como custom property local ni como comentario.
+- Los comandos permitidos (pnpm build, lint, contrast, verify; git status,
+  diff, log) se ejecutan sueltos, sin tuberías ni filtros de salida, para que
+  no pidan permiso.
 
 ## Decisiones de proyecto
 

@@ -1,0 +1,25 @@
+@use '../02-tools' as tools;
+
+// UI/Pagination (Figma 173:607). Fila de Page Link con gap 8. flex-wrap: la
+// fila más ancha (actual 4 o 6: siete celdas, «…», «Anterior» y «Siguiente»)
+// no cabe en la columna principal justo por encima de lg y pasa a dos líneas
+// (DESIGN.md § Búsqueda y resultados). La alineación en la columna la decide la vista.
+.c-pagination {
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  // «…»: texto secundario, no interactivo, en una celda de 50 de ancho y del
+  // alto de la fila para mantener el ritmo.
+  &__gap {
+    @include tools.text(body-md);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 3.125rem;
+    color: var(--color-text-secondary);
+  }
+}

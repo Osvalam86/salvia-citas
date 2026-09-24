@@ -1,0 +1,59 @@
+@use '../02-tools' as tools;
+
+// UI/Page Link (Figma 173:490). Alto 50 por construcción: borde 1 + padding
+// 12 + interlineado 24 + 12 + 1. min-inline-size 50 (Figma): un número suelto
+// es un cuadrado. Borde transparente fuera de la página actual: mide lo mismo
+// y conserva el contorno en forced-colors (Figma compensa con padding 13/17).
+//
+// No actual: color y subrayado de la regla base de `a`; hover con relleno
+// color-action-subtle. Actual (aria-current="page"): relleno y borde
+// color-action, body-strong en color-on-action y sin subrayado: cuatro
+// señales, no solo color. Anillo general; con el gap de 8 de Pagination no
+// pisa al vecino. flex-wrap: el caret baja antes de que la etiqueta parta.
+//
+// body/md y body/strong solo difieren en el peso: variables locales en vez de
+// tools.text(), para que la actual solo cambie variables (como c-nav-link).
+.c-page-link {
+  --_weight: var(--text-body-md-weight);
+  --_decoration: underline;
+  --_bg: transparent;
+  --_bg-hover: var(--color-action-subtle);
+  --_border: transparent;
+  --_border-hover: transparent;
+  --_fg: var(--color-text-link);
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 3.125rem;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--text-body-md-family);
+  font-size: var(--text-body-md-size);
+  font-weight: var(--_weight);
+  line-height: var(--text-body-md-line-height);
+  color: var(--_fg);
+  letter-spacing: var(--text-body-md-tracking);
+  text-decoration-line: var(--_decoration);
+  background-color: var(--_bg);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-sm);
+
+  &[aria-current='page'] {
+    --_weight: var(--text-body-strong-weight);
+    --_decoration: none;
+    --_bg: var(--color-action);
+    --_bg-hover: var(--color-action-hover);
+    --_border: var(--color-action);
+    --_border-hover: var(--color-action-hover);
+    --_fg: var(--color-on-action);
+  }
+
+  // Después de la actual: los dos selectores pesan (0,2,0) y el hover tiene
+  // que ganar también sobre ella.
+  @include tools.hover {
+    --_bg: var(--_bg-hover);
+    --_border: var(--_border-hover);
+  }
+}

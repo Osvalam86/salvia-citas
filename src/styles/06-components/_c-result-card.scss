@@ -1,0 +1,332 @@
+@use '../02-tools' as tools;
+
+// UI/Result Card (Figma 173:279). La raíz es el <li> de la lista: aporta el
+// ancho y es el contenedor (DESIGN.md § Contenedores). Sin padding, así que
+// los umbrales son el ancho exterior de la tarjeta. __card es la caja que
+// cambia de forma, con dos umbrales sobre el mismo contenedor:
+//
+// - Base (por debajo de 14rem, solo con el texto ampliado): una columna, el
+//   avatar encima del encabezado. Al 100 % no ocurre: el li más estrecho
+//   mide 273 y 14rem son 224.
+// - Desde 14rem (result-card-identity): Stacked de Figma, avatar 48 junto al
+//   encabezado; meta y pie a todo el ancho; separación 16, y 12 entre avatar
+//   y encabezado. Es el umbral en el que al encabezado le quedan 8rem: el
+//   avatar baja antes de que el nombre parta palabras (DESIGN.md § Controles
+//   con icono y etiqueta).
+// - Desde 36rem (result-card): Row, avatar 64 en su columna; a la derecha, el
+//   resumen (encabezado + meta, separación 12) y el pie (16), con 24 entre
+//   columnas.
+//
+// __summary agrupa encabezado y meta para Row. En Stacked lleva
+// `display: contents` porque el encabezado va junto al avatar y la meta debajo,
+// a todo el ancho. `display: contents` borra la caja y, en algunos
+// navegadores, también el rol: exige un <div> sin rol ni nombre (no un
+// section, un ul ni nada con semántica).
+//
+// Loading (el li con aria-hidden) usa la misma rejilla con barras en vez de
+// texto. Cada barra vive en una ranura de 1lh del paso que sustituye, así que
+// la tarjeta mide lo mismo que Available mientras el texto real ocupe las
+// mismas líneas que el esqueleto (DESIGN.md § Búsqueda y resultados,
+// geometría de Loading). Los anchos de las barras son medidas de Figma.
+.c-result-card {
+  container: result-card / inline-size;
+
+  &__card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'avatar'
+      'heading'
+      'meta'
+      'footer';
+    gap: var(--space-4) var(--space-3);
+    align-items: start;
+    padding: var(--space-4);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    // Antes que Row: con los dos umbrales cumplidos, Row gana por orden.
+    @include tools.container(result-card, result-card-identity) {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'avatar heading'
+        'meta meta'
+        'footer footer';
+    }
+
+    @include tools.container(result-card, result-card) {
+      grid-template-areas:
+        'avatar summary'
+        'avatar footer';
+      gap: var(--space-4) var(--space-5);
+      padding: var(--space-5);
+    }
+  }
+
+  // Mezcla sobre c-avatar: fija su tamaño con la API pública del bloque.
+  &__avatar {
+    --avatar-size: 3rem;
+
+    grid-area: avatar;
+
+    @include tools.container(result-card, result-card) {
+      --avatar-size: 4rem;
+    }
+  }
+
+  &__summary {
+    display: contents;
+
+    @include tools.container(result-card, result-card) {
+      display: flex;
+      grid-area: summary;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  }
+
+  &__heading {
+    display: flex;
+    grid-area: heading;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  &__name {
+    @include tools.text(heading-sm);
+
+    text-wrap: pretty;
+  }
+
+  &__specialty {
+    text-wrap: pretty;
+  }
+
+  &__meta {
+    display: flex;
+    grid-area: meta;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+
+    // Row: ubicación y modalidad en fila (16 entre ellas, Figma). Si la
+    // modalidad baja de línea, queda a 8 como en Stacked (Figma no dibuja el
+    // salto: el 8 es el hueco vertical de la meta en Stacked).
+    @include tools.container(result-card, result-card) {
+      flex-flow: row wrap;
+      gap: var(--space-2) var(--space-4);
+      align-items: center;
+    }
+  }
+
+  // Icono y etiqueta en fila con flex-wrap y base 8rem en el texto (DESIGN.md
+  // § Controles con icono y etiqueta): el icono baja de línea antes de que el
+  // texto parta palabras.
+  &__location {
+    @include tools.text(caption);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: flex-start;
+    color: var(--color-text-secondary);
+  }
+
+  &__text {
+    flex: 1 1 8rem;
+    text-wrap: pretty;
+  }
+
+  &__footer {
+    display: flex;
+    grid-area: footer;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    // Centros compartidos entre disponibilidad y CTA.
+    @include tools.container(result-card, result-card) {
+      flex-direction: row;
+      gap: var(--space-4);
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  // body/strong (Available) y body/md (Full) solo difieren en el peso: los
+  // modificadores cambian variables, no redeclaran el paso.
+  &__availability {
+    --_weight: var(--text-body-strong-weight);
+    --_fg: var(--color-text-primary);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: flex-start;
+    font-family: var(--text-body-md-family);
+    font-size: var(--text-body-md-size);
+    font-weight: var(--_weight);
+    line-height: var(--text-body-md-line-height);
+    color: var(--_fg);
+    letter-spacing: var(--text-body-md-tracking);
+
+    @include tools.container(result-card, result-card) {
+      flex: 1 1 0;
+    }
+  }
+
+  &__availability--full {
+    --_weight: var(--text-body-md-weight);
+    --_fg: var(--color-text-secondary);
+  }
+
+  // Ranura de 20 × 1lh: el icono se centra en la primera línea del texto.
+  &__icon-slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    block-size: 1lh;
+  }
+
+  // Mezcla sobre c-button. Stacked: ancho completo. Row: 200 fijos, el ancho que pide «Te avisaremos» con su check,
+  // para que los CTA caigan en la misma columna en todas las filas.
+  &__action {
+    inline-size: 100%;
+
+    @include tools.container(result-card, result-card) {
+      flex-shrink: 0;
+      inline-size: 12.5rem;
+    }
+  }
+
+  // --- Loading -----------------------------------------------------------------
+
+  // Ranura de una línea de texto: alto = tamaño × interlineado del paso que
+  // sustituye (los modificadores cambian las variables); la barra se centra
+  // en ella. min-inline-size 0 y max-inline-size 100 %: la ranura no pasa de
+  // su columna (en un Row estrecho o con el texto al 200 %) y la barra encoge
+  // con ella, en vez de desbordar.
+  &__line {
+    --_size: var(--text-body-md-size);
+    --_line-height: var(--text-body-md-line-height);
+
+    display: var(--_display, flex);
+    align-items: center;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    block-size: calc(var(--_size) * var(--_line-height));
+  }
+
+  &__line--name {
+    --_size: var(--text-heading-sm-size);
+    --_line-height: var(--text-heading-sm-line-height);
+  }
+
+  &__line--caption {
+    --_size: var(--text-caption-size);
+    --_line-height: var(--text-caption-line-height);
+  }
+
+  // Segunda línea de la especialidad: solo en Stacked, donde en Figma la
+  // especialidad ocupa dos líneas.
+  &__line--stacked {
+    @include tools.container(result-card, result-card) {
+      --_display: none;
+    }
+  }
+
+  &__lines {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Barra. Borde transparente: en forced-colors el fondo desaparece y el borde
+  // deja el contorno de cada barra (diseño §3.2); sin él la tarjeta en carga
+  // queda vacía. Brillo solo sin movimiento reducido, y solo 3 pasadas (4,5 s):
+  // por debajo de los 5 s de 2.2.2, así no necesita control de pausa.
+  &__bone {
+    --_bar: 0.75rem;
+
+    flex-shrink: 0;
+    inline-size: var(--_width, 100%);
+    max-inline-size: 100%;
+    block-size: var(--_bar);
+    background-color: var(--color-surface-muted);
+    border: 1px solid transparent;
+    border-radius: var(--_radius, var(--radius-pill));
+
+    @include tools.motion-safe {
+      background-image: linear-gradient(
+        90deg,
+        var(--color-surface-muted) 0%,
+        var(--color-surface) 50%,
+        var(--color-surface-muted) 100%
+      );
+      background-size: 200% 100%;
+      animation: c-result-card-shimmer 1.5s linear 3;
+    }
+  }
+
+  &__bone--avatar {
+    --_width: var(--avatar-size);
+    --_bar: var(--avatar-size);
+  }
+
+  &__bone--name {
+    --_bar: 1rem;
+    --_width: 11rem;
+
+    @include tools.container(result-card, result-card) {
+      --_width: 15rem;
+    }
+  }
+
+  &__bone--specialty {
+    @include tools.container(result-card, result-card) {
+      --_width: 20rem;
+    }
+  }
+
+  &__bone--specialty-end {
+    --_width: 10rem;
+  }
+
+  &__bone--location,
+  &__bone--next {
+    --_width: 12.5rem;
+
+    @include tools.container(result-card, result-card) {
+      --_width: 15rem;
+    }
+  }
+
+  // Alto de UI/Tag por construcción: interlineado de caption + 4 + 4 + bordes.
+  &__bone--modality {
+    --_width: 6rem;
+    // stylelint-disable-next-line unit-disallowed-list -- los bordes de Tag miden 1px y no escalan
+    --_bar: calc(var(--text-caption-size) * var(--text-caption-line-height) + 2 * var(--space-1) + 2px);
+  }
+
+  // Alto de UI/Button por construcción: interlineado de body-strong + 12 + 12
+  // + bordes. Ancho como __action: completo en Stacked, 200 en Row. El radio
+  // es el del botón (radius-sm), no la píldora de las barras.
+  &__bone--action {
+    // stylelint-disable-next-line unit-disallowed-list -- los bordes de Button miden 1px y no escalan
+    --_bar: calc(var(--text-body-strong-size) * var(--text-body-strong-line-height) + 2 * var(--space-3) + 2px);
+    --_radius: var(--radius-sm);
+
+    @include tools.container(result-card, result-card) {
+      --_width: 12.5rem;
+    }
+  }
+}
+
+@keyframes c-result-card-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}

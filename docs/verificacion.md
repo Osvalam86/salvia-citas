@@ -9,7 +9,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
-pnpm verify 4.4   # 4.1 a 4.4
+pnpm verify 4.5   # 4.1 a 4.5
 ```
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
@@ -29,7 +29,7 @@ no se versiona.
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
-| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` | Una sección cada uno |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` | Una sección cada uno |
 
 ## Método
 
@@ -95,7 +95,17 @@ no se versiona.
   corte sale de `overflow-wrap: anywhere` (4.4).
 - **Selectores globales:** un elemento nuevo del shell puede capturar un
   `querySelector` de otra sección. El salto al contenido lleva `c-button`, y 4.1
-  acota sus botones a `main`.
+  acota sus botones a `main`. Por lo mismo, 4.5 tiene su propia página
+  (`/kit/resultados`): sus botones, etiquetas y avatares cambiarían los
+  recuentos de 4.1 y 4.2 en `/kit`.
+- **En una container query, `rem` sigue la letra del html.** A diferencia de
+  una media query, la inyección en `html` y `Page.setFontSizes` mueven el
+  umbral igual (4.5: 447/448 con los dos métodos).
+- **El árbol AX no sigue el orden del DOM:** en `getFullAXTree` se filtra por
+  nombre, no por posición (4.5).
+- **Margen de +0,5 del detector de palabras:** una palabra 0,3 px más ancha
+  que su elemento sale como «pudiendo caber» («experiencia», 175,3 en 175). Se
+  declara con la cifra; no se relaja la regla (4.5).
 
 ## Comprobaciones manuales
 

@@ -1,0 +1,25 @@
+@use '../02-tools' as tools;
+
+// UI/Filter Trigger (Figma 180:2573). Se mezcla sobre c-button Secondary en el
+// mismo nodo: la raíz no redeclara nada del botón (borde, padding, alto 50,
+// flex-wrap, anillo). Este bloque solo aloja el contador.
+.c-filter-trigger {
+  // Píldora color-action con el número en label. min-inline-size = su
+  // interlineado (20), así un solo dígito no queda más estrecho que alto.
+  //
+  // forced-colors quita el relleno: el contorno lo da un outline transparente
+  // hacia dentro, que el modo pinta con el color del texto y no entra en el
+  // layout (la píldora sigue midiendo 20; un borde la llevaría a 22).
+  &__count {
+    @include tools.text(label);
+
+    min-inline-size: 1lh;
+    padding-inline: var(--space-2);
+    color: var(--color-on-action);
+    text-align: center;
+    background-color: var(--color-action);
+    border-radius: var(--radius-pill);
+    outline: 1px solid transparent;
+    outline-offset: -1px;
+  }
+}

@@ -6,7 +6,8 @@
 // por tanto, anchos exteriores del componente. Origen: DESIGN.md § Contenedores.
 // =============================================================================
 $containers: (
-  result-card: 32rem,      // 512px · contenedor: el `li` de la lista — sobre la rotura de Row (490)
+  result-card-identity: 14rem, // 224px · contenedor: el `li` (result-card) — avatar al lado del encabezado; derivado: bordes 2px + padding 2rem + avatar 3rem + hueco 0.75rem + base de texto 8rem
+  result-card: 36rem,      // 576px · contenedor: el `li` de la lista — Row con la disponibilidad en dos líneas como mucho
   dialog: 32rem,           // 512px · contenedor: el velo — Row 480 + 16 + 16 de margen
   appointment-card: 34rem, // 544px · contenedor: el `li` de su sección — PROVISIONAL
   slot-picker: 44rem,      // 704px · contenedor: quien da ancho a la tarjeta del selector

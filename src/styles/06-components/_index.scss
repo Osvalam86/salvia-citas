@@ -15,6 +15,7 @@
 @use 'c-button';
 @use 'c-checkbox';
 @use 'c-field';
+@use 'c-filter-trigger';
 @use 'c-header-desktop';
 @use 'c-header-mobile';
 @use 'c-icon';
@@ -24,12 +25,16 @@
 @use 'c-legend';
 @use 'c-legend-help';
 @use 'c-link';
+@use 'c-load-more';
 @use 'c-menu';
 @use 'c-menu-item';
 @use 'c-nav-item';
 @use 'c-nav-link';
 @use 'c-notice';
+@use 'c-page-link';
+@use 'c-pagination';
 @use 'c-radio';
+@use 'c-result-card';
 @use 'c-status-tag';
 @use 'c-step';
 @use 'c-tag';

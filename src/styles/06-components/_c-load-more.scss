@@ -1,0 +1,21 @@
+@use '../02-tools' as tools;
+
+// UI/Load More (Figma 173:619). Recuento en caption secundario antes del
+// botón, para leer el progreso antes de la acción; gap 12. El botón (mezcla
+// sobre c-button Secondary) va a ancho completo. text-secondary solo sobre
+// color-surface: el fondo de la vista.
+.c-load-more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  &__count {
+    @include tools.text(caption);
+
+    color: var(--color-text-secondary);
+  }
+
+  &__action {
+    inline-size: 100%;
+  }
+}

@@ -484,6 +484,16 @@ export default function Kit() {
           <NavDemos />
         </section>
 
+        <section className="c-kit__section" aria-labelledby="kit-resultados">
+          <h2 className="c-kit__heading" id="kit-resultados">
+            Búsqueda y resultados
+          </h2>
+          <p>Result Card, Filter Trigger, Pagination, Page Link y Load More, en su propia página.</p>
+          <p>
+            <Link href="/kit/resultados">Ver búsqueda y resultados</Link>
+          </p>
+        </section>
+
         <section className="c-kit__section" aria-labelledby="kit-layout">
           <h2 className="c-kit__heading" id="kit-layout">
             Layout

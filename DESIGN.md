@@ -139,7 +139,7 @@ que el diseño sí declara.
 
 | Nombre | Valor          | Razón                                                                                                                                                                                                                                            |
 | ------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `lg`   | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, con margen sobre el punto de rotura de Result Card Row (490) |
+| `lg`   | 64rem (1024px) | Único salto de página: aparece el patrón aside + principal, el header de escritorio sustituye a la barra inferior y el contenedor se centra. En 1024 deja 624 de columna principal, por encima del umbral de Result Card Row (576) |
 
 **Tokens por breakpoint: `_tokens.scss` importa `02-tools`.** Para redefinir
 tokens bajo `lg` (hoy `page-title` y `--layout-column-max`) se usa `tools.respond-to(lg)`, así
@@ -158,7 +158,7 @@ contenedor alcanza 1200.
 **Las cuentas suponen una barra de scroll superpuesta** (móvil, macOS). Con
 barra clásica (Windows, unos 15 px) el ancho útil es el mismo menos la barra: a
 1024 la columna principal queda en 609, no en 624, y sigue por encima del
-umbral de `result-card` (512). No se corrige nada: se declara.
+umbral de `result-card` (576). No se corrige nada: se declara.
 
 ---
 
@@ -182,9 +182,10 @@ patrón que `page-title`: ningún componente lleva media query.
 
 **40rem no viene de Figma: es un valor derivado.** Con el gutter móvil
 `space-4` a cada lado deja 608 útiles, por encima de los umbrales de
-`result-card` (512) y `appointment-card` (544, provisional). Las tarjetas pasan
-a Row dentro del tramo, en cuanto su `li` alcanza el umbral (desde 544 de
-viewport en resultados), sin esperar a `lg`. El umbral de `dialog` se mide
+`result-card` (576) y `appointment-card` (544, provisional). Las tarjetas pasan
+a Row dentro del tramo, en cuanto su `li` alcanza el umbral (desde 608 de
+viewport en resultados; 623 con barra clásica), sin esperar a `lg`. Medido: a
+608 y a 609, Row con 214 salvo la modalidad larga, que baja de línea (242). El umbral de `dialog` se mide
 sobre el velo y no depende de la columna.
 
 **Chrome que se queda en versión móvil hasta `lg`:**
@@ -284,14 +285,32 @@ contenedor, su padding y su propia variante falsearían la medida (una Row de
 contenedor en el padre, el umbral es siempre un ancho exterior, sin aritmética
 de padding.
 
+Un contenedor puede tener varios umbrales: son claves de `$containers` sobre
+el mismo `container-name`, sin un segundo nombre
+(`tools.container(result-card, result-card-identity)`).
+
 `_containers.scss`:
 
-| Nombre             | Contenedor                                         | Umbral      | Qué cambia                          | Razón                                                                        |
-| ------------------ | -------------------------------------------------- | ----------- | ----------------------------------- | ---------------------------------------------------------------------------- |
-| `result-card`      | el `li` de la lista de resultados                  | 32rem (512) | Stacked pasa a Row                  | Justo sobre el punto de rotura medido de Row (490). El `li` no tiene padding |
+| Nombre                 | Contenedor                                         | Umbral      | Qué cambia                                      | Razón                                                                                                                                                                                  |
+| ---------------------- | -------------------------------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `result-card-identity` | el `li` (contenedor `result-card`)                 | 14rem (224) | Por debajo, el avatar va encima del encabezado  | Al encabezado le quedan 8rem: bordes 2px + padding 2rem + avatar 3rem + hueco 0,75rem + 8rem. Al 100 % no ocurre (el `li` más estrecho mide 273); al 200 % a 320 sí (448 en px) |
+| `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
 | `appointment-card` | el `li` de su sección                              | 34rem (544) | Stacked pasa a Row                  | **Provisional:** verificar al construir el componente                        |
 | `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe                   |
 | `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
+
+---
+
+## Custom properties públicas
+
+Un bloque puede publicar una propiedad sin guion bajo cuando su padre tiene que
+fijarla y depende de un contenedor, no de una prop. El nombre es el del bloque
+sin el prefijo `c-` más la propiedad: `--avatar-size`, no `--c-avatar-size`. El
+bloque la lee con su valor propio como respaldo
+(`--_size: var(--avatar-size, 3rem)`) y el padre la fija en su elemento de
+mezcla. Lo privado sigue en `--_*`.
+
+Único caso: `--avatar-size` (Result Card: 48 en Stacked, 64 en Row).
 
 ---
 
@@ -316,7 +335,8 @@ Medidas en los maestros, no son tokens del archivo:
   ruta), sin entrada de historial.
 - **Destino de foco programático:** un elemento con `tabindex="-1"` que
   recibe el foco por script (el `h1` al cambiar de ruta, el resumen de
-  errores, el título de un aviso) conserva el anillo global. Con teclado
+  errores, el título de un aviso, el nombre de la primera tarjeta nueva tras
+  «Ver más») conserva el anillo global. Con teclado
   muestra dónde fue el foco; con ratón no aparece (`:focus-visible`). No se
   suprime.
 - Alto de control de texto: 50, por construcción (borde 1 + 12 + interlineado
@@ -350,6 +370,10 @@ parcial), porque su cuerpo es un párrafo y sin base bajaría siempre de línea.
 En 4.3, `UI/Checkbox` y `UI/Radio`, con la misma base `8rem` en la etiqueta y
 en el texto del mensaje: al 200 % a 320 la caja sube a su propia línea, también
 sobre etiquetas cortas que habrían cabido; es el precio de no partir palabras.
+En 4.5 la heredan la ubicación y la disponibilidad de `UI/Result Card` (base
+`8rem`) y `UI/Page Link`. El avatar de la tarjeta sigue la misma regla con un
+umbral de contenedor (`result-card-identity`): sube antes de que el nombre
+parta.
 
 **Límite medido.** Al 200 % a 320 con barra de scroll clásica (15 px), el
 interior de un `UI/Button` a ancho completo mide 143 px (158 con barra
@@ -359,6 +383,42 @@ scroll horizontal ni pérdida de contenido, y ninguna palabra parte pudiendo
 caber: la regla se cumple. El caso excede lo que exige WCAG (1.4.4 pide 200 %
 sin pérdida; 1.4.10, 320 CSS px a zoom completo), así que el padding no se
 toca.
+
+El CTA de `UI/Result Card` al 200 % a 320 tiene un interior de 77 px (barra
+clásica) o 92 (superpuesta), porque suma el padding de la tarjeta y el del
+botón: parten «horarios» y «Avisarme», más anchas que ese interior.
+«experiencia» (175,3) parte en un párrafo de 175 con barra clásica. Ninguna
+cabía.
+
+---
+
+## Búsqueda y resultados
+
+**Geometría de Loading.** El esqueleto replica las líneas del texto de Figma:
+290 en Stacked (especialidad en dos líneas) y 214 en Row. Cuando el texto real
+ocupa menos líneas, el esqueleto es más alto y la lista encoge al llegar los
+datos: a 575, el esqueleto mide 290 y las tarjetas 266. Cuando ocupa más, la
+lista crece: a 343, Joaquín mide 338, igual que en 01.1; desde 608 en Row,
+Mariana mide 242 (la modalidad baja de línea). Solo coinciden con el texto de
+Figma.
+
+**Conmutador «Avisarme», desviación de la APG.** La APG pide que un botón
+conmutador no cambie de etiqueta. Aquí cambia («Avisarme» → «Te avisaremos»,
+con `aria-pressed`) porque las dos se leen coherentes con su estado: «Te
+avisaremos, presionado» y «Avisarme, no presionado»; el caso que la APG evita
+es «Silenciar» leído como «presionado». Pendiente de la fase 7 con lector.
+
+**Load More: o foco o región viva.** Al terminar, el foco va al nombre de la
+primera tarjeta nueva; el recuento de Load More no es región viva y el de la
+cabecera no cambia (el total sigue siendo el mismo).
+
+**Pagination.** La fila más ancha mide 669 (la actual en 4, 5 o 6). Cabe desde
+una columna de 670, es decir, desde 1070 de viewport (1085 con barra clásica).
+Entre `lg` y ese ancho va en dos filas (`flex-wrap`).
+
+**Filter Trigger.** Chromium calcula el nombre como «Filtrar y ordenar , 1
+filtro aplicado»: el texto oculto está fuera del flujo y se separa como un
+bloque. No se pronuncia.
 
 ---
 
@@ -513,7 +573,8 @@ la anatomía (etiqueta, control de 50, iconos y mensaje) y solo cambian el
 control; `Legend.tsx` pinta dos bloques, `c-legend` y `c-legend-help`, porque
 la ayuda va fuera de `<legend>` y un elemento BEM no puede vivir fuera de su
 bloque; `c-wordmark` (`Wordmark.tsx`) no es uno de los 34 componentes: lo
-comparten los dos headers. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+comparten los dos headers. `c-filter-trigger` se mezcla sobre `c-button` en
+el mismo nodo y solo aloja `__count`: la anatomía es la del botón. Los hooks (`useDisclosure`, `useMediaQuery`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -588,4 +649,9 @@ vista 3 no.
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 7     | **Zona segura en un iPhone real.** `viewport-fit=cover` y `env(safe-area-inset-*)` en `c-app-layout` (laterales) y en su hueco de barra (inferior) no se pudieron probar: en headless `env()` vale 0. Comprobar en vertical y horizontal con notch que el contenido no queda bajo el notch, que la franja bajo el indicador de inicio se pinta con la superficie y que la barra no queda bajo él |
+| Figma · Osvaldo | **Descripción de `UI/Result Card`.** «40rem» → 36rem y «160» → 200 |
+| 5     | **Lista en carga completa.** Solo tiene `li aria-hidden`, y el lector anuncia «lista, 0 elementos». La vista decide cómo exponerla |
+| 5     | **Foco al cambiar de página.** ¿`h1` por la regla de ruta, o `h2` «Resultados»? |
+| 5     | **Foto de la tarjeta.** `sizes` (48 o 64 según el contenedor) y `loading="lazy"` por debajo del pliegue: `ResultCard` aún no lo expone |
+| 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |
