@@ -1,5 +1,6 @@
 import type { AriaAttributes, MouseEventHandler, ReactNode, Ref } from 'react'
 import { Link as RouterLink } from 'react-router'
+import type { FocusState } from '../hooks/useRouteFocus.ts'
 import Icon from './Icon.tsx'
 import type { IconName } from './iconNames.ts'
 
@@ -51,11 +52,14 @@ type LinkOnly = {
   'aria-pressed'?: never
 }
 
-// href interno: navega con React Router.
+// href interno: navega con React Router. `state` nombra el destino del foco
+// tras navegar (D12): lo lee useRouteFocus si cambia la ruta, o la vista si
+// solo cambia `search`.
 type AsLink = BaseProps &
   LinkOnly & {
     href: string
     download?: never
+    state?: FocusState
   }
 
 // href + download: <a download> nativo. La etiqueta debe anunciar la descarga.
@@ -63,6 +67,7 @@ type AsDownload = BaseProps &
   LinkOnly & {
     href: string
     download: true | string
+    state?: never
   }
 
 export type ButtonProps = AsButton | AsLink | AsDownload
@@ -115,7 +120,7 @@ export default function Button(props: ButtonProps) {
   }
 
   return (
-    <RouterLink to={props.href} className={classes} aria-describedby={props['aria-describedby']}>
+    <RouterLink to={props.href} state={props.state} className={classes} aria-describedby={props['aria-describedby']}>
       {content}
     </RouterLink>
   )

@@ -300,6 +300,7 @@ el mismo `container-name`, sin un segundo nombre
 | ---------------------- | -------------------------------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `result-card-identity` | el `li` (contenedor `result-card`)                 | 14rem (224) | Por debajo, el avatar va encima del encabezado  | Al encabezado le quedan 8rem: bordes 2px + padding 2rem + avatar 3rem + hueco 0,75rem + 8rem. Al 100 % no ocurre (el `li` más estrecho mide 273); al 200 % a 320 sí (448 en px) |
 | `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
+| `empty-state`          | la raíz de `c-empty-state` (sin padding), en el hueco de la lista | 36rem (576) | Acción intrínseca | El mismo ancho en que Result Card pasa a Row con su CTA fijo. Figma solo da 343 (acción llena, 01.3) y 848 (intrínseca, 01.6) |
 | `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
 | `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Caso límite: a 375 con la letra a 20 y barra clásica, el velo mide 360 = 18rem y es compacto; con la superpuesta, 18.75rem, no. Medido a 320 con la letra a 32: el interior del botón pasa de 32 (partían «mi» y «cita») a 128 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y a 158 con la superpuesta. Con la clásica aún parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior; con la superpuesta, ninguna |
 | `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe. El velo no lleva padding lateral: la query mide su caja de contenido, y el margen lo resta el panel |
@@ -468,6 +469,46 @@ Entre `lg` y ese ancho va en dos filas (`flex-wrap`).
 **Filter Trigger.** Chromium calcula el nombre como «Filtrar y ordenar , 1
 filtro aplicado»: el texto oculto está fuera del flujo y se separa como un
 bloque. No se pronuncia.
+
+**Cabecera de resultados (V1a).** `align-items: last baseline`: el recuento
+comparte línea base con el valor del select («Ordenar por»). `c-field` lleva
+`align-self: last baseline` en el control; sin él, la línea base del campo
+era la de sus iconos (el chevron, último de la celda) y el recuento caía 4 px
+(cabecera de 83). Mide 79, no 78: la línea base del label (30 en su caja de
+50) y la del select (31) difieren en 1 px, y Figma centra. El recuento mide al
+menos `tools.control-block-size()` (borde + space-3 + interlineado de body-md
++ space-3 + borde): 50, y 98 con la letra a 32, como el control. Sin ese
+mínimo, en el vacío de escritorio (sin «Ordenar por») la cabecera mediría 20
+y el vacío subiría 30 (01.6). **No es la fuente única del 50:** `c-field` y
+`c-button` llegan a él por su propio padding y no se tocan en V1a; `pnpm
+verify 5.1` mide el recuento frente al control y detecta si divergen. Con la
+letra a 32 en escritorio (el aside mide 640 y la columna 496), el orden baja
+de línea: 98 + 32 + 154 = 284.
+
+**Carga (V1a).** Con solo esqueletos, el `ul` entero va `aria-hidden` (si no,
+el lector anuncia «lista, 0 elementos»); con tarjetas y esqueletos («Ver más»),
+`aria-busy`. **Foco:** al llegar los datos, al nombre de la primera tarjeta
+(la primera nueva con «Ver más») tras «Ver más», Page Link, «Ver todos los
+especialistas», «Buscar en toda la Ciudad de México» (los dos con
+`state.focus`) y «Limpiar filtros» del vacío (ref), siempre con
+`preventScroll`: la tarjeta aparece donde estaba el botón o arriba, ya a la
+vista. «Buscar», filtros y orden no lo mueven: su control sigue ahí y anuncia
+la región del recuento. **Costes declarados:** «Buscar» con la misma consulta
+no vuelve a anunciar si el recuento no cambia; con `?escenario=lenta`, los dos
+enlaces y el botón del vacío desaparecen al navegar y el foco queda en `body`
+1,5 s hasta que llega la primera tarjeta.
+
+**Fotos (V1a).** `sizes="(min-width: 38rem) 4rem, 3rem"`: Row desde 36rem de
+`li`, que por debajo de `lg` es el viewport menos 2rem de gutter; desde `lg`,
+siempre Row. Con barra clásica, entre 608 y 622 pide la de 192 sin
+necesitarla. Eager en las dos primeras tarjetas del corte (caben sobre el
+pliegue en 1440 × 900), lazy en el resto y en las de «Ver más».
+
+**Diferencias con Figma medidas (V1a).** El recuento «Buscando…» mide 81 y no
+79: métrica de Inter Variable frente al Inter de Figma; es el ancho de su
+texto, no construcción, y `pnpm verify 5.1` compara su posición y su alto. El
+vacío de 01.3 mide 336 y no 308: con el copy entre comillas (diseño §5.1) el
+título ocupa 3 líneas (84) en vez de 2 (56).
 
 ---
 
@@ -656,13 +697,27 @@ La paginación y «Ver más» comparten `pagina`: en escritorio se muestra el
 corte de esa página, en móvil los resultados de 1 a `pagina × 4`. Así un
 cambio de tamaño no pierde la posición.
 
+**Historial y scroll de la vista 1 (V1a).** Push: «Buscar», Page Link, «Ver
+todos los especialistas» y «Buscar en toda la Ciudad de México». Replace:
+filtros, «Limpiar filtros» (aside y vacío), «Ordenar por» y «Ver más» (con
+radios, cada flecha selecciona y un push por tecla llenaría el historial). Con
+`preventScrollReset` (`<ScrollRestoration>` sube arriba en toda navegación sin
+él, también si solo cambia `search`): «Buscar», filtros, «Limpiar filtros»,
+orden y «Ver más». Page Link y los enlaces del vacío dejan que suba.
+
+**`pagina` fuera de rango** se sujeta a la última página, sin tocar la URL.
+Con `?escenario=lenta`, la paginación muestra la página cargada hasta que
+llegan los datos: «Siguiente» hacia la última y «Anterior» hacia la primera
+no desaparecen con el foco dentro.
+
 `/especialistas/:slug/confirmar` existe en cualquier viewport, pero solo el
 «Continuar» de móvil lleva a ella.
 
 **Retroceso con la consulta conservada** (panel 02.0: nombran adónde llevan,
 nunca `history.back()`). Los parámetros de V1 (`q`, `ubicacion`, filtros,
-`orden`, `pagina`) viajan sin cambios, junto a `fecha` y `hora`, de V2 a V4;
-no comparten nombre. El Back Link y el breadcrumb «Especialistas» de V2, V3
+`orden`, `pagina`) y `escenario` (D8) viajan sin cambios, junto a `fecha` y
+`hora`, de V2 a V4; no comparten nombre. «Ver horarios» ya los lleva en su
+`href` (`carriedParams` en `src/data/search.ts`, V1a). El Back Link y el breadcrumb «Especialistas» de V2, V3
 y la confirmación reconstruyen `/?…` con ellos, y el nivel del médico,
 `/especialistas/:slug?…`. Al abrir una página desde un enlace sin ellos,
 llevan a `/`. La reprogramación no los lleva: su retroceso es `/mis-citas`.
@@ -823,7 +878,11 @@ el mismo nodo y solo aloja `__count`: la anatomía es la del botón.
 contenedores de `UI/Day Chip` y `UI/Time Slot`, sin ser de los 34 (§ Fecha y
 hora). `c-page-header` (`PageHeader.tsx`) es el encabezado de página de las
 vistas, sin ser de los 34: en T1 solo lleva `__title` (`page-title`); su API
-crece vista por vista. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+crece vista por vista (V1a: `__subtitle`). `c-empty-state` (`EmptyState.tsx`)
+es el estado vacío de pantalla, sin ser de los 34: placa, título con
+`headingLevel` (h2 en V1, h3 en el «sin horarios» de V2a), ayuda y acciones.
+`c-search-form`, `c-search-filters` y `c-results-header` son patrones de la
+vista 1 (`Search.tsx`), sin componente propio. Los hooks (`useDisclosure`, `useMediaQuery`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -873,7 +932,8 @@ esa gestión pelea con la posición que recuerda el navegador.
 el scroll lo decide `<ScrollRestoration>` (arriba en PUSH, posición
 guardada en POP). Un cambio solo de `search` no mueve el foco: lo decide la
 vista. Una navegación puede nombrar otro destino en `location.state.focus`
-(volver de reprogramar → título del aviso). **Si ese destino no existe, el
+(volver de reprogramar → título del aviso) o, si solo cambia `search`, un
+destino que resuelve la vista (V1a: `primer-resultado`, la primera tarjeta). **Si ese destino no existe, el
 foco va al `h1`:** `history.state` sobrevive a la recarga y a Atrás, pero el
 aviso del almacén no (D13). Contraprueba en T1: volver de reprogramar,
 recargar `/mis-citas` y comprobar que el foco no se pierde.
@@ -925,7 +985,10 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 | 4 ✓   | **`overflow-wrap: anywhere` en filas flex sin wrap. Cerrado en 4.7.** Con `anywhere` (reset, fase 3) un ítem flex encoge por debajo de su palabra más larga, así que en una fila sin `flex-wrap` el texto parte **dentro de la palabra** en vez de desbordar. Comprobado componente a componente de 4.1 a 4.7 al 200 % con las dos barras. **En 4.6**, a 320 al 100 % y al 200 % con las dos barras: ninguna palabra partida en días y números del calendario, mes, leyenda, chips (día de la semana y número), etiquetas de franja y horas; los números y horas llevan `white-space: nowrap` y las filas que los contienen pasan a menos columnas (tira, horas) o se desplazan (calendario) en vez de encoger. La Booking Bar (título, meta y botón), con la letra del navegador a 20, 24 y 32: sin palabras partidas. **En 4.7**, `UI/Appointment Card` a 320: sin palabras partidas al 100 %; al 200 % solo parten palabras más anchas que su elemento (interior de la tarjeta 175/190, de la acción 77/92), y la fila del avatar lleva `flex-wrap` (contraprueba: sin él, al nombre le quedan 55 y parten los 16 nombres). `UI/Dialog` con la letra a 24 y a 32 y al 200 % a 320: ninguna palabra partida pudiendo caber; con barra clásica a 32 parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior (226 y 128, con `dialog-compact`) |
 | 5 · T2 ✓ | **Fotos de avatar. Cerrado en T2:** Mariana, Ruiz y Rodrigo, rostros generados con IA (Gemini); el resto con inicial. `<slug>-96.webp` y `-192.webp` en `src/assets/avatars/` (`src/data/photos.ts`, `srcset` con descriptores de ancho); recorte en D4; originales fuera del repo (`.avatares-originales/`, ignorada). `LICENSE-DOCS` las excluye de MIT y CC BY |
 | 5 · V3 | **Atrás tras un ancla nativa no restaura el scroll.** Decidido (diseño §5.3): el resumen de errores enfoca el campo por script, sin entrada de historial; se mide en V3. `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
-| 5 · V1a | **Línea base en la cabecera de resultados.** El panel 01.0 fija `align-items: last baseline`; se mide en V1a. `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas); este documento dice que el recuento y «Ordenar por» comparten línea base. Decidir `baseline` en código al construir la vista 1 |
+| 5 · V1a ✓ | **Línea base en la cabecera de resultados. Cerrado en V1a** (§ Búsqueda y resultados, cabecera): `last baseline`, con `align-self: last baseline` en el control de `c-field` y el recuento a `tools.control-block-size()`; cabecera de 79 (Figma 78, 1 px entre las dos líneas base) y 50 en el vacío. El panel 01.0 fija `align-items: last baseline`; `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas) |
+| 5 · V1b | **Fila del disparador en 01.1, 01.3 y 01.4.** V1a mide la cabecera móvil solo con el recuento (alto 50; N/A en `pnpm verify 5.1`). Con el `FilterTrigger`, medir la fila a ±1 px: disparador a la izquierda y recuento a la derecha, centrados en Figma (`items-center`) |
+| 5 · V1b | **Hoja de filtros con replace y `preventScrollReset`**, como el aside de escritorio (D1, historial y scroll de la vista 1) |
+| 5 · V1b | **Acción del vacío al 200 % a 320.** El interior de «Ver todos los especialistas» mide 45 px con barra clásica y 60 con la superpuesta (padding del marco, 24, más el del botón, 24, los dos al doble): parten todas sus palabras («los», 45,4, sale como pudiendo caber por el margen del detector). Dos salidas: bajar el padding del marco a `space-4` con el texto ampliado, con un umbral de contenedor como `dialog-compact` (interior 77/92, el mismo límite que el CTA de Result Card y la acción de Appointment Card), o aceptarlo como en Dialog. **Propuesta: la primera.** Tiene precedente en `dialog-compact`, deja el vacío en el mismo límite que las tarjetas a las que sustituye y no cambia nada al 100 %. Decidir con el vacío por filtros de la hoja delante |
 | 5 · V2a / V2b | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
 | 5 · T2 ✓ | **Opciones de Motivo de consulta. Cerrado en T2:** `src/data/reasons.ts` (D4). El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5 · V3 | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
@@ -942,13 +1005,15 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 | 7     | **Desplazamiento del subrayado.** Hueco del diseño: `link/md` no lo declara. La regla base de `a` usa el del navegador; se decide mirando cómo queda el subrayado con Inter a 16 sobre los descendentes reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 7     | **Fallback de SPA en Netlify.** `public/_redirects` con `/* /index.html 200` (D12). Sin él, recargar en `/mis-citas` da 404 en producción. Recupera la carpeta `public/` junto con el favicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 7     | **Zona segura en un iPhone real.** `viewport-fit=cover` y `env(safe-area-inset-*)` en `c-app-layout` (laterales) y en su hueco de barra (inferior) no se pudieron probar: en headless `env()` vale 0. Comprobar en vertical y horizontal con notch que el contenido no queda bajo el notch, que la franja bajo el indicador de inicio se pinta con la superficie y que la barra no queda bajo él |
-| 5 · V1a | **Título del vacío cuando `q` no es un área o especialidad.** El copy de 01.3 pone la consulta en minúsculas porque es una especialidad; `q` también busca por nombre (`q=Molina` daría «especialistas en molina»). Decidir la forma del título en V1a. Además, el foco tras «Buscar en toda la Ciudad de México» (vacío por colonia) es un cambio solo de `search` (D12): lo decide el plan de V1a |
-| 5 · V1a | **Lista en carga completa.** Solo tiene `li aria-hidden`, y el lector anuncia «lista, 0 elementos». La vista decide cómo exponerla |
-| 5 · V1a | **Foco al cambiar de página.** ¿`h1` por la regla de ruta, o `h2` «Resultados»? |
-| 5 · V1a | **Foto de la tarjeta.** `sizes` (48 o 64 según el contenedor) y `loading="lazy"` por debajo del pliegue: `ResultCard` aún no lo expone |
+| 5 · V1a ✓ | **Título del vacío cuando `q` no es un área. Cerrado en V1a:** «No encontramos especialistas para «{q}»» (y «… en {colonia}»), con `q` tal como se escribió; cambio frente a Figma declarado en diseño §5.1. El foco tras «Buscar en toda la Ciudad de México» va al nombre de la primera tarjeta (`state.focus`, D12) |
+| 5 · V1a ✓ | **Lista en carga completa. Cerrado en V1a:** con solo esqueletos, el `ul` entero va `aria-hidden` (medido: el árbol solo tiene la lista de la barra inferior; contraprueba sin él: una lista de 0) |
+| 5 · V1a ✓ | **Foco al cambiar de página. Cerrado en V1a:** ni el `h1` (obligaría a recorrer el formulario) ni el `h2` «Resultados» (visualmente oculto: su anillo no se vería, 2.4.7), sino el nombre de la primera tarjeta, el destino de «Ver más» |
+| 5 · V1a ✓ | **Foto de la tarjeta. Cerrado en V1a:** `ResultCard` expone `photoSizes` y `photoLoading` (Avatar, `sizes`); la vista da `(min-width: 38rem) 4rem, 3rem` y eager solo en las dos primeras tarjetas (§ Búsqueda y resultados, fotos) |
+| 5 · V2a | **El enlace de V2 a V3 conserva `escenario`** (y los parámetros de V1, D1), o `?escenario=ocupada` no llega a la reserva fallida de la vista 3 |
+| 7 | **`last baseline` en Safari.** Cabecera de resultados y `c-field` (V1a) solo se midieron en Edge. Si no se soporta, la declaración se ignora y el recuento se centra en la cabecera: comprobar en Safari de macOS e iOS |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
 | 5 · V2a | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
-| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). Al cerrar la fase 5: probar las dos candidatas; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
+| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). **V1a:** `/kit/estados` → 01.1 en `pnpm verify 5.1`, 0 píxeles, ✗ declarado por la misma regla. Desde V1a, 5.0 y 5.1 aparcan el puntero antes de cada captura (`park`): la portada tiene casillas al final y el puntero dejaba en `:hover` la que pasaba bajo él al bajar con la rueda (188 px en `/kit` → `/`, justo la caja de «Videoconsulta»); 4.6 no lo usa y sigue en 4932 px. Al cerrar la fase 5: probar las dos candidatas; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
 | 5 · T1 ✓ | **Foco al cambiar de ruta. Cerrado en T1** (`useRouteFocus`, D12): PUSH, POP, `search`, carga inicial y `state.focus` medidos en `pnpm verify 5.0` y en `--preview`; 4.7 pasa a ✓ con la contraprueba manual (sin el hook, foco en `body`). D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
 | 5 · V4a | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
 | 5 · T1 ✓ | **Filtro de consola en `4.7-citas.mjs`. Cerrado en T1:** «Reprogramar» llega a la ruta provisional con el foco en su `h1` y sin errores. El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |

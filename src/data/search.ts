@@ -98,3 +98,42 @@ export function searchSpecialists(params: SearchParams, data: SearchData = { spe
 /** Corte de una página (escritorio) o de 1 a pagina × 4 (móvil, «Ver más»): D1. */
 export const pageSlice = (results: Specialist[], page: number, cumulative = false) =>
   results.slice(cumulative ? 0 : (page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+/** Páginas de un total (al menos 1: sin resultados no hay paginación). */
+export const pageCount = (total: number) => Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+/** `pagina` por encima de la última se sujeta a la última, sin tocar la URL (D1). */
+export const clampPage = (page: number, total: number) => Math.min(page, pageCount(total))
+
+/**
+ * Clave de una búsqueda sin su página: dos URL con la misma clave muestran la
+ * misma lista (cambia el corte, no el conjunto). La carga la distingue de un
+ * cambio de página o de «Ver más».
+ */
+export const searchKey = ({ q, ubicacion, especialidad, modalidad, disponibilidad, orden }: SearchParams) =>
+  JSON.stringify([q, ubicacion, especialidad, modalidad, disponibilidad, orden])
+
+/**
+ * Causa de un vacío (diseño §5.1), por precedencia: la consulta no da nada en
+ * toda la ciudad; la da, pero no en la colonia elegida; o la da y la anulan los
+ * filtros. Sin consulta, solo los filtros pueden vaciar la lista: cada
+ * ubicación sin consulta da al menos un resultado (check-data).
+ */
+export function emptyCause(params: SearchParams, data?: SearchData): 'consulta' | 'colonia' | 'filtros' {
+  const unfiltered: SearchParams = { ...params, ubicacion: null, especialidad: [], modalidad: [], disponibilidad: null }
+  if (params.q && searchSpecialists(unfiltered, data).total === 0) return 'consulta'
+  if (params.q && params.ubicacion && searchSpecialists({ ...unfiltered, ubicacion: params.ubicacion }, data).total === 0) return 'colonia'
+  return 'filtros'
+}
+
+/** Parámetros de V1 que viajan de V2 a V4 (D1, retroceso con la consulta conservada), con el escenario (D8). */
+export const CARRIED_PARAMS = ['q', 'ubicacion', 'especialidad', 'modalidad', 'disponibilidad', 'orden', 'pagina', 'escenario'] as const
+
+/** Los parámetros de V1 de una URL, tal cual; el resto se descarta. */
+export function carriedParams(params: URLSearchParams) {
+  const carried = new URLSearchParams()
+  for (const [key, value] of params) {
+    if ((CARRIED_PARAMS as readonly string[]).includes(key)) carried.append(key, value)
+  }
+  return carried
+}

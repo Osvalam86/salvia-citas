@@ -44,6 +44,20 @@ export function shortDate(date: CalendarDate) {
   return `${shortWeekday(date)} ${date.day} ${monthShort.format(toDate(date)).replace('.', '')}`
 }
 
+/**
+ * Disponibilidad de UI/Result Card: «Próxima cita: hoy, 19:15» o «Próxima
+ * cita: mar 24 abr, 10:30». Solo «hoy» tiene nombre: Figma escribe el día
+ * siguiente con su fecha (01.1, Dra. Ruiz).
+ */
+export function nextSlotText(date: CalendarDate, time: string, today: CalendarDate) {
+  return `Próxima cita: ${date.compare(today) === 0 ? 'hoy' : shortDate(date)}, ${time}`
+}
+
+/** «Sin disponibilidad · próximo cupo en mayo» (UI/Result Card, State=Full). */
+export function nextOpeningText(opening: CalendarDate) {
+  return `Sin disponibilidad · próximo cupo en ${monthName(opening)}`
+}
+
 /** «6 horarios libres», «1 horario libre», «sin horarios». */
 export function freeSlotsText(free: number) {
   if (free === 0) return 'sin horarios'

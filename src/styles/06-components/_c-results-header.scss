@@ -1,0 +1,35 @@
+@use '../02-tools' as tools;
+
+// Cabecera de resultados de la vista 1 (Search.tsx; Figma 01.1 y 01.5,
+// Results Header). Patrón de pantalla, no uno de los 34 (excepción declarada
+// en D5). El recuento y «Ordenar por» comparten línea base (panel 01.0:
+// align-items: last baseline; la última del campo es la del valor del select).
+// flex-wrap: con el texto ampliado, el select baja de línea.
+//
+// El recuento mide como mínimo el alto de un control, con el texto centrado:
+// en Figma vive en una ranura de 50 (Count Slot). Sin ese mínimo, en el vacío
+// de escritorio (sin «Ordenar por») la cabecera mediría 20 y el vacío subiría
+// 30 (01.6). control-block-size() sigue al control con el texto ampliado.
+.c-results-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: last baseline;
+  justify-content: space-between;
+
+  &__count {
+    @include tools.text(label);
+
+    display: flex;
+    align-items: center;
+    min-block-size: tools.control-block-size();
+    color: var(--color-text-primary);
+  }
+
+  // Mezcla sobre c-field: «Ordenar por» a 288 (diseño §5.1). max-inline-size
+  // para que con el texto ampliado no desborde la columna.
+  &__sort {
+    inline-size: 18rem;
+    max-inline-size: 100%;
+  }
+}

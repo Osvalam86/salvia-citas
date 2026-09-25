@@ -15,6 +15,12 @@ type Specialist = {
   initial: string
   photo?: AvatarPhoto
   /**
+   * sizes y loading de la foto. Los decide la vista, que sabe qué ancho tiene
+   * la lista (y con él, Stacked o Row) y qué tarjetas quedan bajo el pliegue.
+   */
+  photoSizes?: string
+  photoLoading?: 'eager' | 'lazy'
+  /**
    * Destino de foco programático (tabIndex -1): «Ver más especialistas» lleva
    * el foco al nombre de la primera tarjeta nueva.
    */
@@ -53,13 +59,20 @@ export default function ResultCard(props: ResultCardProps) {
 
   if (props.state === 'loading') return <ResultCardSkeleton />
 
-  const { name, specialty, location, modality, initial, photo, nameRef } = props
+  const { name, specialty, location, modality, initial, photo, photoSizes, photoLoading, nameRef } = props
   const available = props.state === 'available'
 
   return (
     <li className="c-result-card">
       <div className="c-result-card__card">
-        <Avatar size="small" initial={initial} photo={photo} className="c-result-card__avatar" />
+        <Avatar
+          size="small"
+          initial={initial}
+          photo={photo}
+          sizes={photoSizes}
+          loading={photoLoading}
+          className="c-result-card__avatar"
+        />
         <div className="c-result-card__summary">
           <div className="c-result-card__heading">
             <h3 className="c-result-card__name" id={nameId} ref={nameRef} tabIndex={-1}>

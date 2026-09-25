@@ -1,0 +1,13 @@
+@use '../02-tools' as tools;
+
+// Aside «Filtros» de la vista 1 en escritorio (Search.tsx; Figma 01.5,
+// Filters). Patrón de pantalla, no uno de los 34 (excepción declarada en D5):
+// la estructura la dan los objetos (o-stack) y los componentes del kit; este
+// bloque solo pone el paso del h2.
+.c-search-filters {
+  &__title {
+    @include tools.text(heading-sm);
+
+    color: var(--color-text-primary);
+  }
+}

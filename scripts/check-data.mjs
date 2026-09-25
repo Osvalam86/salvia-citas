@@ -10,7 +10,7 @@ import { AVAILABILITY, CORTES_FULL_MAY, firstFree, isFull, nextOpeningMonth, wee
 import { NOW, TODAY } from '../src/data/clock.ts'
 import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appointments.ts'
 import { SLOW_MS, withScenario } from '../src/data/scenario.ts'
-import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
+import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, emptyCause, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
 import { FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS } from '../src/data/specialists.ts'
 
 const NOW_TIME = `${String(NOW.hour).padStart(2, '0')}:${String(NOW.minute).padStart(2, '0')}`
@@ -22,6 +22,13 @@ const weeks = (year, month) => {
   return Math.ceil(((weekday(first) + 6) % 7 + first.calendar.getDaysInMonth(first)) / 7)
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+// Un ejemplo de vacío de /kit/estados: 0 resultados y la causa que su copy nombra.
+const emptyExample = (ctx, query, cause) => {
+  const params = parseSearch(new URLSearchParams(query))
+  const total = searchSpecialists(params, ctx).total
+  const found = total === 0 ? emptyCause(params, ctx) : null
+  return (total === 0 && found === cause) || `${total} ${total === 1 ? 'resultado' : 'resultados'}${found ? `, causa ${found}` : ''}`
+}
 
 // Cada aserción devuelve true o un texto con lo que encontró.
 const ASSERTIONS = {
@@ -67,6 +74,9 @@ const ASSERTIONS = {
     return empty.length === 0 || `0 en ${empty.join(', ')}`
   }],
   slugs: ['Slugs únicos', (ctx) => new Set(ctx.specialists.map((s) => s.slug)).size === ctx.specialists.length || 'hay repetidos'],
+  emptyQuery: ['Vacío por consulta (01.3, D8): «Neurocirugía pediátrica» da 0 en toda la ciudad', (ctx) => emptyExample(ctx, 'q=Neurocirugía pediátrica', 'consulta')],
+  emptyNeighborhood: ['Vacío por colonia: «Dermatología» da resultados en la ciudad y 0 en Polanco', (ctx) => emptyExample(ctx, 'q=Dermatología&ubicacion=polanco', 'colonia')],
+  emptyFilters: ['Vacío por filtros: «Cardiología» da resultados y con Especialidad = Dermatología, 0', (ctx) => emptyExample(ctx, 'q=Cardiología&especialidad=dermatologia', 'filtros')],
   ruizId: ['Reservar con Ruiz reemplaza su cita y reutiliza c1 (D13)', (ctx) => {
     const store = ctx.makeStore()
     const before = store.getSnapshot().length
@@ -138,6 +148,9 @@ const MUTATIONS = {
   filters: ['todos a «Presencial» (Videoconsulta da 0)', (c) => ({ ...c, specialists: c.specialists.map((s) => ({ ...s, modality: 'presencial' })) })],
   neighborhoods: ['los de Nápoles pasan a Condesa', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.clinic === 'napoles' ? { ...s, clinic: 'condesa' } : s)) })],
   slugs: ['un slug repetido', (c) => ({ ...c, specialists: c.specialists.map((s, i) => (i === 9 ? { ...s, slug: c.specialists[8].slug } : s)) })],
+  emptyQuery: ['un generado con la línea «Neurocirugía pediátrica · 9 años»', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === firstGeneratedCardiology ? { ...s, specialtyLine: 'Neurocirugía pediátrica · 9 años' } : s)) })],
+  emptyNeighborhood: ['Molina pasa a Polanco', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === SLUGS.molina ? { ...s, clinic: 'polanco' } : s)) })],
+  emptyFilters: ['un cardiólogo generado pasa al área Dermatología', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === firstGeneratedCardiology ? { ...s, area: 'dermatologia' } : s)) })],
   ruizId: ['reservar con Ruiz como un médico más', (c) => wrapStore(c, (s) => ({ book: (input, scenario) => s.book({ ...input, slug: 'otro' }, scenario) }))],
   opaqueId: ['id con fecha (<slug>-<fecha>)', (c) => wrapStore(c, () => ({ book: (input) => ({ ok: true, id: `${input.slug}-${input.date}` }) }))],
   mutations: ['cancel sin efecto', (c) => wrapStore(c, () => ({ cancel: () => {} }))],

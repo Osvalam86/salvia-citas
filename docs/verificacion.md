@@ -29,7 +29,8 @@ no se versiona.
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
 | `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
-| `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. La usan 4.6 y las vistas |
+| `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`) |
+| `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
@@ -185,6 +186,25 @@ no se versiona.
   trozo VP8 en el formato simple (T2).
 - **Navegar en cliente sin enlace:** `pushState` y un `popstate` hacen que
   React Router pase por las guardas como en un POP (`clientGo` en 5.0) (T2).
+- **Hover residual tras la rueda.** Tras el clic, el puntero se queda donde se
+  pulsó; al bajar con la rueda, Chromium deja `:hover` en lo que pasó bajo él.
+  En `/kit` → `/` salían 188 px distintos de la recarga, exactamente en la caja
+  de «Videoconsulta» (68,259 → 91,282, en `:hover`, borde `color-action`); con un
+  `mouseMoved` al mismo punto, el hover pasa al radio que queda debajo y el
+  diff se mueve con él (68,415 → 91,438). `clientNavigation({ park: true })`
+  aparca el puntero en la esquina antes de cada captura (V1a).
+- **Línea base con una sonda.** La sonda de alto 0 en una fila `baseline` mide
+  mal un clon con `align-self: last baseline` (el control de `c-field`): va a
+  otro grupo de alineación. El clon lleva `align-self: baseline` (V1a).
+- **`sizes` y la caché de imágenes.** Cambiar `sizes` después de la carga no
+  baja de resolución, y una imagen nueva con el mismo `srcset` reutiliza la de
+  192 de la caché. La contraprueba usa una sonda con URL sin caché (y sin
+  archivo): `currentSrc` dice qué candidata eligió el navegador (V1a).
+- **`scrollTo` se limita al máximo de la página.** Una prueba de «el scroll no
+  cambia» compara con el `scrollY` real antes de actuar, no con el pedido (V1a).
+- **El ancho de un texto no es construcción.** «Buscando…» mide 81 en el
+  navegador y 79 en Figma (métrica de Inter Variable): en los pares se compara
+  la posición y el alto del recuento, no su ancho (V1a).
 
 ## Comprobaciones manuales
 
@@ -201,4 +221,6 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |
 | Foco de ruta sin el hook | Quitar `useRouteFocus()` de `RootLayout` y `pnpm verify 4.7`: la llegada a `/kit/citas` y a la reprogramación dejan el foco en `body` (36/38). Medido al construirlo; revertir | T1 |
 | `h1` sin `tabIndex` | Quitar `tabIndex={-1}` del `h1` en `PageHeader.tsx` y `pnpm verify 5.0`: los tres PUSH (clic en el header y en la barra, Intro) dejan el foco en `body`, no en el enlace pulsado: la vista nueva vuelve a montar el chrome y el enlace deja de existir. Medido al construirlo; revertir | T1 |
+| Sin `preventScrollReset` | Quitar `preventScrollReset` de los filtros y de «Ver más» en `Search.tsx`: la última casilla del aside (desde `scrollY` 300, 1440) y «Ver más» (desde 1294, 375) dejan `scrollY` en 0. Medido al construirlo; revertir | V1a |
+| Sin `state.focus` ni la ref | Quitar `state={{ focus: FIRST_RESULT }}` de los dos enlaces del vacío y `pendingFocus.current = 0` de «Limpiar filtros»: las tres acciones dejan el foco en `body` (1440). Medido al construirlo; revertir | V1a |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |

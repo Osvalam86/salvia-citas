@@ -13,6 +13,11 @@ type AvatarProps = {
   photo?: AvatarPhoto
   /** Atributo loading del img: lazy por debajo del pliegue (Result Card). */
   loading?: 'eager' | 'lazy'
+  /**
+   * Atributo sizes del img. Por defecto, el lado de `size`; quien cambia el
+   * tamaño con --avatar-size (Result Card, 48 en Stacked y 64 en Row) da el suyo.
+   */
+  sizes?: string
   /** Clase de elemento del padre para colocarlo (mezcla BEM). */
   className?: string
 }
@@ -21,7 +26,7 @@ type AvatarProps = {
 // contenedor va aria-hidden y la foto con alt vacío. Como en Figma, la foto va
 // sobre la inicial: mientras carga, o si falla, se ve la inicial y el círculo
 // nunca queda vacío. Si falla, la foto se retira.
-export default function Avatar({ size, initial, photo, loading = 'eager', className }: AvatarProps) {
+export default function Avatar({ size, initial, photo, loading = 'eager', sizes, className }: AvatarProps) {
   const [failed, setFailed] = useState(false)
   const classes = ['c-avatar', `c-avatar--${size}`, className].filter(Boolean).join(' ')
   const pixels = PIXELS[size]
@@ -34,7 +39,7 @@ export default function Avatar({ size, initial, photo, loading = 'eager', classN
           className="c-avatar__photo"
           src={photo.src}
           srcSet={photo.srcSet}
-          sizes={photo.srcSet ? `${pixels / 16}rem` : undefined}
+          sizes={photo.srcSet ? (sizes ?? `${pixels / 16}rem`) : undefined}
           alt=""
           width={pixels}
           height={pixels}

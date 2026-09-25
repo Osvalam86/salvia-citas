@@ -8,6 +8,7 @@
 $containers: (
   result-card-identity: 14rem, // 224px · contenedor: el `li` (result-card) — avatar al lado del encabezado; derivado: bordes 2px + padding 2rem + avatar 3rem + hueco 0.75rem + base de texto 8rem
   result-card: 36rem,      // 576px · contenedor: el `li` de la lista — Row con la disponibilidad en dos líneas como mucho
+  empty-state: 36rem,      // 576px · contenedor: la raíz de c-empty-state (sin padding), en el hueco de la lista — acción intrínseca; el mismo ancho en que la tarjeta pasa a Row con su CTA fijo
   dialog-compact: 18.75rem, // 300px · contenedor: el velo (dialog) — por debajo, panel sin margen lateral y padding space-4; el valor de tools.large-text como container query
   dialog: 32rem,           // 512px · contenedor: el velo — Row 480 + 16 + 16 de margen
   appointment-card: 40rem, // 640px · contenedor: el `li` de su sección — Figma; al cuerpo de Row le quedan 342 y la línea más ancha mide 296

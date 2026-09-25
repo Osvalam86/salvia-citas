@@ -1,0 +1,79 @@
+@use '../02-tools' as tools;
+
+// Estado vacío de pantalla (EmptyState.tsx; Figma 01.3 y 01.6, Empty State).
+// No es uno de los 34 (excepción declarada en D5). La raíz aporta el ancho y
+// es el contenedor, sin padding, como el li de Result Card: el umbral es el
+// ancho exterior (DESIGN.md § Contenedores). __box es el marco de la tarjeta:
+// color-surface, borde decorativo color-border, radius-md, padding y gap 24.
+//
+// Acción de bloque (diseño §3.6): a ancho completo por debajo de 36rem
+// (343 en 01.3), intrínseca desde 36rem (848 en 01.6), el ancho en que Result
+// Card pasa a Row con su CTA fijo.
+.c-empty-state {
+  container: empty-state / inline-size;
+
+  &__box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    align-items: flex-start;
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  // Placa de 48 con el glifo de 24. En forced-colors el relleno desaparece y
+  // queda el glifo, que es lo que porta el significado.
+  &__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-muted);
+    border-radius: var(--radius-pill);
+  }
+
+  &__message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  &__title {
+    @include tools.text(heading-sm);
+
+    color: var(--color-text-primary);
+    text-wrap: balance;
+  }
+
+  // text-secondary solo sobre color-surface: el relleno del marco.
+  &__help {
+    @include tools.text(body-md);
+
+    color: var(--color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    inline-size: 100%;
+
+    @include tools.container(empty-state, empty-state) {
+      flex-flow: row wrap;
+    }
+  }
+
+  // Mezcla sobre c-button.
+  &__action {
+    inline-size: 100%;
+
+    @include tools.container(empty-state, empty-state) {
+      inline-size: auto;
+    }
+  }
+}

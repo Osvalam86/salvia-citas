@@ -15,3 +15,13 @@ $base-font: 16px !default;
 
   @return math.div($size, $base) * 1rem;
 }
+
+/// Alto de un control de texto de una línea (DESIGN.md § Constantes): borde
+/// + space-3 + interlineado de body-md + space-3 + borde. 50 al 100 %; con el
+/// texto ampliado crece como el control (98 con la letra a 32). No es la fuente
+/// del alto de c-field ni de c-button, que llegan a él por su padding: la usa
+/// quien tiene que igualarlo sin ser un control (recuento de resultados).
+@function control-block-size() {
+  // stylelint-disable-next-line unit-disallowed-list -- los dos bordes de 1px, que no escalan con el texto
+  @return calc(2 * 1px + 2 * var(--space-3) + var(--text-body-md-size) * var(--text-body-md-line-height));
+}

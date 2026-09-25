@@ -357,11 +357,13 @@ export default async function run(b, expect) {
   // --- T2: datos (check-data con sus contrapruebas) -----------------------------------------------------------------
   const contra = spawnSync(process.execPath, ['scripts/check-data.mjs', '--contrapruebas'], { encoding: 'utf8' })
   const lines = contra.stdout.split('\n').filter((l) => l.startsWith('✓') || l.startsWith('✗'))
-  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 21, siguenPasando: [] })
+  // 24 desde V1a: los tres ejemplos de vacío (consulta, colonia y filtros).
+  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 24, siguenPasando: [] })
 
   // --- Resto de pintado en una navegación real hacia una vista -----------------------------------------------
   await b.metrics(1350, 900, 1)
-  const { afterClient, afterReload, ...nav } = await clientNavigation(b, { from: '/kit', link: 'Especialistas', to: '/' })
+  // park: desde V1a, / tiene casillas al final y el puntero dejaba una en hover.
+  const { afterClient, afterReload, ...nav } = await clientNavigation(b, { from: '/kit', link: 'Especialistas', to: '/', park: true })
   if (nav.pixelesDistintosDeLaRecarga !== 0) {
     await b.saveBase64('navegacion-cliente-1350.png', afterClient)
     await b.saveBase64('navegacion-recarga-1350.png', afterReload)

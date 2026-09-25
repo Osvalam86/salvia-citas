@@ -30,7 +30,9 @@ const GROUPS: { id: string; title: string; states: State[] }[] = [
     states: [
       { frames: '01.1 (180:2666) · 01.5 (180:3261)', label: 'Resultados', href: url('/', SEARCH_011) },
       { frames: '01.2 (180:2869)', label: 'Hoja de filtros', steps: '«Filtrar y ordenar» en Resultados, por debajo de 64rem' },
-      { frames: '01.3 (180:3038) · 01.6 (180:3625)', label: 'Vacío', href: url('/', { q: 'Neurocirugía pediátrica' }) },
+      { frames: '01.3 (180:3038) · 01.6 (180:3625)', label: 'Vacío por consulta', href: url('/', { q: 'Neurocirugía pediátrica' }) },
+      { frames: 'Sin frame (diseño §5.1)', label: 'Vacío por colonia', href: url('/', { q: 'Dermatología', ubicacion: 'polanco' }) },
+      { frames: 'Sin frame (diseño §5.1)', label: 'Vacío por filtros', href: url('/', { q: 'Cardiología', especialidad: 'dermatologia' }) },
       { frames: '01.4 (180:3116) · 01.7 (180:3900)', label: 'Carga', href: url('/', { ...SEARCH_011, escenario: 'lenta' }) },
       { frames: '01.8 (345:9322) · 01.9 (345:9509)', label: 'Aviso activado', steps: '«Avisarme» en la tarjeta de Rodrigo, en Resultados' },
     ],

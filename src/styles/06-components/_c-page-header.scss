@@ -3,11 +3,20 @@
 // Encabezado de página de las vistas (PageHeader.tsx). No es uno de los 34
 // (excepción declarada en D5). El h1 usa page-title: heading/lg por debajo de
 // lg y display desde lg, sin media query aquí (DESIGN.md § Paso derivado).
+// Título y subtítulo separados por space-2 (Figma 01.1, 01.5: Page Title).
 .c-page-header {
   display: flex;
   flex-direction: column;
+  gap: var(--space-2);
 
   &__title {
     @include tools.text(page-title);
+  }
+
+  // text-secondary solo sobre color-surface: el fondo de la vista.
+  &__subtitle {
+    @include tools.text(body-md);
+
+    color: var(--color-text-secondary);
   }
 }

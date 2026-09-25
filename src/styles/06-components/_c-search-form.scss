@@ -1,0 +1,32 @@
+@use '../02-tools' as tools;
+
+// Formulario de búsqueda de la vista 1 (Search.tsx; Figma 01.1 Search Form y
+// 01.5 Search Row). Patrón de pantalla, no uno de los 34 (excepción declarada
+// en D5). Por debajo de lg, apilado con gap 12 y «Buscar» a ancho completo.
+// Desde lg, una fila con gap 16: consulta fluida, ubicación de 288 (18rem) y
+// botón intrínseco, alineados abajo (panel 01.0: align-items: end iguala los
+// centros de campos y botón mientras ningún campo muestre mensaje).
+//
+// Media query y no container query: la fila es el layout de la página en
+// escritorio, y el cambio va con el del chrome (lg).
+.c-search-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  @include tools.respond-to(lg) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18rem auto;
+    gap: var(--space-4);
+    align-items: end;
+  }
+
+  // Mezcla sobre c-button.
+  &__submit {
+    inline-size: 100%;
+
+    @include tools.respond-to(lg) {
+      inline-size: auto;
+    }
+  }
+}

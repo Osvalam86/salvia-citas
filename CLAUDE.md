@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1 y T2 hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2 y V1a hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -52,9 +52,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   semilla, búsqueda, almacén de citas con ids c1–c5, escenarios, Motivo,
   fotos), `scripts/check-data.mjs` (en `pnpm lint`, con `--contrapruebas`),
   guardas de D1 con `replace` y 404 por `RouteError`, `/kit/estados`.
+- Fase 5 · V1a: la vista de Búsqueda (`src/views/Search.tsx`): formulario,
+  filtros de escritorio al marcarlos, orden, lista, paginación / «Ver más»,
+  carga con `lenta` y los tres vacíos; `EmptyState` (`c-empty-state`),
+  `c-search-form`, `c-search-filters`, `c-results-header`,
+  `tools.control-block-size()`; `Button` con `state`; `c-field` con línea
+  base del valor; `pnpm verify 5.1` (y `--preview`).
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a → V1b →
+T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b →
 V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 

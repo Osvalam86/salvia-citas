@@ -3,7 +3,9 @@
 // c-kit-bar (vistas del catálogo), c-field (FieldText y FieldSelect),
 // c-legend-help (lo pinta Legend.tsx), c-wordmark (lo comparten los dos
 // headers), c-day-strip y c-slot-list (contenedores de UI/Day Chip y UI/Time
-// Slot, que no son de los 34) y c-page-header (encabezado de las vistas).
+// Slot, que no son de los 34), c-page-header (encabezado de las vistas),
+// c-empty-state (estado vacío de pantalla) y los patrones de la vista 1:
+// c-search-form, c-search-filters y c-results-header.
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -22,6 +24,7 @@
 @use 'c-day-chip';
 @use 'c-day-strip';
 @use 'c-dialog';
+@use 'c-empty-state';
 @use 'c-field';
 @use 'c-filter-trigger';
 @use 'c-header-desktop';
@@ -44,6 +47,9 @@
 @use 'c-pagination';
 @use 'c-radio';
 @use 'c-result-card';
+@use 'c-results-header';
+@use 'c-search-filters';
+@use 'c-search-form';
 @use 'c-slot-list';
 @use 'c-status-tag';
 @use 'c-step';

@@ -505,7 +505,8 @@ Primary, los tres a ancho completo. Resultados: cabecera (disparador de filtros
 `UI/Load More`.
 
 **Esqueleto escritorio:** header Signed-in · main · contenedor de 1200.
-Encabezado de página: breadcrumb `Levels=2` + título en `display` + subtítulo.
+Encabezado de página: título en `display` + subtítulo, sin breadcrumb (§4.3:
+destino de primer nivel; Figma 01.5).
 Cuerpo: aside `Filtros` de 320 **a la izquierda** + resultados fluidos.
 Cabecera de resultados con el recuento y «Ordenar por» (`UI/Field/Select` a
 288) compartiendo línea base. Paginación alineada a la izquierda. Sin pie de
@@ -529,13 +530,16 @@ página.
 de la lista con el marco de la tarjeta, alineado a la izquierda: placa de 48
 `color-surface-muted` con `magnifying-glass`, título `heading/sm` (`h2`),
 ayuda `body/md` secundaria y «Ver todos los especialistas» Secondary (enlace a
-la búsqueda sin consulta). Copy de 01.3 y 01.6, con la consulta «Neurocirugía
-pediátrica»: «No encontramos especialistas en neurocirugía pediátrica» /
-«Prueba con otra especialidad, amplía la ubicación o revisa la ortografía.».
+la búsqueda sin consulta). Título «No encontramos especialistas para
+«{consulta}»», con la consulta recortada y tal como se escribió; ayuda «Prueba
+con otra especialidad, amplía la ubicación o revisa la ortografía.». **Cambio
+frente a Figma** (01.3, 01.6: «…en neurocirugía pediátrica»): `q` también busca
+por nombre, y la forma de Figma daría «especialistas en molina». En 01.3 el
+título pasa de 2 a 3 líneas y el bloque mide 336 en vez de 308.
 
 **Vacío por colonia** (sin frame; copy propuesto): la consulta da resultados
 en toda la ciudad, pero ninguno en la colonia elegida. Mismo bloque, con
-título «No encontramos especialistas en {consulta} en {colonia}», ayuda
+título «No encontramos especialistas para «{consulta}» en {colonia}», ayuda
 «Prueba en toda la Ciudad de México o en otra colonia.» y, en lugar de «Ver
 todos los especialistas», «Buscar en toda la Ciudad de México» Secondary
 (enlace que conserva `q` y quita `ubicacion`). Razón: con el copy de 01.3 el

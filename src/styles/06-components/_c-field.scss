@@ -55,6 +55,10 @@
   --_reserve: 0rem;
 
   grid-area: 1 / 1;
+  // La línea base del campo es la del valor, no la de los iconos: sin esto,
+  // la rejilla toma la de __adornments (último de la celda) y quien alinea el
+  // campo por su línea base (cabecera de resultados, V1a) cae 4 px abajo.
+  align-self: last baseline;
   inline-size: 100%;
   padding-block: var(--_pad-block);
   padding-inline: var(--_pad-inline) calc(var(--_pad-inline) + var(--_reserve));
