@@ -286,21 +286,36 @@ export default async function run(b, expect) {
   })
 
   // --- Teclado dentro del diálogo ------------------------------------------------------------------------
-  // Tab y Mayús+Tab no llegan nunca a la página: el foco recorre el diálogo
-  // (y el marco del navegador, que en headless es body).
-  const where = `(() => { const a = document.activeElement; return ${DIALOG}.contains(a) ? a.textContent : 'fuera: ' + a.tagName })()`
-  const cycle = []
-  for (let i = 0; i < 4; i++) {
-    await b.tab()
-    cycle.push(await b.ev(where))
+  // Regla: Tab y Mayús+Tab no llegan nunca a un elemento de la página fuera
+  // del <dialog>. La secuencia depende del navegador, no de la regla: con
+  // ventana, el foco sale a la interfaz del navegador y vuelve (en la página,
+  // activeElement es body con el diálogo abierto: «marco»); en headless, las
+  // versiones anteriores de Edge salían a body y la 153 da la vuelta entre
+  // los dos botones (docs/verificacion.md, Trampas).
+  const where = `(() => { const d = ${DIALOG}, a = document.activeElement; if (d.contains(a)) return a.textContent; if (d.open && (a === document.body || a === document.documentElement)) return 'marco'; return 'página: ' + a.tagName + ' «' + a.textContent.trim().slice(0, 30) + '»' })()`
+  const VALID = {
+    'sale al marco y vuelve': ['Cancelar cita', 'marco', 'Mantener mi cita', 'Cancelar cita', 'Mantener mi cita', 'marco', 'Cancelar cita', 'Mantener mi cita'],
+    'ciclo entre los dos botones': ['Cancelar cita', 'Mantener mi cita', 'Cancelar cita', 'Mantener mi cita', 'Cancelar cita', 'Mantener mi cita', 'Cancelar cita', 'Mantener mi cita'],
   }
-  for (let i = 0; i < 4; i++) {
-    await shiftTab()
-    cycle.push(await b.ev(where))
+  const tabCycle = async () => {
+    const stops = []
+    for (let i = 0; i < 4; i++) {
+      await b.tab()
+      stops.push(await b.ev(where))
+    }
+    for (let i = 0; i < 4; i++) {
+      await shiftTab()
+      stops.push(await b.ev(where))
+    }
+    return stops
   }
-  // «fuera: BODY» es el paso por el marco del navegador (en headless no hay
-  // marco y el foco queda en el documento): nunca en un elemento de la página.
-  expect('Tab ×4 y Mayús+Tab ×4 desde «Mantener mi cita»: nunca en la página', cycle, ['Cancelar cita', 'fuera: BODY', 'Mantener mi cita', 'Cancelar cita', 'Mantener mi cita', 'fuera: BODY', 'Cancelar cita', 'Mantener mi cita'])
+  const cycle = await tabCycle()
+  const kind = Object.keys(VALID).find((k) => JSON.stringify(VALID[k]) === JSON.stringify(cycle)) ?? 'otra'
+  expect(`Tab ×4 y Mayús+Tab ×4 desde «Mantener mi cita»: nunca en la página fuera del diálogo (secuencia: ${kind})`, {
+    enLaPagina: cycle.filter((s) => s.startsWith('página')),
+    abierto: await b.ev(`${DIALOG}.open`),
+    secuenciaValida: kind !== 'otra',
+  }, { enLaPagina: [], abierto: true, secuenciaValida: true })
   await escape(b)
   await sleep(200)
   expect('Escape: cierra, el foco vuelve al disparador y la cita sigue en Próximas', { ...(await b.ev(state)), listas: await b.ev(lists) }, {
@@ -335,6 +350,10 @@ export default async function run(b, expect) {
   await b.ev(`${DIALOG}.show(), true`)
   await sleep(200)
   expect('contraprueba: con show() en vez de showModal(), los encabezados de main vuelven al árbol', (await ax(b)).filter((n) => n.role?.value === 'heading').map((n) => n.name.value).slice(0, 4), ['Citas y diálogos', 'Próximas', 'Pasadas', '¿Cancelar esta cita?'])
+  // Contraprueba de la regla de Tab: sin modal, el foco sale del diálogo a la página.
+  await b.ev(`${dialogButton('Mantener mi cita')}.focus(), true`)
+  const leak = (await tabCycle()).filter((s) => s.startsWith('página'))
+  expect('contraprueba: con show(), Tab ×4 y Mayús+Tab ×4 llegan a elementos de la página', leak.length > 0, true)
   await b.go(PAGE)
 
   // --- Rueda sobre el velo ---------------------------------------------------------------------------------

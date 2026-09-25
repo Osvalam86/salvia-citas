@@ -202,6 +202,15 @@ no se versiona.
   archivo): `currentSrc` dice qué candidata eligió el navegador (V1a).
 - **`scrollTo` se limita al máximo de la página.** Una prueba de «el scroll no
   cambia» compara con el `scrollY` real antes de actuar, no con el pedido (V1a).
+- **Tab en un `<dialog>` modal cambia con el navegador y el modo.** En
+  headless cambió entre versiones de Edge: al cerrar 4.7 (versión no
+  anotada), el foco salía a `body` («el marco del navegador, que en headless
+  es body») y la línea pasaba; con Edge 153.0.4234.48 da la vuelta entre los
+  dos botones del diálogo (37/38 con la secuencia fija, igual en el commit
+  anterior a V1a). Con ventana, la 153 sale a la interfaz del navegador
+  (pestañas, barra de direcciones, botones de la barra) y vuelve al diálogo.
+  En todos los casos, nunca cae en la página. 4.7 mide la regla (ningún
+  elemento de la página fuera del diálogo) y acepta las dos secuencias.
 - **El ancho de un texto no es construcción.** «Buscando…» mide 81 en el
   navegador y 79 en Figma (métrica de Inter Variable): en los pares se compara
   la posición y el alto del recuento, no su ancho (V1a).
@@ -221,6 +230,7 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Blank sin borrar `children` | Quitar `delete blank.children` en `CalendarDay.tsx`: las celdas de marzo y mayo vuelven a mostrar su número (26–31, 1–6). Medido al construirlo; revertir | 4.6 |
 | Foco de ruta sin el hook | Quitar `useRouteFocus()` de `RootLayout` y `pnpm verify 4.7`: la llegada a `/kit/citas` y a la reprogramación dejan el foco en `body` (36/38). Medido al construirlo; revertir | T1 |
 | `h1` sin `tabIndex` | Quitar `tabIndex={-1}` del `h1` en `PageHeader.tsx` y `pnpm verify 5.0`: los tres PUSH (clic en el header y en la barra, Intro) dejan el foco en `body`, no en el enlace pulsado: la vista nueva vuelve a montar el chrome y el enlace deja de existir. Medido al construirlo; revertir | T1 |
+| Ciclo de Tab del diálogo con ventana | Edge real con ventana (153.0.4234.48, Chromium 153.0.8010.53, Windows 11 25H2): abrir el diálogo de Molina en `/kit/citas` y recorrer con Tab y Mayús+Tab. Resultado de Osvaldo: recorren los dos botones, salen a la interfaz del navegador (pestañas, barra de direcciones, botones de la barra) y vuelven a los botones; nunca caen en la página. Firefox y Safari, pendientes de la fase 7 | 4.7 |
 | Sin `preventScrollReset` | Quitar `preventScrollReset` de los filtros y de «Ver más» en `Search.tsx`: la última casilla del aside (desde `scrollY` 300, 1440) y «Ver más» (desde 1294, 375) dejan `scrollY` en 0. Medido al construirlo; revertir | V1a |
 | Sin `state.focus` ni la ref | Quitar `state={{ focus: FIRST_RESULT }}` de los dos enlaces del vacío y `pendingFocus.current = 0` de «Limpiar filtros»: las tres acciones dejan el foco en `body` (1440). Medido al construirlo; revertir | V1a |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |
