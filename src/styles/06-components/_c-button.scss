@@ -42,6 +42,21 @@
     --_border: var(--_border-hover);
   }
 
+  // Etiqueta: crece hasta ocupar el sobrante (Figma: Label en FILL cuando el
+  // botón llena su hueco). En un botón intrínseco no hay sobrante y no cambia;
+  // sin iconos, el texto sigue centrado. El salto de línea de los iconos se
+  // decide sobre la base, no sobre el crecimiento: la regla de flex-wrap no
+  // cambia. Es flex para que lo que la pantalla ponga junto al texto (la
+  // píldora de c-filter-trigger) conserve el hueco space-2 y baje con él.
+  &__label {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: center;
+  }
+
   &--secondary {
     --_bg: var(--color-surface);
     --_bg-hover: var(--color-action-subtle);

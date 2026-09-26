@@ -300,9 +300,10 @@ el mismo `container-name`, sin un segundo nombre
 | ---------------------- | -------------------------------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `result-card-identity` | el `li` (contenedor `result-card`)                 | 14rem (224) | Por debajo, el avatar va encima del encabezado  | Al encabezado le quedan 8rem: bordes 2px + padding 2rem + avatar 3rem + hueco 0,75rem + 8rem. Al 100 % no ocurre (el `li` más estrecho mide 273); al 200 % a 320 sí (448 en px) |
 | `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
+| `empty-state-compact`  | la raíz de `c-empty-state` | 16.75rem (268) | Por debajo, marco con padding `space-4` | `tools.large-text` (18.75rem) menos el gutter (2rem): la raíz mide el viewport − 2rem. A 320 al 100 % mide 17,06rem con barra clásica y no se activa (con 18.75rem se activaría: 288 = 18rem, medido). Al 200 % a 320 el interior de la acción pasa de 45/60 a 77/92, el mismo límite que el CTA de Result Card (V1b) |
 | `empty-state`          | la raíz de `c-empty-state` (sin padding), en el hueco de la lista | 36rem (576) | Acción intrínseca | El mismo ancho en que Result Card pasa a Row con su CTA fijo. Figma solo da 343 (acción llena, 01.3) y 848 (intrínseca, 01.6) |
 | `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
-| `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Caso límite: a 375 con la letra a 20 y barra clásica, el velo mide 360 = 18rem y es compacto; con la superpuesta, 18.75rem, no. Medido a 320 con la letra a 32: el interior del botón pasa de 32 (partían «mi» y «cita») a 128 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y a 158 con la superpuesta. Con la clásica aún parten «¿Cancelar», «Mantener» y «Cancelar», más anchas que su interior; con la superpuesta, ninguna |
+| `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Desde V1b la página no tiene barra con el diálogo abierto (§ Citas y diálogos): a 375 con la letra a 20 el velo mide 18.75rem con las dos barras y no es compacto (hasta V1b, con barra clásica medía 360 = 18rem y lo era). Medido a 320 con la letra a 32: sin el umbral, el interior del botón mide 47 y parte «cita»; con él, 143 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y 158 con la superpuesta. Con la clásica aún parte «Mantener», más ancha que su interior; con la superpuesta, ninguna |
 | `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe. El velo no lleva padding lateral: la query mide su caja de contenido, y el margen lo resta el panel |
 | `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
 
@@ -412,6 +413,16 @@ etiqueta sin ancho: al 200 % a 320, un botón con dos iconos le dejaba 46 px y
 más ancha que el interior del control entero. A tamaño normal no cambia nada:
 todo cabe en una línea.
 
+**Etiqueta que llena (V1b).** `UI/Button` envuelve su texto en `c-button__label`
+con `flex-grow: 1` (Figma: Label en FILL en las acciones de bloque). En un botón
+de ancho completo con icono, el icono queda junto al padding y el texto se centra
+en el resto («Te avisaremos», 01.8: check a 25 del borde del CTA; Figma 24, ≠
+dentro de ±1: el borde de 1 del botón va dentro en código). En un botón
+intrínseco o sin icono no cambia nada. La etiqueta es flex con `space-2`: lo que
+la pantalla pone junto al texto (la píldora del disparador) conserva el hueco y
+baja con él. La regla del salto de línea no cambia: se decide sobre la base, no
+sobre el crecimiento.
+
 Hoy aplica a `UI/Button` y `UI/Back Link`; todo componente nuevo con icono y
 etiqueta en fila la hereda. En 4.2 la heredan `UI/Status Tag`, `UI/Step` y
 `UI/Notice`; esta última con una base de contenido (`8rem`, derivada en su
@@ -510,6 +521,36 @@ texto, no construcción, y `pnpm verify 5.1` compara su posición y su alto. El
 vacío de 01.3 mide 336 y no 308: con el copy entre comillas (diseño §5.1) el
 título ocupa 3 líneas (84) en vez de 2 (56).
 
+**Hoja «Filtrar y ordenar» (V1b).** `c-sheet`: `<dialog>` con `showModal()`, a
+pantalla completa y sin velo; `role` dialog nombrado por su título, que recibe el
+foco al abrir (panel 01.0). Cabecera y pie fijos, cuerpo con scroll; con texto
+grande se desplaza la hoja entera (cabecera y pie en el flujo), la misma regla
+que las barras del shell. El formulario envuelve cuerpo y pie: «Ver N» es un
+`submit` nativo, sin `form=`. Borrador propio, nacido de la URL al abrir:
+«Limpiar» vacía los filtros sin tocar la URL y conserva el orden; «Cerrar» y
+Escape descartan; «Ver N resultados» aplica con `replace` y `preventScrollReset`.
+El foco vuelve al disparador en los tres casos (Chromium lo devuelve solo al
+cerrar el `<dialog>`; el explícito es el respaldo). «Ver N» es el total del
+borrador, al momento también con `lenta` (vista previa, no búsqueda). El fondo es
+`inert` y la región del recuento no se oye: la hoja lleva una región oculta que
+anuncia «N resultados» desde el primer cambio (vacía al abrir). Al cruzar `lg`
+con la hoja abierta, el disparador deja de existir (D7): la hoja se cierra y el
+foco va al `h1` (respaldo de D12; sin ello, `body`, medido).
+Medidas: cabecera 64 y pie 82 con el trazo dentro (`calc(space − 1px)`), «Cerrar»
+con `margin-inline-end: calc(space-1 − space-4)` para que su glifo termine en el
+borde de la columna (Figma: 4 a la derecha).
+**Coste declarado:** por debajo de 338 px de viewport (barra superpuesta) o de
+353 (clásica), «Ver N resultados» (187 de ancho mínimo) baja de línea y el pie
+mide 144 en vez de 82 (a 320 al 100 %, medido). Figma solo da 375.
+
+**Fila del disparador (V1b).** `c-results-header--trigger` centra (Figma
+`items-center`) con `--_align`: con `last baseline`, sin contador (01.3) la línea
+base del botón queda 1 px por debajo de la del recuento centrado en su ranura, la
+cabecera mide 51 y el vacío baja 1; con contador coinciden (medido). El contador
+cuenta opciones marcadas: dos especialidades cuentan 2; una ventana de
+disponibilidad cuenta 1; el orden no cuenta (no es un filtro). El disparador mide
+231,3 y 201,4 (Figma 233 y 202: ancho de texto, métrica de Inter Variable).
+
 ---
 
 ## Fecha y hora
@@ -593,6 +634,14 @@ mantener).
 - **forced-colors.** El velo conserva el alfa: Canvas al 45 %, no opaco. El
   panel, también en Canvas, solo se separa del fondo por su contorno: el borde
   transparente, forzado a CanvasText.
+- **Página bloqueada (V1b).** `:where(html):has(dialog:modal) { overflow: hidden }`
+  en `04-elements/_base.scss`, que vale también para la hoja `c-sheet`. Con barra
+  clásica, el velo y la hoja miden el viewport entero (antes, viewport − 15, con
+  la barra de la página activa a su derecha); la página de fondo se ensancha
+  15 px bajo el velo: a 1440 el contenedor centrado se desplaza 7,5 y a 375 la
+  columna pasa de 328 a 343. Al cerrar vuelve y `scrollY` se conserva (medido
+  en 4.7 y 5.1). Con barra superpuesta no cambia nada. Cambia el caso límite de
+  `dialog-compact` (§ Contenedores).
 
 ---
 
@@ -882,7 +931,9 @@ crece vista por vista (V1a: `__subtitle`). `c-empty-state` (`EmptyState.tsx`)
 es el estado vacío de pantalla, sin ser de los 34: placa, título con
 `headingLevel` (h2 en V1, h3 en el «sin horarios» de V2a), ayuda y acciones.
 `c-search-form`, `c-search-filters` y `c-results-header` son patrones de la
-vista 1 (`Search.tsx`), sin componente propio. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+vista 1 (`Search.tsx`), sin componente propio. `c-sheet` (`Sheet.tsx`) es la
+hoja a pantalla completa (01.2), sin ser de los 34; la variante inferior del
+calendario (02.2) llega en la vista 2. Los hooks (`useDisclosure`, `useMediaQuery`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -976,6 +1027,16 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 `document.title` es el de la vista; `<title>Salvia</title>` se queda en
 `index.html` como respaldo sin JS.
 
+**D16 · Avisos en memoria.** El conmutador «Avisarme» → «Te avisaremos» (diseño
+§7.3) guarda su estado en `src/data/notify.ts`: almacén en memoria con clave por
+médico, vacío al arrancar y reiniciado al recargar, como las citas (D13). Cruza
+vistas: sobrevive a ir al perfil y volver (medido en `pnpm verify 5.1`).
+Descartados: estado de la vista (se pierde al volver del perfil), URL (no es un
+criterio de búsqueda) y `localStorage` (rompe el «todo se reinicia»). La clave
+por médico liga «Avisarme si se libera un hueco» de V2b al médico, no al día; lo
+decide V2b. `check-data`: vacío al empezar, dos toques vuelven al inicio y un
+médico no toca a otro, cada uno con su contraprueba.
+
 ---
 
 ## Pendientes anotados
@@ -986,9 +1047,9 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 | 5 · T2 ✓ | **Fotos de avatar. Cerrado en T2:** Mariana, Ruiz y Rodrigo, rostros generados con IA (Gemini); el resto con inicial. `<slug>-96.webp` y `-192.webp` en `src/assets/avatars/` (`src/data/photos.ts`, `srcset` con descriptores de ancho); recorte en D4; originales fuera del repo (`.avatares-originales/`, ignorada). `LICENSE-DOCS` las excluye de MIT y CC BY |
 | 5 · V3 | **Atrás tras un ancla nativa no restaura el scroll.** Decidido (diseño §5.3): el resumen de errores enfoca el campo por script, sin entrada de historial; se mide en V3. `<ScrollRestoration>` fija `history.scrollRestoration = 'manual'` y React Router no restaura tras una navegación que no inició (el porqué no está verificado). Se resuelve al decidir cómo navega el resumen de errores de la vista 3; si enfoca el campo por script, no crea entrada de historial y el caso desaparece |
 | 5 · V1a ✓ | **Línea base en la cabecera de resultados. Cerrado en V1a** (§ Búsqueda y resultados, cabecera): `last baseline`, con `align-self: last baseline` en el control de `c-field` y el recuento a `tools.control-block-size()`; cabecera de 79 (Figma 78, 1 px entre las dos líneas base) y 50 en el vacío. El panel 01.0 fija `align-items: last baseline`; `Search Row` y `Results Header` de escritorio alinean con MAX en Figma porque el archivo no tiene BASELINE (0 de 503 autolayouts horizontales en pantallas) |
-| 5 · V1b | **Fila del disparador en 01.1, 01.3 y 01.4.** V1a mide la cabecera móvil solo con el recuento (alto 50; N/A en `pnpm verify 5.1`). Con el `FilterTrigger`, medir la fila a ±1 px: disparador a la izquierda y recuento a la derecha, centrados en Figma (`items-center`) |
-| 5 · V1b | **Hoja de filtros con replace y `preventScrollReset`**, como el aside de escritorio (D1, historial y scroll de la vista 1) |
-| 5 · V1b | **Acción del vacío al 200 % a 320.** El interior de «Ver todos los especialistas» mide 45 px con barra clásica y 60 con la superpuesta (padding del marco, 24, más el del botón, 24, los dos al doble): parten todas sus palabras («los», 45,4, sale como pudiendo caber por el margen del detector). Dos salidas: bajar el padding del marco a `space-4` con el texto ampliado, con un umbral de contenedor como `dialog-compact` (interior 77/92, el mismo límite que el CTA de Result Card y la acción de Appointment Card), o aceptarlo como en Dialog. **Propuesta: la primera.** Tiene precedente en `dialog-compact`, deja el vacío en el mismo límite que las tarjetas a las que sustituye y no cambia nada al 100 %. Decidir con el vacío por filtros de la hoja delante |
+| 5 · V1b ✓ | **Fila del disparador en 01.1, 01.3 y 01.4. Cerrado en V1b:** a ±1 px con `c-results-header--trigger` (centrado; § Búsqueda y resultados). Recuento a 15 y pegado a la derecha; con `last baseline`, 01.3 medía 51 (contraprueba en `pnpm verify 5.1`). Al 200 % a 320 y con la letra a 24 y 32, con las dos barras, el recuento baja de línea sin partir palabras que quepan y la lista no se solapa |
+| 5 · V1b ✓ | **Hoja de filtros con replace y `preventScrollReset`. Cerrado en V1b:** «Ver N resultados» deja el mismo `idx` y el mismo `scrollY`, también con la página bloqueada bajo la hoja (medido en `pnpm verify 5.1`) |
+| 5 · V1b ✓ | **Acción del vacío al 200 % a 320. Cerrado en V1b** con `empty-state-compact` (16.75rem, § Contenedores): interior de 77/92 (antes 45/60); al 100 % a 320 y 375 el marco sigue en 24 |
 | 5 · V2a / V2b | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
 | 5 · T2 ✓ | **Opciones de Motivo de consulta. Cerrado en T2:** `src/data/reasons.ts` (D4). El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5 · V3 | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
@@ -1026,3 +1087,9 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 | 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |
 | 7     | **Carga diferida por ruta.** 4.6 lleva el JS de 393 a 595 kB (gzip 121 → 183) y Vite avisa del chunk de más de 500 kB. Medido en 8087662 y en 4.6 |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |
+| 5 · cierre | **`pnpm verify 4.4`, «Header/Desktop Signed-in … control a 16», con un `pnpm dev` de larga duración.** Contra el servidor de desarrollo que llevaba días arrancado, `/kit/navegacion?sesion=iniciada&actual=especialistas` cargaba en el Edge del arnés con `scrollY` 766 (el máximo) y el foco en `body`, y la medida daba −750 (61/62): 6 de 6 pasadas, en 7b1ceaa, 745f442, 0439ec3 y con V1b, y también sin `c-button__label`. En el navegador integrado cargaba en 0. Con `pnpm dev` recién arrancado: 62/62 en 3 de 3 (V1b). No es de la app ni de un commit: es un estado del servidor, sin aislar. Al cerrar la fase 5, junto a la ronda de T0: comprobar si reaparece con un servidor de larga duración y si comparte causa con el resto de pintado |
+| 5 · V2 | **Variante inferior de `c-sheet`** para la hoja del calendario (02.2), sobre el mismo bloque que la hoja de filtros (D5) |
+| 7 | **Atrás con la hoja abierta.** En Chrome Android ≥ 120 el gesto Atrás dispara `cancel` en un `<dialog>` modal (CloseWatcher) y cerraría la hoja. Comprobar Atrás con la hoja abierta en Android (Chrome, Safari iOS) y el botón Atrás en escritorio estrecho |
+| 7 | **Hoja de filtros con lector.** Foco en el título al abrir, la región oculta del borrador («N resultados») y los dos mensajes al aplicar (el nombre del disparador con «N filtros aplicados» y la región del recuento) |
+| 7 | **Foco devuelto por la hoja en Safari y Firefox.** En Chromium lo devuelve el propio `<dialog>` al cerrar (la contraprueba de orden no discrimina); `Sheet` lo devuelve también de forma explícita |
+| 5 · tras V1b ✗ | **Foco en `body` un instante al cambiar de página con `lenta`, ✗ declarado.** `pnpm verify 5.1`, «Siguiente» 8 → 9 y «Anterior» 2 → 1: con V1b, 3 de 10 pasadas (1 «Siguiente», 2 «Anterior»); en 0439ec3, «Siguiente», 0 de 8. Al llegar los datos, el enlace que tenía el foco se desmonta y el foco pasa al nombre de la primera tarjeta en un `useEffect`, que puede correr después de pintar: una muestra ve `body`. El foco termina bien (`focoEnLaPrimera` siempre true). Sin atribuir entre V1a y V1b. Se corrige con `useLayoutEffect` en un commit propio, antes de V2a, verificado con 10 pasadas de `pnpm verify 5.1` y `--preview` sin fallo |

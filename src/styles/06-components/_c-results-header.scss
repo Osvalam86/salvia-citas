@@ -11,10 +11,12 @@
 // de escritorio (sin «Ordenar por») la cabecera mediría 20 y el vacío subiría
 // 30 (01.6). control-block-size() sigue al control con el texto ampliado.
 .c-results-header {
+  --_align: last baseline;
+
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
-  align-items: last baseline;
+  align-items: var(--_align);
   justify-content: space-between;
 
   &__count {
@@ -24,6 +26,15 @@
     align-items: center;
     min-block-size: tools.control-block-size();
     color: var(--color-text-primary);
+  }
+
+  // Móvil (01.1, 01.3, 01.4): disparador de filtros y recuento, centrados como
+  // en Figma (items-center). Con last baseline, sin contador (01.3) la línea
+  // base del botón cae 1 px por debajo de la del recuento centrado en su
+  // ranura: la cabecera medía 51 y el vacío bajaba 1 (medido). Con contador
+  // coinciden. Sin select, la línea base no alinea nada.
+  &--trigger {
+    --_align: center;
   }
 
   // Mezcla sobre c-field: «Ordenar por» a 288 (diseño §5.1). max-inline-size

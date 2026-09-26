@@ -371,7 +371,9 @@ export default async function run(b, expect) {
     await b.unstyle()
     return `${before} → ${after}`
   }
-  expect('rueda sobre el velo: la página no se desplaza; contraprueba con overscroll-behavior: auto', { contain: await scrollWith(), auto: await scrollWith('.c-dialog { overscroll-behavior: auto !important }') }, { contain: '0 → 0', auto: '0 → 720' })
+  // Desde V1b la página también se bloquea con overflow: hidden en html
+  // (04-elements): la contraprueba retira las dos protecciones.
+  expect('rueda sobre el velo: la página no se desplaza; contraprueba con overscroll-behavior: auto y sin el bloqueo de html', { contain: await scrollWith(), auto: await scrollWith('.c-dialog { overscroll-behavior: auto !important } html { overflow: visible !important }') }, { contain: '0 → 0', auto: '0 → 720' })
 
   // --- Confirmar ---------------------------------------------------------------------------------------------
   await b.go(PAGE)
@@ -507,26 +509,29 @@ export default async function run(b, expect) {
   await b.overlayScrollbars(false)
   largeText['clásica · letra 20, 375×812'] = await openLarge({ width: 375, height: 812, px: 20 })
   await font(16)
-  // Con barra clásica, cuando el velo se desplaza pinta su propia barra de 15:
-  // el interior del botón a 32 es 128, no 143. «¿Cancelar», «Mantener» y
-  // «Cancelar» parten solo ahí, más anchas que su interior. A 375 con la letra
-  // a 20 y barra clásica el velo mide 360 = 18rem: también compacto.
+  // Desde V1b, con el diálogo abierto html no tiene barra (overflow: hidden)
+  // y el velo mide el viewport entero también con barra clásica. Cuando el
+  // velo se desplaza pinta su propia barra de 15: el interior del botón a 32 es
+  // 143, no 158, y parte «Mantener», más ancha que ese interior (antes 128 y
+  // partían también «¿Cancelar» y «Cancelar»). A 375 con la letra a 20 el velo
+  // mide 375 = 18.75rem: ya no es compacto, como con barra superpuesta (antes
+  // 360 = 18rem, compacto).
   const compactCase = (letra, desplaza, arriba, interiores, partidas) => ({ letra, forma: 'column', margenLateral: 0, panelCabe: true, desborde: 0, desplaza, arribaConVeloArriba: arriba, focoVisible: true, foco: 'Mantener mi cita', interiores, pudiendoCaber: [], partidas })
   expect('texto grande y 200 % a 320: compacto por debajo de 18.75rem de velo; el panel cabe, el velo se desplaza desde arriba y el botón enfocado queda a la vista', largeText, {
-    'clásica · letra 24, 320×568': compactCase('24px', true, 24, { titulo: 242, boton: 168 }, []),
-    'clásica · letra 32, 320×568': compactCase('32px', true, 32, { titulo: 226, boton: 128 }, ['¿Cancelar', 'Mantener', 'Cancelar']),
-    'clásica · 200 %, 320×900': compactCase('32px', true, 32, { titulo: 226, boton: 128 }, ['¿Cancelar', 'Mantener', 'Cancelar']),
+    'clásica · letra 24, 320×568': compactCase('24px', false, 33, { titulo: 272, boton: 198 }, []),
+    'clásica · letra 32, 320×568': compactCase('32px', true, 32, { titulo: 241, boton: 143 }, ['Mantener']),
+    'clásica · 200 %, 320×900': compactCase('32px', true, 32, { titulo: 241, boton: 143 }, ['Mantener']),
     'superpuesta · letra 24, 320×568': compactCase('24px', false, 33, { titulo: 272, boton: 198 }, []),
     'superpuesta · letra 32, 320×568': compactCase('32px', true, 32, { titulo: 256, boton: 158 }, []),
     'superpuesta · 200 %, 320×900': compactCase('32px', true, 32, { titulo: 256, boton: 158 }, []),
-    'clásica · letra 20, 375×812': compactCase('20px', false, 232, { titulo: 320, boton: 258 }, []),
+    'clásica · letra 20, 375×812': { ...compactCase('20px', false, 187, { titulo: 275, boton: 213 }, []), margenLateral: 20 },
   })
   await b.overlayScrollbars(false)
   const noCompact = await openLarge({ width: 320, height: 568, px: 32, extra: '.c-dialog__panel { inline-size: calc(100% - 2 * var(--space-4)) !important; padding: calc(var(--space-5) - 1px) !important }' })
   await font(16)
-  expect('contraprueba: sin dialog-compact, a 320 con la letra a 32 (clásica) el interior del botón vuelve a 32 y parten «mi» y «cita»', { interiores: noCompact.interiores, partidas: noCompact.partidas }, {
-    interiores: { titulo: 130, boton: 32 },
-    partidas: ['¿Cancelar', 'deshacer.', 'Mantener', 'mi', 'cita', 'Cancelar'],
+  expect('contraprueba: sin dialog-compact, a 320 con la letra a 32 (clásica) el interior del botón baja a 47 y parte «cita»', { interiores: noCompact.interiores, partidas: noCompact.partidas }, {
+    interiores: { titulo: 145, boton: 47 },
+    partidas: ['¿Cancelar', 'deshacer.', 'Mantener', 'cita', 'Cancelar'],
   })
   // Al 100 % no cambia nada: 375 como Figma 04.3 y 320 con el margen de 16.
   await b.overlayScrollbars(true)
@@ -539,6 +544,42 @@ export default async function run(b, expect) {
   }
   await b.overlayScrollbars(false)
   expect('al 100 % sin cambios: 375×812 como 04.3 (343×296 en 16,258); a 320, margen de 16', at100, { '375×812': '16,258,343,296', '320×568': '16,136,288,296' })
+  await b.metrics(1280, 900, 1)
+
+  // --- Página bloqueada bajo el velo (V1b) ------------------------------------------------------------------
+  // html:has(dialog:modal) { overflow: hidden } (04-elements). Con barra
+  // clásica, el velo mide el viewport entero y la página de fondo se ensancha
+  // 15 px: a 1440 el contenedor centrado se mueve 7,5; a 375 la columna pasa
+  // de 328 a 343. Al cerrar, todo vuelve y scrollY se conserva.
+  const pageBox = `(() => { const h = document.querySelector('main h1').getBoundingClientRect(), c = [...document.querySelectorAll('.c-appointment-card')].find((li) => li.textContent.includes('Molina')).getBoundingClientRect(); return { x: Math.round(h.x * 10) / 10, ancho: Math.round(c.width * 10) / 10, util: document.documentElement.clientWidth } })()`
+  const locked = {}
+  await b.overlayScrollbars(false)
+  for (const width of [1440, 375]) {
+    await b.metrics(width, 900, 1)
+    await b.go(PAGE)
+    await b.ev(`${trigger('Dr. Andrés Molina Paz')}.scrollIntoView({ block: 'center' }), true`)
+    await sleep(200)
+    const y = await b.ev('Math.round(scrollY)')
+    const before = await b.ev(pageBox)
+    await clickOn(trigger('Dr. Andrés Molina Paz'))
+    await sleep(200)
+    const during = { ...(await b.ev(pageBox)), velo: await b.ev(`Math.round(${DIALOG}.getBoundingClientRect().width)`), overflow: await b.ev('getComputedStyle(document.documentElement).overflowY') }
+    await clickOn(dialogButton('Mantener mi cita'))
+    await sleep(200)
+    locked[width] = { antes: before, abierto: during, vuelve: JSON.stringify(await b.ev(pageBox)) === JSON.stringify(before), scrollIgual: (await b.ev('Math.round(scrollY)')) === y }
+  }
+  expect('diálogo con barra clásica: velo a todo el viewport, página sin scroll y ensanchada 15 (salto de 7,5 a 1440; columna 328 → 343 a 375); al mantener vuelve y conserva scrollY', locked, {
+    1440: { antes: { x: 112.5, ancho: 1200, util: 1425 }, abierto: { x: 120, ancho: 1200, util: 1440, velo: 1440, overflow: 'hidden' }, vuelve: true, scrollIgual: true },
+    375: { antes: { x: 16, ancho: 328, util: 360 }, abierto: { x: 16, ancho: 343, util: 375, velo: 375, overflow: 'hidden' }, vuelve: true, scrollIgual: true },
+  })
+  await b.metrics(1440, 900, 1)
+  await b.go(PAGE)
+  await b.style('html { overflow: visible !important }')
+  await clickOn(trigger('Dr. Andrés Molina Paz'))
+  await sleep(200)
+  expect('contraprueba: sin el bloqueo, con barra clásica el velo mide 1425 y la barra de la página queda a su derecha', await b.ev(`Math.round(${DIALOG}.getBoundingClientRect().width)`), 1425)
+  await clickOn(dialogButton('Mantener mi cita'))
+  await b.unstyle()
   await b.metrics(1280, 900, 1)
 
   // --- Tipos --------------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2 y V1a hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a y V1b hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -58,10 +58,16 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `c-search-form`, `c-search-filters`, `c-results-header`,
   `tools.control-block-size()`; `Button` con `state`; `c-field` con línea
   base del valor; `pnpm verify 5.1` (y `--preview`).
+- Fase 5 · V1b: hoja «Filtrar y ordenar» (`Sheet`, `c-sheet`: `<dialog>` modal a
+  pantalla completa, borrador, «Ver N» con replace) y `FilterTrigger` en la
+  cabecera móvil (`c-results-header--trigger`); conmutador «Avisarme» con
+  almacén en memoria (D16, `src/data/notify.ts`); `c-button__label` (etiqueta
+  que llena); `empty-state-compact`; página bloqueada bajo un diálogo modal
+  (`html:has(dialog:modal)`, `04-elements`). `pnpm verify 5.1` ampliado.
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b →
-V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
+foco de «Siguiente» con `useLayoutEffect` (commit propio) → V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos

@@ -4,7 +4,8 @@
 // c-legend-help (lo pinta Legend.tsx), c-wordmark (lo comparten los dos
 // headers), c-day-strip y c-slot-list (contenedores de UI/Day Chip y UI/Time
 // Slot, que no son de los 34), c-page-header (encabezado de las vistas),
-// c-empty-state (estado vacío de pantalla) y los patrones de la vista 1:
+// c-empty-state (estado vacío de pantalla), c-sheet (hoja a pantalla
+// completa) y los patrones de la vista 1:
 // c-search-form, c-search-filters y c-results-header.
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
@@ -50,6 +51,7 @@
 @use 'c-results-header';
 @use 'c-search-filters';
 @use 'c-search-form';
+@use 'c-sheet';
 @use 'c-slot-list';
 @use 'c-status-tag';
 @use 'c-step';

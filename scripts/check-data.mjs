@@ -9,6 +9,7 @@ import { CalendarDate } from '@internationalized/date'
 import { AVAILABILITY, CORTES_FULL_MAY, firstFree, isFull, nextOpeningMonth, weekday } from '../src/data/availability.ts'
 import { NOW, TODAY } from '../src/data/clock.ts'
 import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appointments.ts'
+import { createNotifyStore } from '../src/data/notify.ts'
 import { SLOW_MS, withScenario } from '../src/data/scenario.ts'
 import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, emptyCause, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
 import { FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS } from '../src/data/specialists.ts'
@@ -114,12 +115,26 @@ const ASSERTIONS = {
     const ms = Math.round(performance.now() - start)
     return (ms >= SLOW_MS && ms < 1700) || `${ms} ms`
   }],
+  notifyEmpty: ['Avisos (D16): el almacén empieza vacío', (ctx) => ctx.makeNotify().getSnapshot().size === 0 || `${ctx.makeNotify().getSnapshot().size} pedidos`],
+  notifyToggle: ['Avisos: conmutar dos veces vuelve al estado inicial', (ctx) => {
+    const store = ctx.makeNotify()
+    store.toggle(SLUGS.rodrigo)
+    const on = store.has(SLUGS.rodrigo)
+    store.toggle(SLUGS.rodrigo)
+    return (on && !store.has(SLUGS.rodrigo)) || JSON.stringify({ on, off: !store.has(SLUGS.rodrigo) })
+  }],
+  notifyPerSpecialist: ['Avisos: conmutar un médico no toca a otro', (ctx) => {
+    const store = ctx.makeNotify()
+    store.toggle(SLUGS.rodrigo)
+    return (store.has(SLUGS.rodrigo) && !store.has(SLUGS.ruiz) && store.getSnapshot().size === 1) || [...store.getSnapshot()].join(', ')
+  }],
 }
 
 const base = () => ({
   specialists: SPECIALISTS,
   availability: structuredClone(AVAILABILITY),
   makeStore: () => createAppointmentStore(),
+  makeNotify: () => createNotifyStore(),
   withScenario,
 })
 
@@ -130,6 +145,7 @@ const setSlot = (ctx, slug, iso, time, available) => {
   return ctx
 }
 const wrapStore = (ctx, patch) => ({ ...ctx, makeStore: () => { const s = createAppointmentStore(); return { ...s, ...patch(s) } } })
+const wrapNotify = (ctx, patch) => ({ ...ctx, makeNotify: () => { const s = createNotifyStore(); return { ...s, ...patch(s) } } })
 const firstGeneratedCardiology = [...GENERATED_CARDIOLOGY][0]
 
 const MUTATIONS = {
@@ -157,6 +173,9 @@ const MUTATIONS = {
   notice: ['el aviso no se consume', (c) => wrapStore(c, () => ({ takeNotice: () => ({ kind: 'reprogramada', id: 'c3' }) }))],
   busy: ['ocupada ignorado', (c) => wrapStore(c, (s) => ({ book: (input) => s.book(input) }))],
   slow: ['lenta sin retraso', (c) => ({ ...c, withScenario: async (_, run) => run() })],
+  notifyEmpty: ['sembrado con Rodrigo', (c) => wrapNotify(c, (s) => { s.toggle(SLUGS.rodrigo); return {} })],
+  notifyToggle: ['conmutar solo añade', (c) => wrapNotify(c, (s) => ({ toggle: (slug) => { if (!s.has(slug)) s.toggle(slug) } }))],
+  notifyPerSpecialist: ['clave compartida entre médicos', (c) => wrapNotify(c, (s) => ({ toggle: () => s.toggle('todos'), has: () => s.has('todos') }))],
 }
 
 const check = async (ctx, key) => {

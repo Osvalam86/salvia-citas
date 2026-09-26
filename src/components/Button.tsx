@@ -79,10 +79,13 @@ export default function Button(props: ButtonProps) {
     .filter(Boolean)
     .join(' ')
 
+  // La etiqueta ocupa el ancho sobrante (Figma: Label en FILL en las acciones
+  // de bloque): con un icono, el icono queda junto al padding y el texto se
+  // centra en el resto.
   const content = (
     <>
       {leadingIcon && <Icon name={leadingIcon} size={20} />}
-      {children}
+      <span className="c-button__label">{children}</span>
       {trailingIcon && <Icon name={trailingIcon} size={20} />}
     </>
   )

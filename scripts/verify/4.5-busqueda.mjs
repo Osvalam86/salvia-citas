@@ -103,7 +103,10 @@ export default async function run(b, expect) {
   await b.space()
   await sleep(100)
   expect('Espacio: pulsado, «Te avisaremos» con check, el foco se queda', await b.ev(toggleState), { foco: true, pulsado: 'true', etiqueta: 'Te avisaremos', check: true })
-  expect('«Te avisaremos» + check en el CTA de 200 al 100 %: contenido e interior', await b.ev(`(() => { const t = ${toggle}, s = getComputedStyle(t), r = document.createRange(); r.selectNodeContents(t); return { cta: t.getBoundingClientRect().width, interior: t.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight), contenido: Math.round(r.getBoundingClientRect().width * 10) / 10, alto: t.getBoundingClientRect().height } })()`), { cta: 200, interior: 150, contenido: 139.7, alto: 50 })
+  // Contenido: check + hueco + texto. Desde V1b la etiqueta (c-button__label)
+  // crece hasta llenar el interior, así que un Range sobre el botón entero
+  // mediría su caja (150), no lo que se pinta.
+  expect('«Te avisaremos» + check en el CTA de 200 al 100 %: contenido e interior', await b.ev(`(() => { const t = ${toggle}, s = getComputedStyle(t), r = document.createRange(); r.selectNodeContents(t.querySelector('.c-button__label').firstChild); const icon = t.querySelector('svg').getBoundingClientRect(); return { cta: t.getBoundingClientRect().width, interior: t.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight), contenido: Math.round((icon.width + parseFloat(s.columnGap) + r.getBoundingClientRect().width) * 10) / 10, alto: t.getBoundingClientRect().height } })()`), { cta: 200, interior: 150, contenido: 139.7, alto: 50 })
   await b.enter()
   await sleep(100)
   expect('Intro: vuelve a «Avisarme», el foco se queda', await b.ev(toggleState), { foco: true, pulsado: 'false', etiqueta: 'Avisarme', check: false })

@@ -16,3 +16,12 @@
   font: inherit;
   text-wrap: balance;
 }
+
+// Con un diálogo modal abierto (UI/Dialog, la hoja c-sheet) la página no se
+// desplaza: con barra de scroll clásica, el velo y la hoja medían el viewport
+// menos 15 y la barra de la página quedaba a su derecha, activa. Sin ella la
+// página de fondo se ensancha 15 px bajo el velo (DESIGN.md § Citas y
+// diálogos); con barra superpuesta no cambia nada. scrollY se conserva.
+:where(html):has(dialog:modal) {
+  overflow: hidden;
+}

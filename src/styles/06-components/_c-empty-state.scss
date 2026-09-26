@@ -12,15 +12,23 @@
 .c-empty-state {
   container: empty-state / inline-size;
 
+  // Compacto (base, raíz por debajo de 16.75rem: solo con texto grande): padding
+  // space-4. Con space-5, al 200 % a 320 al interior de la acción le quedaban
+  // 45 px (barra clásica) y partían todas sus palabras; con space-4, 77, el
+  // mismo límite que el CTA de Result Card (DESIGN.md § Contenedores).
   &__box {
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
     align-items: flex-start;
-    padding: var(--space-5);
+    padding: var(--space-4);
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+
+    @include tools.container(empty-state, empty-state-compact) {
+      padding: var(--space-5);
+    }
   }
 
   // Placa de 48 con el glifo de 24. En forced-colors el relleno desaparece y

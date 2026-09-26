@@ -1,21 +1,25 @@
 import { parseDate } from '@internationalized/date'
-import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type RefObject } from 'react'
 import { useLocation, useNavigationType, useSearchParams } from 'react-router'
+import { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import Button from '../components/Button.tsx'
 import Checkbox from '../components/Checkbox.tsx'
 import { nextOpeningText, nextSlotText } from '../components/dates.ts'
 import EmptyState from '../components/EmptyState.tsx'
 import FieldSelect from '../components/FieldSelect.tsx'
 import FieldText from '../components/FieldText.tsx'
+import FilterTrigger from '../components/FilterTrigger.tsx'
 import Legend from '../components/Legend.tsx'
 import LoadMore from '../components/LoadMore.tsx'
 import PageHeader from '../components/PageHeader.tsx'
 import Pagination from '../components/Pagination.tsx'
 import Radio from '../components/Radio.tsx'
 import ResultCard from '../components/ResultCard.tsx'
+import Sheet from '../components/Sheet.tsx'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 import { firstFree, nextOpeningMonth } from '../data/availability.ts'
 import { TODAY } from '../data/clock.ts'
+import { notifyStore, useNotified } from '../data/notify.ts'
 import { PHOTOS } from '../data/photos.ts'
 import { scenarioFrom, withScenario, type Scenario } from '../data/scenario.ts'
 import {
@@ -36,9 +40,9 @@ import {
 import { AREAS, CITY, CLINICS, FILTER_AREAS, MODALITIES, NEIGHBORHOODS, type Specialist } from '../data/specialists.ts'
 import ViewLayout from './ViewLayout.tsx'
 
-// V1 · Búsqueda (/, D1; Figma 01.1, 01.3–01.7). La URL es el estado: consulta,
-// ubicación, filtros, orden y página. La hoja de filtros y el disparador de
-// móvil (01.2) y el aviso activado (01.8, 01.9) llegan en V1b.
+// V1 · Búsqueda (/, D1; Figma 01.1–01.9). La URL es el estado: consulta,
+// ubicación, filtros, orden y página. Por debajo de lg, el disparador y la
+// hoja «Filtrar y ordenar» (01.2) sustituyen al aside y a «Ordenar por» (D7).
 
 /** Destino de foco que resuelve esta vista (useRouteFocus, FocusState): el nombre de la primera tarjeta. */
 export const FIRST_RESULT = 'primer-resultado'
@@ -167,31 +171,132 @@ function SearchForm({ params, scenario }: { params: SearchParams; scenario: Scen
   )
 }
 
+// Filtros y orden, tal como se escriben en la URL. El orden no es un filtro:
+// no cuenta en el disparador y «Limpiar» lo conserva (C3 de V1b).
+type Filters = Pick<SearchParams, 'especialidad' | 'modalidad' | 'disponibilidad' | 'orden'>
+
+const NO_FILTERS = { especialidad: [], modalidad: [], disponibilidad: null } satisfies Partial<Filters>
+
+const filtersOf = ({ especialidad, modalidad, disponibilidad, orden }: SearchParams): Filters => ({ especialidad, modalidad, disponibilidad, orden })
+
+/** Contador del disparador (§4.4): opciones marcadas; una ventana de disponibilidad cuenta 1. */
+const filterCount = (f: Filters) => f.especialidad.length + f.modalidad.length + (f.disponibilidad ? 1 : 0)
+
+// En el orden de las opciones, como las escribe el aside (una URL por estado).
+function writeFilters(next: URLSearchParams, f: Filters) {
+  next.delete('especialidad')
+  next.delete('modalidad')
+  for (const area of f.especialidad) next.append('especialidad', area)
+  for (const modality of f.modalidad) next.append('modalidad', modality)
+  if (f.disponibilidad) next.set('disponibilidad', f.disponibilidad)
+  else next.delete('disponibilidad')
+  if (f.orden === 'disponibilidad') next.delete('orden')
+  else next.set('orden', f.orden)
+}
+
+type FilterGroupsProps = {
+  value: Filters
+  onChange: (next: Filters) => void
+  /** «Ordenar por» como grupo de radios: solo en la hoja (en escritorio es un select en la cabecera). */
+  sort?: boolean
+}
+
+// Grupos de filtro (panel 01.0): el mismo marcado en el aside y en la hoja.
+// Especialidad y Modalidad, casillas; Disponibilidad y Ordenar por, radios
+// que parten de una opción seleccionada. Controlados: quien los compone decide
+// si un cambio va a la URL (aside) o a un borrador (hoja).
+function FilterGroups({ value, onChange, sort = false }: FilterGroupsProps) {
+  const toggleArea = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value: area, checked } = event.target
+    const selected = new Set<string>(value.especialidad)
+    if (checked) selected.add(area)
+    else selected.delete(area)
+    onChange({ ...value, especialidad: FILTER_AREAS.filter((a) => selected.has(a)) })
+  }
+
+  const toggleModality = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value: modality, checked } = event.target
+    const selected = new Set<string>(value.modalidad)
+    if (checked) selected.add(modality)
+    else selected.delete(modality)
+    onChange({ ...value, modalidad: MODALITY_FILTERS.filter((m) => selected.has(m)) })
+  }
+
+  const setWindow = (event: ChangeEvent<HTMLInputElement>) =>
+    onChange({ ...value, disponibilidad: AVAILABILITY_WINDOWS.find((w) => w === event.target.value) ?? null })
+
+  const setSort = (event: ChangeEvent<HTMLInputElement>) =>
+    onChange({ ...value, orden: SORTS.find((s) => s === event.target.value) ?? 'disponibilidad' })
+
+  return (
+    <>
+      {sort && (
+        <fieldset className="o-stack o-stack--gap-1">
+          <Legend level="group">Ordenar por</Legend>
+          <div className="o-stack o-stack--gap-0">
+            {SORTS.map((option) => (
+              <Radio label={SORT_LABELS[option]} name="orden" value={option} checked={value.orden === option} onChange={setSort} key={option} />
+            ))}
+          </div>
+        </fieldset>
+      )}
+      <fieldset className="o-stack o-stack--gap-1">
+        <Legend level="group">Especialidad</Legend>
+        <div className="o-stack o-stack--gap-0">
+          {FILTER_AREAS.map((area) => (
+            <Checkbox
+              label={AREAS[area]}
+              name="especialidad"
+              value={area}
+              checked={value.especialidad.includes(area)}
+              onChange={toggleArea}
+              key={area}
+            />
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="o-stack o-stack--gap-1">
+        <Legend level="group">Modalidad</Legend>
+        <div className="o-stack o-stack--gap-0">
+          {MODALITY_FILTERS.map((modality) => (
+            <Checkbox
+              label={MODALITY_LABELS[modality]}
+              name="modalidad"
+              value={modality}
+              checked={value.modalidad.includes(modality)}
+              onChange={toggleModality}
+              key={modality}
+            />
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="o-stack o-stack--gap-1">
+        <Legend level="group">Disponibilidad</Legend>
+        <div className="o-stack o-stack--gap-0">
+          <Radio label="Cualquier fecha" name="disponibilidad" value="" checked={value.disponibilidad === null} onChange={setWindow} />
+          {AVAILABILITY_WINDOWS.map((window) => (
+            <Radio
+              label={WINDOW_LABELS[window]}
+              name="disponibilidad"
+              value={window}
+              checked={value.disponibilidad === window}
+              onChange={setWindow}
+              key={window}
+            />
+          ))}
+        </div>
+      </fieldset>
+    </>
+  )
+}
+
 // Aside «Filtros» de escritorio (panel 01.0): se aplican al marcarlos, sin
 // botón de aplicar; el recuento anuncia el total. «Limpiar filtros» devuelve
 // cada grupo a su opción inicial y el foco se queda en el botón.
 function SearchFilters({ params }: { params: SearchParams }) {
   const titleId = useId()
   const update = useSearchUpdate()
-
-  const toggle = (group: 'especialidad' | 'modalidad', order: readonly string[]) => (event: ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = event.target
-    update((next) => {
-      const selected = new Set(next.getAll(group))
-      if (checked) selected.add(value)
-      else selected.delete(value)
-      next.delete(group)
-      for (const option of order) if (selected.has(option)) next.append(group, option)
-    })
-  }
-
-  const setWindow = (event: ChangeEvent<HTMLInputElement>) =>
-    update((next) => {
-      if (event.target.value) next.set('disponibilidad', event.target.value)
-      else next.delete('disponibilidad')
-    })
-
-  const clear = () => update(clearFilters)
+  const value = filtersOf(params)
 
   return (
     <aside className="c-search-filters o-stack o-stack--gap-5" aria-labelledby={titleId}>
@@ -199,59 +304,71 @@ function SearchFilters({ params }: { params: SearchParams }) {
         Filtros
       </h2>
       <form className="o-stack o-stack--gap-6" onSubmit={(event) => event.preventDefault()}>
-        <fieldset className="o-stack o-stack--gap-1">
-          <Legend level="group">Especialidad</Legend>
-          <div className="o-stack o-stack--gap-0">
-            {FILTER_AREAS.map((area) => (
-              <Checkbox
-                label={AREAS[area]}
-                name="especialidad"
-                value={area}
-                checked={params.especialidad.includes(area)}
-                onChange={toggle('especialidad', FILTER_AREAS)}
-                key={area}
-              />
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="o-stack o-stack--gap-1">
-          <Legend level="group">Modalidad</Legend>
-          <div className="o-stack o-stack--gap-0">
-            {MODALITY_FILTERS.map((modality) => (
-              <Checkbox
-                label={MODALITY_LABELS[modality]}
-                name="modalidad"
-                value={modality}
-                checked={params.modalidad.includes(modality)}
-                onChange={toggle('modalidad', MODALITY_FILTERS)}
-                key={modality}
-              />
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="o-stack o-stack--gap-1">
-          <Legend level="group">Disponibilidad</Legend>
-          <div className="o-stack o-stack--gap-0">
-            <Radio label="Cualquier fecha" name="disponibilidad" value="" checked={params.disponibilidad === null} onChange={setWindow} />
-            {AVAILABILITY_WINDOWS.map((window) => (
-              <Radio
-                label={WINDOW_LABELS[window]}
-                name="disponibilidad"
-                value={window}
-                checked={params.disponibilidad === window}
-                onChange={setWindow}
-                key={window}
-              />
-            ))}
-          </div>
-        </fieldset>
+        <FilterGroups value={value} onChange={(next) => update((url) => writeFilters(url, next))} />
         <div>
-          <Button variant="secondary" onClick={clear}>
+          <Button variant="secondary" onClick={() => update(clearFilters)}>
             Limpiar filtros
           </Button>
         </div>
       </form>
     </aside>
+  )
+}
+
+type FilterSheetProps = {
+  params: SearchParams
+  trigger: RefObject<HTMLButtonElement | null>
+  onClose: () => void
+}
+
+// Hoja «Filtrar y ordenar» (01.2, panel 01.0). Un borrador que nace de la URL
+// al abrirla: «Ver N resultados» lo aplica y cierra; «Limpiar» vacía los
+// filtros del borrador sin cerrar ni tocar la URL (el orden se conserva);
+// «Cerrar» y Escape lo descartan. El foco vuelve al disparador en los tres
+// casos.
+//
+// N es el total que daría el borrador, al momento también con «lenta»: es una
+// vista previa, no una búsqueda (D8). El fondo es inert y la región del
+// recuento de la página no se oye: la hoja lleva la suya, vacía al abrir para
+// no anunciar nada hasta el primer cambio.
+function FilterSheet({ params, trigger, onClose }: FilterSheetProps) {
+  const update = useSearchUpdate()
+  const [draft, setDraft] = useState<Filters>(() => filtersOf(params))
+  const [announced, setAnnounced] = useState('')
+  const total = searchSpecialists({ ...params, ...draft, pagina: 1 }).total
+
+  const change = (next: Filters) => {
+    setDraft(next)
+    setAnnounced(countText(searchSpecialists({ ...params, ...next, pagina: 1 }).total))
+  }
+
+  return (
+    <Sheet
+      title="Filtrar y ordenar"
+      returnFocus={trigger}
+      onDismiss={onClose}
+      onSubmit={() => {
+        update((url) => writeFilters(url, draft))
+        onClose()
+      }}
+      footer={
+        <>
+          <Button variant="secondary" onClick={() => change({ ...draft, ...NO_FILTERS })}>
+            Limpiar
+          </Button>
+          <Button type="submit" className="c-sheet__fill">
+            {total === 1 ? 'Ver 1 resultado' : `Ver ${total} resultados`}
+          </Button>
+        </>
+      }
+    >
+      <div className="o-stack o-stack--gap-6">
+        <FilterGroups value={draft} onChange={change} sort />
+      </div>
+      <p className="u-sr-only" role="status">
+        {announced}
+      </p>
+    </Sheet>
   )
 }
 
@@ -291,15 +408,19 @@ export default function Search() {
   const skeletons = searching || paging ? PAGE_SIZE : 0
   const empty = !searching && total === 0
 
-  // Conmutador «Avisarme» (diseño §7.3): estado de la vista por médico. Su
-  // persistencia y 01.8/01.9 son de V1b.
-  const [notified, setNotified] = useState<ReadonlySet<string>>(new Set())
-  const toggleNotify = (slug: string) =>
-    setNotified((current) => {
-      const next = new Set(current)
-      if (!next.delete(slug)) next.add(slug)
-      return next
-    })
+  // Conmutador «Avisarme» (diseño §7.3, 01.8, 01.9): almacén en memoria por
+  // médico (D16), que sobrevive a ir al perfil y volver.
+  const notified = useNotified()
+
+  // Hoja de filtros (móvil). «lost»: estaba abierta y el viewport cruzó lg; el
+  // disparador ya no existe (D7), así que el foco va al h1, el respaldo de
+  // D12, y no se queda en body.
+  const trigger = useRef<HTMLButtonElement>(null)
+  const [sheet, setSheet] = useState<'closed' | 'open' | 'lost'>('closed')
+  if (isDesktop && sheet === 'open') setSheet('lost')
+  useEffect(() => {
+    if (sheet === 'lost') document.getElementById(MAIN_TITLE_ID)?.focus({ preventScroll: true })
+  }, [sheet])
 
   // Foco (o foco o región viva, diseño §4.6). Al llegar los datos, el foco va
   // al nombre de una tarjeta: la primera nueva tras «Ver más»; la primera tras
@@ -362,7 +483,8 @@ export default function Search() {
       <div className="o-layout o-layout--aside-start">
         {isDesktop && <SearchFilters params={params} />}
         <div className="o-stack o-stack--gap-5">
-          <div className="c-results-header">
+          <div className={isDesktop ? 'c-results-header' : 'c-results-header c-results-header--trigger'}>
+            {!isDesktop && <FilterTrigger count={filterCount(filtersOf(params))} onClick={() => setSheet('open')} ref={trigger} />}
             <p className="c-results-header__count" role="status">
               {searching ? 'Buscando…' : countText(total)}
             </p>
@@ -382,6 +504,7 @@ export default function Search() {
               />
             )}
           </div>
+          {!isDesktop && sheet === 'open' && <FilterSheet params={params} trigger={trigger} onClose={() => setSheet('closed')} />}
 
           {empty ? (
             <Empty params={params} searchParams={searchParams} scenario={scenario} onClearFilters={clearFromEmpty} />
@@ -402,7 +525,7 @@ export default function Search() {
                     specialist={specialist}
                     href={profileHref(specialist.slug)}
                     notified={notified.has(specialist.slug)}
-                    onNotifyToggle={() => toggleNotify(specialist.slug)}
+                    onNotifyToggle={() => notifyStore.toggle(specialist.slug)}
                     loading={index < EAGER_CARDS ? 'eager' : 'lazy'}
                     nameRef={(element) => {
                       names.current[index] = element

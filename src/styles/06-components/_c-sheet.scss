@@ -1,0 +1,119 @@
+@use '../02-tools' as tools;
+
+// Hoja a pantalla completa (Sheet.tsx; Figma 01.2, «Filtrar y ordenar»). No es
+// uno de los 34 (excepción declarada en D5). El <dialog> ocupa el viewport
+// exacto: se anulan los estilos del navegador que lo encogen o lo separan del
+// borde, como en c-dialog. Sin velo: la hoja tapa la página entera.
+//
+// Pieza a sangre (DESIGN.md § Tramo intermedio): fondo y bordes a todo el
+// ancho; los tres interiores (cabecera, cuerpo y pie) son o-wrapper.
+//
+// Columna flex: cabecera y pie fijos, el cuerpo es el único desplazador. Así
+// el pie nunca tapa el foco (2.4.11) sin reservar nada. Con texto grande,
+// cabecera y pie dejarían al cuerpo sin alto (a 320 con la letra a 32): pasan
+// a estáticos y se desplaza la hoja entera, la misma regla que las barras del
+// shell (DESIGN.md § Texto grande respecto al viewport).
+//
+// Zona segura lateral y bajo el pie, como c-app-layout y su hueco de barra.
+.c-sheet {
+  inset: 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100%;
+  max-block-size: none;
+  margin: 0;
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  overflow: hidden;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 0;
+
+  @include tools.large-text {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  // Solo abierta: la regla del navegador que la oculta cerrada
+  // (dialog:not([open])) perdería frente a un display de autor.
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // 64 con el borde dentro, como en Figma (trazo INSIDE): 8 + «Cerrar» de 48
+  // + 7 + borde 1 (el mismo patrón que c-header-mobile).
+  &__header {
+    flex: none;
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  &__heading {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: var(--space-2) calc(var(--space-2) - 1px);
+  }
+
+  &__title {
+    @include tools.text(heading-md);
+  }
+
+  // Figma deja 4 a la derecha: con el margen, el glifo de 24 (centrado en 48)
+  // termina en el borde de la columna, también en el tramo intermedio.
+  // Alineación, no separación.
+  &__close {
+    margin-inline-end: calc(var(--space-1) - var(--space-4));
+  }
+
+  &__form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+
+    @include tools.large-text {
+      flex: none;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    @include tools.large-text {
+      flex: none;
+      overflow-y: visible;
+    }
+  }
+
+  &__content {
+    padding-block: var(--space-5);
+  }
+
+  &__footer {
+    flex: none;
+    padding-block-end: env(safe-area-inset-bottom);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  // 82 con el borde dentro: 16 − 1 + botón de 50 + 16. flex-wrap: con el
+  // texto ampliado, la acción que llena baja a su propia línea.
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: calc(var(--space-4) - 1px) var(--space-4);
+  }
+
+  // Mezcla sobre c-button: la acción que llena el pie (FILL en Figma).
+  &__fill {
+    flex: 1 1 auto;
+  }
+}

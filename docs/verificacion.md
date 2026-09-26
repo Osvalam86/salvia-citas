@@ -29,12 +29,12 @@ no se versiona.
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
 | `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
-| `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`) |
+| `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
-| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` · `4.6-fecha-hora.mjs` · `4.7-citas.mjs` | Una sección cada uno |
+| `4.1-acciones.mjs` · `4.2-identidad.mjs` · `4.3-formulario.mjs` · `4.4-navegacion.mjs` · `4.5-busqueda.mjs` · `4.6-fecha-hora.mjs` · `4.7-citas.mjs` | Una sección cada uno. 4.7 mide desde V1b la página bloqueada bajo el velo (`html:has(dialog:modal)`, barra clásica) |
 
 ## Método
 
@@ -214,6 +214,29 @@ no se versiona.
 - **El ancho de un texto no es construcción.** «Buscando…» mide 81 en el
   navegador y 79 en Figma (métrica de Inter Variable): en los pares se compara
   la posición y el alto del recuento, no su ancho (V1a).
+- **El navegador integrado no emite `change` de `matchMedia` al redimensionar.** Con
+  `resize_window`, `matchMedia('(min-width: 64rem)').matches` cambia pero la vista no
+  vuelve a pintarse (también sin la hoja abierta). El cruce de `lg` se mide por CDP
+  (`setDeviceMetricsOverride` sí lo emite) (V1b).
+- **Capturas con la letra del navegador ampliada.** Una captura de la hoja con la letra a
+  32 salió con la letra a 16, aunque las medidas de esa pasada daban `html` 32px; no se
+  sabe si es `captureBeyondViewport` o `Page.setFontSizes`. Esas capturas no son prueba;
+  cuentan las medidas. Además, el recorte de una hoja va en coordenadas del documento:
+  `b.rect(SHEET)` suma el scroll (V1b).
+- **Un `<dialog>` modal devuelve el foco solo al cerrar** (Chromium: al elemento que lo
+  tenía antes de `showModal()`). Una contraprueba que devuelve el foco antes de `close()`
+  sigue pasando: no discrimina el orden (V1b).
+- **`Range` sobre un botón con `c-button__label`.** La etiqueta crece hasta llenar el
+  interior, así que `selectNodeContents(boton)` mide su caja, no lo pintado. 4.5 suma
+  icono + hueco + texto (V1b).
+- **Un `pnpm dev` de larga duración puede falsear una sección.** Contra un servidor arrancado
+  días antes, 4.4 cargaba `/kit/navegacion` desplazada al final (`scrollY` 766) y daba 61/62
+  en cualquier commit; con el servidor recién arrancado, 62/62. Antes de atribuir un fallo a un
+  commit, reiniciar `pnpm dev` y repetir (DESIGN.md, Pendientes, «5 · cierre») (V1b).
+- **La página bloqueada cambia medidas con barra clásica.** Con un diálogo abierto, `html`
+  no tiene barra: el velo gana 15 px. En 4.7, la contraprueba de la rueda retira también el
+  bloqueo, y el texto grande a 320 y 375 con barra clásica mide como con la superpuesta
+  (salvo cuando el velo se desplaza y pinta su propia barra) (V1b).
 
 ## Comprobaciones manuales
 
@@ -233,4 +256,6 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Ciclo de Tab del diálogo con ventana | Edge real con ventana (153.0.4234.48, Chromium 153.0.8010.53, Windows 11 25H2): abrir el diálogo de Molina en `/kit/citas` y recorrer con Tab y Mayús+Tab. Resultado de Osvaldo: recorren los dos botones, salen a la interfaz del navegador (pestañas, barra de direcciones, botones de la barra) y vuelven a los botones; nunca caen en la página. Firefox y Safari, pendientes de la fase 7 | 4.7 |
 | Sin `preventScrollReset` | Quitar `preventScrollReset` de los filtros y de «Ver más» en `Search.tsx`: la última casilla del aside (desde `scrollY` 300, 1440) y «Ver más» (desde 1294, 375) dejan `scrollY` en 0. Medido al construirlo; revertir | V1a |
 | Sin `state.focus` ni la ref | Quitar `state={{ focus: FIRST_RESULT }}` de los dos enlaces del vacío y `pendingFocus.current = 0` de «Limpiar filtros»: las tres acciones dejan el foco en `body` (1440). Medido al construirlo; revertir | V1a |
+| Cruce de `lg` sin el efecto | Quitar el `focus` del efecto de `sheet === 'lost'` en `Search.tsx`, abrir la hoja a 1000 y pasar a 1100 por CDP: el foco cae en `body`; con el efecto, en `H1#contenido`. Medido al construirlo; revertir | V1b |
+| Foco devuelto antes de `close()` en la hoja | Mover `returnFocus.current?.focus()` y `onSubmit()` antes de `dialog.current?.close()` en `Sheet.tsx`, `pnpm build` y `pnpm verify 5.1 --preview`: sigue en 14/14, porque Chromium devuelve el foco al cerrar. No discrimina; el orden se conserva por Safari y Firefox (fase 7). Medido; revertir | V1b |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |
