@@ -67,7 +67,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
 T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (commit propio) → V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos

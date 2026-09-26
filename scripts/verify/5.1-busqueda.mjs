@@ -882,17 +882,17 @@ async function pageChangeSlow(b, expect, from, link, to) {
   await b.metrics(1440, 900, 1)
   await goFast(b, `${Q011}&pagina=${from}${LENTA}`)
   await settled(b)
+  // El foco en la microtarea que sigue al desmontaje del enlace (el commit que
+  // trae los datos): un useEffect lo dejaría en body ~1 ms, un hueco que el
+  // muestreo cada 100 ms casi nunca ve (docs/verificacion.md, Trampas).
+  await b.ev(`(() => { const a = ${byText('.c-pagination a', link)}; window.__alDesmontar = null; const o = new MutationObserver(() => { if (a.isConnected) return; const f = document.activeElement; window.__alDesmontar = f === document.body ? 'BODY' : f.tagName; o.disconnect() }); o.observe(document.querySelector('main'), { childList: true, subtree: true }); return true })()`)
   await clickAt(b, byText('.c-pagination a', link))
-  const samples = []
-  let currentDuring = null
-  for (let t = 0; t < 2200; t += 100) {
-    await sleep(100)
-    samples.push(await b.ev('document.activeElement.tagName'))
-    if (t === 500) currentDuring = await b.ev("document.querySelector('.c-pagination [aria-current]')?.textContent ?? null")
-  }
+  await sleep(600)
+  const currentDuring = await b.ev("document.querySelector('.c-pagination [aria-current]')?.textContent ?? null")
+  await sleep(1600)
   await settled(b)
-  const after = await b.ev(`({ foco: ${focused}, actual: document.querySelector('.c-pagination [aria-current]').textContent, primera: ${names}[0] })`)
-  expect(`«${link}» ${from} → ${to} con lenta: la paginación muestra la página cargada hasta que llegan los datos y el foco nunca cae en body`, { body: samples.includes('BODY'), actualDurante: currentDuring, actual: after.actual, focoEnLaPrimera: after.foco === 'H3 ' + after.primera }, { body: false, actualDurante: `Página ${from}`, actual: `Página ${to}`, focoEnLaPrimera: true })
+  const after = await b.ev(`({ foco: ${focused}, alDesmontar: window.__alDesmontar, actual: document.querySelector('.c-pagination [aria-current]').textContent, primera: ${names}[0] })`)
+  expect(`«${link}» ${from} → ${to} con lenta: la paginación muestra la página cargada hasta que llegan los datos y, al desmontarse el enlace, el foco ya está en la tarjeta, no en body`, { focoAlDesmontar: after.alDesmontar, actualDurante: currentDuring, actual: after.actual, focoEnLaPrimera: after.foco === 'H3 ' + after.primera }, { focoAlDesmontar: 'H3', actualDurante: `Página ${from}`, actual: `Página ${to}`, focoEnLaPrimera: true })
 }
 
 async function emptyActions(b, expect) {

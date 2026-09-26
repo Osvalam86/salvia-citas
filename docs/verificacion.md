@@ -29,7 +29,7 @@ no se versiona.
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
 | `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
-| `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
+| `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
@@ -237,6 +237,12 @@ no se versiona.
   no tiene barra: el velo gana 15 px. En 4.7, la contraprueba de la rueda retira también el
   bloqueo, y el texto grande a 320 y 375 con barra clásica mide como con la superpuesta
   (salvo cuando el velo se desplaza y pinta su propia barra) (V1b).
+- **El muestreo cada 100 ms no ve un hueco de ~1 ms.** Con un `useEffect`, el foco quedaba en
+  `body` entre el commit que desmonta el enlace y el efecto, que corre en otra tarea
+  0,4–1,7 ms después. Un `Runtime.evaluate` cada 100 ms lo pillaba en 3 de 10 pasadas. Un
+  MutationObserver sí lo ve siempre: su callback corre al vaciarse la pila del commit, después
+  de los efectos de layout y antes de cualquier otra tarea, así que lee el foco en ese hueco
+  de forma determinista (tras V1b).
 
 ## Comprobaciones manuales
 
@@ -258,4 +264,5 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Sin `state.focus` ni la ref | Quitar `state={{ focus: FIRST_RESULT }}` de los dos enlaces del vacío y `pendingFocus.current = 0` de «Limpiar filtros»: las tres acciones dejan el foco en `body` (1440). Medido al construirlo; revertir | V1a |
 | Cruce de `lg` sin el efecto | Quitar el `focus` del efecto de `sheet === 'lost'` en `Search.tsx`, abrir la hoja a 1000 y pasar a 1100 por CDP: el foco cae en `body`; con el efecto, en `H1#contenido`. Medido al construirlo; revertir | V1b |
 | Foco devuelto antes de `close()` en la hoja | Mover `returnFocus.current?.focus()` y `onSubmit()` antes de `dialog.current?.close()` en `Sheet.tsx`, `pnpm build` y `pnpm verify 5.1 --preview`: sigue en 14/14, porque Chromium devuelve el foco al cerrar. No discrimina; el orden se conserva por Safari y Firefox (fase 7). Medido; revertir | V1b |
+| Foco de la búsqueda en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en el efecto de foco de `Search.tsx` y `pnpm verify 5.1`: «Siguiente» 8 → 9 y «Anterior» 2 → 1 con `lenta` dan `focoAlDesmontar` `BODY` en 10 de 10 pasadas, en las dos líneas (49/52). Medido; revertir | tras V1b |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |

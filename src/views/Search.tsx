@@ -1,5 +1,5 @@
 import { parseDate } from '@internationalized/date'
-import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type RefObject } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type RefObject } from 'react'
 import { useLocation, useNavigationType, useSearchParams } from 'react-router'
 import { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import Button from '../components/Button.tsx'
@@ -429,14 +429,21 @@ export default function Search() {
   // su control sigue ahí y la región del recuento anuncia.
   //
   // Sin desplazar: tras «Ver más» y «Limpiar filtros» la tarjeta aparece donde
-  // estaba el botón pulsado, y tras Page Link y los enlaces del vacío
-  // <ScrollRestoration> ya subió arriba, con la primera tarjeta a la vista.
+  // estaba el botón pulsado; tras Page Link y los enlaces del vacío, arriba,
+  // con la primera tarjeta a la vista. Sin «lenta», este efecto corre en el
+  // mismo commit que el scrollTo de <ScrollRestoration> y antes que él (es
+  // hermano posterior del Outlet): con preventScroll, el resultado es el mismo.
+  //
+  // En un efecto de layout: con «lenta», el enlace pulsado («Siguiente» hacia
+  // la última, «Anterior» hacia la primera) se desmonta en el commit que trae
+  // los datos, y un useEffect correría en otra tarea con el foco en body entre
+  // medias (medido tras V1b: 40 de 40; un frame pintado en 7).
   const names = useRef<(HTMLHeadingElement | null)[]>([])
   const pendingFocus = useRef<number | null>(null)
   const handledState = useRef<string | null>(null)
   const shown = useRef<{ key: string; page: number } | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (searching || paging) return
     const previous = shown.current
     shown.current = { key, page }
