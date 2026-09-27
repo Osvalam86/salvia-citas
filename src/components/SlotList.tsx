@@ -1,4 +1,4 @@
-import { useImperativeHandle, useRef, type Ref } from 'react'
+import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import { Header, ListBox, ListBoxSection, type Selection } from 'react-aria-components'
 import TimeSlot from './TimeSlot.tsx'
 
@@ -38,10 +38,59 @@ export default function SlotList({ groups, value, onChange, describedBy, ref, ..
   const available = groups.flatMap((g) => g.slots.filter((s) => s.available).map((s) => s.time))
   const firstAvailable = available[0]
 
+  // Con la lista recién montada («Ver horarios del martes 24», V2a), RAC pinta
+  // sus opciones en un segundo commit, después de los efectos de layout de
+  // quien la monta: si la opción aún no existe, se espera a que aparezca. El
+  // observador corre antes de pintar, así que no se ve un frame sin foco. Se
+  // desconecta al encontrarla, al desmontar la lista y si la búsqueda deja de
+  // tener sentido (cambia la primera hora libre: otro día).
+  //
+  // El efecto de montaje rearma la espera: StrictMode desmonta y vuelve a
+  // montar los efectos de la lista nueva después del efecto de layout de
+  // quien pidió el foco, y la limpieza habría cortado la espera en desarrollo.
+  const pending = useRef<string | null>(null)
+  const observer = useRef<MutationObserver | null>(null)
+  const stop = () => {
+    observer.current?.disconnect()
+    observer.current = null
+  }
+  const arm = () => {
+    const root = listRef.current
+    const key = pending.current
+    if (!root || !key) return
+    const selector = `[data-key="${CSS.escape(key)}"]`
+    const take = () => {
+      const option = root.querySelector<HTMLElement>(selector)
+      if (!option) return false
+      pending.current = null
+      stop()
+      option.focus()
+      return true
+    }
+    if (take() || observer.current) return
+    observer.current = new MutationObserver(take)
+    observer.current.observe(root, { childList: true, subtree: true })
+  }
+
+  // Solo al montar y desmontar: arm y stop leen refs.
+  useEffect(() => {
+    arm()
+    return stop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (pending.current && pending.current !== firstAvailable) {
+      pending.current = null
+      stop()
+    }
+  }, [firstAvailable])
+
   useImperativeHandle(ref, () => ({
     focusFirstAvailable: () => {
-      if (!firstAvailable) return
-      listRef.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(firstAvailable)}"]`)?.focus()
+      stop()
+      pending.current = firstAvailable ?? null
+      arm()
     },
   }))
 

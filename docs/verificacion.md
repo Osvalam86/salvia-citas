@@ -10,7 +10,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
 pnpm verify 4.7   # 4.1 a 4.7
-pnpm verify 5.0   # bloques de la fase 5
+pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2)
 pnpm verify 5.0 --preview   # flujos de foco contra pnpm build && pnpm preview (:4173)
 ```
 
@@ -30,6 +30,7 @@ no se versiona.
 | `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
+| `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440; 02.6 con +2 px declarados, C4); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). `previewFlows`: foco y Missing |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
@@ -244,6 +245,21 @@ no se versiona.
   de los efectos de layout y antes de cualquier otra tarea, así que lee el foco en ese hueco
   de forma determinista (tras V1b).
 
+- **El ListBox de RAC recién montado pinta sus opciones en un segundo commit.** Tras «Ver
+  horarios del martes 24», el efecto de layout que enfoca la primera hora libre corre antes de
+  que existan las opciones y el foco cae en `body` (medido). `SlotList` espera con un
+  MutationObserver, que corre antes de pintar. Con StrictMode, la lista nueva desmonta y vuelve a
+  montar sus efectos después del efecto de quien pidió el foco: la limpieza cortaba la espera en
+  desarrollo, así que el efecto de montaje la rearma. Contraprueba en `pnpm verify 5.2` y
+  `--preview`: sin el observador, `body` (V2a).
+- **`splitWords` con ancestros en el selector.** Cada elemento que casa mide las palabras de sus
+  descendientes contra su propio interior: con `.c-booking-bar *`, «Continuar» (152,6, más ancha
+  que los 143 del botón) salía «pudiendo caber» en la fila de 241. El selector lleva las hojas
+  del árbol (título, texto de la meta, botón) (V2a).
+- **Borde transparente en forced-colors.** Un borde `transparent` se fuerza a un color de
+  sistema y se ve (§3.2: conserva el contorno). El chip fuera de rango de V2a, como el día pasado
+  del calendario, se distingue por el peso, no por la ausencia de borde (V2a).
+
 ## Comprobaciones manuales
 
 No se automatizan; se repiten a mano cuando cambia lo que prueban.
@@ -265,4 +281,5 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Cruce de `lg` sin el efecto | Quitar el `focus` del efecto de `sheet === 'lost'` en `Search.tsx`, abrir la hoja a 1000 y pasar a 1100 por CDP: el foco cae en `body`; con el efecto, en `H1#contenido`. Medido al construirlo; revertir | V1b |
 | Foco devuelto antes de `close()` en la hoja | Mover `returnFocus.current?.focus()` y `onSubmit()` antes de `dialog.current?.close()` en `Sheet.tsx`, `pnpm build` y `pnpm verify 5.1 --preview`: sigue en 14/14, porque Chromium devuelve el foco al cerrar. No discrimina; el orden se conserva por Safari y Firefox (fase 7). Medido; revertir | V1b |
 | Foco de la búsqueda en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en el efecto de foco de `Search.tsx` y `pnpm verify 5.1`: «Siguiente» 8 → 9 y «Anterior» 2 → 1 con `lenta` dan `focoAlDesmontar` `BODY` en 10 de 10 pasadas, en las dos líneas (49/52). Medido; revertir | tras V1b |
+| Envío sin los parámetros de V1 | Cambiar `new URLSearchParams(carried)` por `new URLSearchParams()` en el `submit` de `Specialist.tsx` y, a 1440, «Continuar con tus datos» desde `…?q=Cardiología&escenario=ocupada&fecha=2029-04-24&hora=10:30`: llega a `/datos?fecha=2029-04-24&hora=10%3A30`, sin `q` ni `escenario`, y `?escenario=ocupada` no llega a la vista 3. Medido al construirlo; revertir | V2a |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |

@@ -13,5 +13,5 @@ $containers: (
   dialog-compact: 18.75rem, // 300px · contenedor: el velo (dialog) — por debajo, panel sin margen lateral y padding space-4; el valor de tools.large-text como container query
   dialog: 32rem,           // 512px · contenedor: el velo — Row 480 + 16 + 16 de margen
   appointment-card: 40rem, // 640px · contenedor: el `li` de su sección — Figma; al cuerpo de Row le quedan 342 y la línea más ancha mide 296
-  slot-picker: 44rem,      // 704px · contenedor: quien da ancho a la tarjeta del selector
+  slot-picker: 44.5625rem, // 713px · contenedor: c-slot-picker__frame, la celda que da ancho a la tarjeta — calendario y horas en fila; derivado: calendario 360 + hueco 32 + tres horas (3 × 77 + 2 × 12) + padding y bordes 66
 );

@@ -305,7 +305,7 @@ el mismo `container-name`, sin un segundo nombre
 | `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
 | `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Desde V1b la página no tiene barra con el diálogo abierto (§ Citas y diálogos): a 375 con la letra a 20 el velo mide 18.75rem con las dos barras y no es compacto (hasta V1b, con barra clásica medía 360 = 18rem y lo era). Medido a 320 con la letra a 32: sin el umbral, el interior del botón mide 47 y parte «cita»; con él, 143 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y 158 con la superpuesta. Con la clásica aún parte «Mantener», más ancha que su interior; con la superpuesta, ninguna |
 | `dialog`           | el velo                                            | 32rem (512) | Stacked pasa a Row                  | 480 de la variante Row + 16 + 16 de margen: es cuando cabe. El velo no lleva padding lateral: la query mide su caja de contenido, y el margen lo resta el panel |
-| `slot-picker`      | el elemento que da ancho a la tarjeta del selector | 44rem       | La tarjeta apila calendario y horas | —                                                                            |
+| `slot-picker`      | la raíz de `c-slot-picker` (en escritorio, la celda de la rejilla que da ancho a la tarjeta) | 44.5625rem (713) | Por debajo, la tarjeta apila calendario y horas | Calendario 360 + hueco 32 + tres horas (3 × 77 + 2 × 12) + padding y bordes 66 = 713: el mínimo en que caben tres columnas (el contexto de Figma hablaba de 704 de interior, 770 de exterior). Con 44rem, entre 704 y 712 iban dos horas por fila (contraprueba en `pnpm verify 5.2`). **Coste:** el tramo 1024–1112 de viewport (1039–1127 con barra clásica) va apilado y no tiene frame en Figma. En móvil la raíz es el form y nunca alcanza el umbral (la columna mide como mucho 608) |
 
 **Costes declarados de `appointment-card` (40rem).**
 
@@ -620,6 +620,111 @@ recorte no se ejerce: hoy es lunes y el día 90 es domingo). Si «Mes anterior»
 desaparece con el foco dentro, RAC lo lleva al día enfocado del mes nuevo; el
 foco no se pierde.
 
+### Vista 2 (V2a)
+
+**Estado y URL.** `useSlotPicker` (D2, `src/hooks/`): la URL da el estado
+inicial y recibe cada selección con replace y `preventScrollReset` (con
+radios, cada flecha selecciona). Semana y mes visibles no van a la URL. La hora
+se escribe codificada (`hora=10%3A30`, `URLSearchParams`); las guardas de
+`/confirmar` y `/datos` aceptan las dos formas (medido). Los envíos hacen push
+con los parámetros de V1 y `escenario` (D1, D8).
+
+**Fieldset «Elige fecha» (≠ panel 02.0).** El panel pide los botones de semana
+fuera del grupo; el `fieldset` envuelve legend (D14), «Ver mes completo», la
+navegación de semana y la tira, porque la legend va primero y así el DOM sigue
+el orden visual. Coste: el lector dice «Elige fecha, grupo» al entrar en esos
+botones, y es verdad.
+
+**Fila de «Elige fecha» (coste declarado).** Legend (104,9) y «Ver mes
+completo» (217,6) caben en una fila desde 334,5 de ancho útil: 367 de viewport
+con barra superpuesta y 382 con la clásica (el contexto de 02.1 anota 8 px de
+holgura, «en código flex-wrap»). Por debajo, el botón baja con su ancho
+intrínseco, sin FILL; a 360 (Android) y a 375 con barra clásica, dos filas.
+Esa es la diferencia declarada del par de 375 con barra clásica. El botón
+encoge (`flex: 0 1 auto`) con el texto ampliado: con `flex: none`, al 200 % a
+320 desbordaba 145–160 px.
+
+**Navegación de semana.** Etiqueta («23 – 29 de abril»; entre dos meses, «30
+de abril – 6 de mayo») y dos columnas fijas de 48: el control que queda
+conserva su sitio cuando se omite el otro (§4.5), también «Semana anterior» en
+la semana de `maxValue` (x 259 en las dos semanas, medido). La región viva de
+la semana es un texto oculto que solo se escribe desde esos botones: al aplicar
+la hoja con un día de otra semana se anuncia solo el `role="status"` de horas
+(el día elegido), no los dos. Si el botón pulsado desaparece en un límite, el
+foco pasa al otro en el mismo commit.
+
+**Rodrigo, fuera de Figma (≠ declarado).** Su perfil solo se alcanza por URL
+(la Result Card Full no enlaza). Sin hueco publicado, el selector empieza hoy
+(D2) y el bloque sin horarios dice «No hay horarios libres publicados. El
+próximo cupo se abre en mayo.», solo con «Avisarme…». Su `maxValue` es el lunes
+30 de abril, así que en esa semana los días 1–6 de mayo quedan fuera de rango:
+`UI/Day Chip` con aspecto de día pasado del calendario (body/md secundario,
+borde transparente, sin hover), radio `disabled` (no enfocable) y nombre con
+solo la fecha. «Semana siguiente» se omite en la semana de `maxValue`,
+simétrica a «Semana anterior». En forced-colors el borde transparente se ve
+(§3.2) y el chip se distingue por el peso, como el pasado.
+
+**Sin horarios.** Copy derivado del de Figma: «La agenda del domingo 29 está
+completa» (Figma solo da hoy); «El horario libre más cercano es el lunes 30, a
+las 09:00.» («mañana» solo si es el día siguiente a hoy; el mes, solo si
+cambia); «Ver horarios del lunes 30». El botón desaparece y el foco va a la
+primera hora libre: el ListBox recién montado pinta sus opciones en un segundo
+commit y `SlotList` espera con un MutationObserver (antes de pintar), que se
+desconecta al encontrarla, al desmontar la lista o si cambia de día. En
+escritorio las acciones van intrínsecas (§3.6, Figma 02.6) aunque la columna
+mida menos de 36rem.
+
+**Missing.** «Continuar» sin hora: móvil, Booking Bar en Missing; escritorio,
+la nota se sustituye por `warning-circle` + «Elige un horario primero». Foco y
+`aria-describedby` a la primera hora libre; sin horas, a «Ver horarios del …»;
+sin hueco, a «Avisarme…». Missing persiste hasta elegir hora, también si
+cambia el día (el mensaje sigue siendo cierto), y el describedby sigue al
+destino; al elegir hora pasa a Chosen y se retira. `/kit/fecha-hora` aplica la
+misma regla. En None, la meta dice «Elige un horario» con el día con horas y
+«Elige un día con horarios» con el día lleno (`fullDay`); «Cuándo» dice «Sin
+horario elegido» en los dos.
+
+**Intro.** En un radio de la tira, envío implícito del form, que sale por su
+botón por defecto: el de la barra, asociado con `form=` (contraprueba: un
+`type="submit"` dentro del form, antes, se lleva el envío). Equivale a
+«Continuar», con su validación. En el ListBox y en el calendario Intro
+selecciona y no envía (sus opciones no son `input`).
+
+**Meta de la Booking Bar (≠ declarado).** «Presencial · 30 min» para todos los
+médicos, también los de «Presencial y videoconsulta»: la videoconsulta está
+fuera de alcance y toda reserva es presencial (la vista 3 quitó el fieldset de
+Modalidad por lo mismo).
+
+**Hoja «Elige una fecha» (`c-sheet--bottom`).** Anclada abajo, con el alto de
+su contenido y como mucho el del viewport; velo en el `::backdrop` al 45 %.
+Borrador propio (D2); foco inicial en el día seleccionado (panel 02.0);
+«Cerrar», Escape y un clic en el velo descartan y devuelven el foco a «Ver mes
+completo». El velo cierra solo si el botón se pulsa y se suelta en él:
+arrastrar desde la hoja y soltar fuera no cierra. Aplicar el mismo día
+conserva la hora; otro día la borra y la tira pasa a su semana. Al cruzar `lg`
+abierta se cierra y el foco va al `h1`, como cualquier foco que cae en `body`
+al cambiar de control (tira y calendario, barra y «Tu cita», Back Link y
+breadcrumb).
+
+**Encabezado del perfil.** `c-page-header--profile` lleva media query en `lg`
+(excepción declarada: es layout de página y cambia con el chrome, como
+`page-title`): en móvil avatar Medium y `h1` en fila; desde `lg`, avatar Large
+a la izquierda y nombre, especialidad y meta en columna. El avatar cambia de
+`Size` por `useMediaQuery` (la variante lleva también el paso de la inicial).
+
+**Texto al 200 % a 320.** Sin desborde; la tira en 3 columnas y las horas en
+1. Solo parten palabras más anchas que su interior: «completo» en «Ver mes
+completo» (interior 158 / 143), «Avisarme», «horarios», «martes», «libera» y
+«hueco» en las acciones del bloque (92 / 77, el límite de
+`empty-state-compact`) y «Continuar» en la barra (152,6 en 143). «completa»
+(175,4 en un título de 175 con barra clásica) es la trampa del margen de +0,5
+del detector, como «experiencia» en 4.5.
+
+**Par de 02.6 (≠ C4).** Figma mide 1440 × 912; el código, 914: +2 px del
+borde (Included) del Notice Info «Antes de continuar» (158), que 02.6 dibuja
+aún con el patrón Policy sin borde (156). En código es el Notice Info de 02.5
+(Pendientes, parche de Figma 02.6).
+
 ---
 
 ## Citas y diálogos
@@ -708,7 +813,7 @@ reintroducirlos:
 
 ---
 
-## Decisiones de arquitectura (D1–D15)
+## Decisiones de arquitectura (D1–D16)
 
 Tomadas en la planeación de la fase de código. No se reabren sin acuerdo
 explícito.
@@ -817,11 +922,14 @@ de lunes a sábado; domingo, 09:00–11:30. Mariana va desfasada un cuarto de
 hora (09:15–11:45 y 16:15–19:45), por su 19:15. La ocupación sale de un
 generador con semilla (mulberry32 sobre slug + fecha + hora), nunca de
 `Math.random`: las capturas deben ser estables. Los días declarados se
-escriben encima. Franjas: Mañana antes de las 12:00 y Tarde desde las 12:00.
+escriben encima. Franjas: Mañana antes de las 12:00 y Tarde desde las 12:00 (`slotGroups`; sin
+aserción, la cubren los pares de 02.1 y 02.5).
 Reservar o reprogramar no cambia la disponibilidad (declarado).
 
 **`publishedUntil`** por médico: límite de la generación y del selector
-(`maxValue = min(MAX_DATE, publishedUntil)`). **Full** (Result Card) se
+(`maxValue = min(MAX_DATE, publishedUntil)`, `bookableUntil` en
+`availability.ts`; sin aserción en `check-data`: lo ejerce `pnpm verify 5.2`
+en la semana de `maxValue` de Rodrigo). **Full** (Result Card) se
 deriva: ningún hueco libre entre `NOW` y `publishedUntil`. «Próximo cupo en
 {mes}» también: el mes del día siguiente a `publishedUntil`. Rodrigo:
 `publishedUntil` el 30 de abril, con abril entero ocupado.
@@ -929,13 +1037,15 @@ el mismo nodo y solo aloja `__count`: la anatomía es la del botón.
 contenedores de `UI/Day Chip` y `UI/Time Slot`, sin ser de los 34 (§ Fecha y
 hora). `c-page-header` (`PageHeader.tsx`) es el encabezado de página de las
 vistas, sin ser de los 34: en T1 solo lleva `__title` (`page-title`); su API
-crece vista por vista (V1a: `__subtitle`). `c-empty-state` (`EmptyState.tsx`)
+crece vista por vista (V1a: `__subtitle`; V2a: `back`, el retroceso, y
+`profile`, el perfil del médico con `--profile`). `c-empty-state` (`EmptyState.tsx`)
 es el estado vacío de pantalla, sin ser de los 34: placa, título con
 `headingLevel` (h2 en V1, h3 en el «sin horarios» de V2a), ayuda y acciones.
 `c-search-form`, `c-search-filters` y `c-results-header` son patrones de la
-vista 1 (`Search.tsx`), sin componente propio. `c-sheet` (`Sheet.tsx`) es la
-hoja a pantalla completa (01.2), sin ser de los 34; la variante inferior del
-calendario (02.2) llega en la vista 2. Los hooks (`useDisclosure`, `useMediaQuery`) viven
+vista 1 (`Search.tsx`), sin componente propio; `c-slot-picker` y
+`c-booking-summary`, de la vista 2 (`Specialist.tsx`). `c-sheet` (`Sheet.tsx`)
+es la hoja a pantalla completa (01.2), sin ser de los 34; su variante
+inferior, `c-sheet--bottom`, es la del calendario (02.2, V2a). Los hooks (`useDisclosure`, `useMediaQuery`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -1034,9 +1144,11 @@ antes del estático de `index.html` y lo retira al desmontar, así que
 médico, vacío al arrancar y reiniciado al recargar, como las citas (D13). Cruza
 vistas: sobrevive a ir al perfil y volver (medido en `pnpm verify 5.1`).
 Descartados: estado de la vista (se pierde al volver del perfil), URL (no es un
-criterio de búsqueda) y `localStorage` (rompe el «todo se reinicia»). La clave
-por médico liga «Avisarme si se libera un hueco» de V2b al médico, no al día; lo
-decide V2b. `check-data`: vacío al empezar, dos toques vuelven al inicio y un
+criterio de búsqueda) y `localStorage` (rompe el «todo se reinicia»).
+«Avisarme si se libera un hueco» (V2a) usa la misma clave: el aviso es del
+médico, no del día. El aviso activado desde la Result Card de Rodrigo se ve
+también en su perfil (al que solo se llega por URL), medido en `pnpm verify
+5.2`. `check-data`: vacío al empezar, dos toques vuelven al inicio y un
 médico no toca a otro, cada uno con su contraprueba.
 
 ---
@@ -1052,7 +1164,7 @@ médico no toca a otro, cada uno con su contraprueba.
 | 5 · V1b ✓ | **Fila del disparador en 01.1, 01.3 y 01.4. Cerrado en V1b:** a ±1 px con `c-results-header--trigger` (centrado; § Búsqueda y resultados). Recuento a 15 y pegado a la derecha; con `last baseline`, 01.3 medía 51 (contraprueba en `pnpm verify 5.1`). Al 200 % a 320 y con la letra a 24 y 32, con las dos barras, el recuento baja de línea sin partir palabras que quepan y la lista no se solapa |
 | 5 · V1b ✓ | **Hoja de filtros con replace y `preventScrollReset`. Cerrado en V1b:** «Ver N resultados» deja el mismo `idx` y el mismo `scrollY`, también con la página bloqueada bajo la hoja (medido en `pnpm verify 5.1`) |
 | 5 · V1b ✓ | **Acción del vacío al 200 % a 320. Cerrado en V1b** con `empty-state-compact` (16.75rem, § Contenedores): interior de 77/92 (antes 45/60); al 100 % a 320 y 375 el marco sigue en 24 |
-| 5 · V2a / V2b | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320.** Medirlos en la vista 2 móvil montada, con las dos barras de scroll: su interior real es más estrecho que el del kit (143 px con barra clásica, donde ya parten «completo» y «Avisarme» por 2–3 px). Si parten, se decide entonces, con la vista delante: copy más corto o padding |
+| 5 · V2a ✓ | **«Ver mes completo» y «Avisarme si se libera un hueco» al 200 % a 320. Cerrado en V2a como límite medido:** en la vista montada, interior de 158 / 143 (superpuesta / clásica) el primero y 92 / 77 las acciones del bloque sin horarios; solo parten palabras más anchas que su interior (§ Fecha y hora, Vista 2). El copy y el padding no cambian |
 | 5 · T2 ✓ | **Opciones de Motivo de consulta. Cerrado en T2:** `src/data/reasons.ts` (D4). El diseño solo fija «Primera consulta» (valor de `UI/Field/Select` en la vista 3). El resto de opciones son datos: se proponen con la capa de datos, no se inventan en el componente |
 | 5 · V3 | **`noValidate` en el formulario de la vista 3.** La validación es al enviar (§3.4), no la nativa del navegador: los campos llevan `required` por propósito y semántica, y el `<form>` necesita `noValidate` para que el navegador no muestre sus burbujas ni bloquee el envío antes que el resumen de errores |
 | 7     | **Ayuda de `UI/Legend` por `aria-describedby`.** Comprobar con NVDA y VoiceOver que la ayuda del fieldset («Todos los campos son obligatorios salvo…») se anuncia al entrar en el grupo, a través de `aria-describedby` en el `fieldset` |
@@ -1072,11 +1184,13 @@ médico no toca a otro, cada uno con su contraprueba.
 | 5 · V1a ✓ | **Lista en carga completa. Cerrado en V1a:** con solo esqueletos, el `ul` entero va `aria-hidden` (medido: el árbol solo tiene la lista de la barra inferior; contraprueba sin él: una lista de 0) |
 | 5 · V1a ✓ | **Foco al cambiar de página. Cerrado en V1a:** ni el `h1` (obligaría a recorrer el formulario) ni el `h2` «Resultados» (visualmente oculto: su anillo no se vería, 2.4.7), sino el nombre de la primera tarjeta, el destino de «Ver más» |
 | 5 · V1a ✓ | **Foto de la tarjeta. Cerrado en V1a:** `ResultCard` expone `photoSizes` y `photoLoading` (Avatar, `sizes`); la vista da `(min-width: 38rem) 4rem, 3rem` y eager solo en las dos primeras tarjetas (§ Búsqueda y resultados, fotos) |
-| 5 · V2a | **El enlace de V2 a V3 conserva `escenario`** (y los parámetros de V1, D1), o `?escenario=ocupada` no llega a la reserva fallida de la vista 3 |
+| 5 · V2a ✓ | **El enlace de V2 a V3 conserva `escenario`. Cerrado en V2a:** «Continuar con tus datos» y «Continuar» llevan los parámetros de V1 y `escenario` a `/datos` y `/confirmar` (medido en `pnpm verify 5.2`). El salto `/confirmar` → `/datos` es de V2b y repite la prueba |
+| Figma | **Figma 02.6: Policy → UI/Notice Info (parche por Scripter).** 02.6 no entró en la migración a `UI/Notice Info`: dibuja «Antes de continuar» sin borde (156 de alto; el frame mide 1440 × 912). En código es el Notice Info de 02.5 (158): el par de 02.6 mide 914, +2 px, ≠ declarado (C4) |
+| 7 | **Envío implícito con Intro en un radio en Firefox y Safari.** En Edge, Intro en un radio de la tira envía por el botón por defecto del form (el de la Booking Bar, por `form=`; § Fecha y hora, Vista 2). Comprobar que Firefox y Safari hacen el mismo envío implícito |
 | 7 | **`last baseline` en Safari.** Cabecera de resultados y `c-field` (V1a) solo se midieron en Edge. Si no se soporta, la declaración se ignora y el recuento se centra en la cabecera: comprobar en Safari de macOS e iOS |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
-| 5 · V2a | **Foco al desaparecer «Semana anterior».** Mismo caso que «Mes anterior» en la navegación de semana, pero sin RAC: si el botón tenía el foco y deja de existir, el foco cae en `body`. Decidir el destino al construir el selector de la vista 2 |
-| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). **V1a:** `/kit/estados` → 01.1 en `pnpm verify 5.1`, 0 píxeles, ✗ declarado por la misma regla. **Tras V1b** (`pnpm dev` recién arrancado, Edge headless a 1350): 2793 px en 445,129 → 508,192, iguales a los 4 s, en 20 de 20 pasadas, 10 con el foco de la búsqueda en `useEffect` y 10 en `useLayoutEffect`: no depende de ese cambio. La caja es la foto de la Dra. Ruiz en la primera tarjeta; a simple vista, las dos capturas son iguales. Sin medir si es el mismo resto o una resolución distinta de la foto tomada de la caché (docs/verificacion.md, Trampas, «`sizes` y la caché de imágenes»). Al cerrar la fase 5, junto a las dos candidatas. En el cierre de V1b, con un `pnpm dev` de días, medía 0: el servidor recién arrancado no lo evita, al revés que la hipótesis de sesión larga. Desde V1a, 5.0 y 5.1 aparcan el puntero antes de cada captura (`park`): la portada tiene casillas al final y el puntero dejaba en `:hover` la que pasaba bajo él al bajar con la rueda (188 px en `/kit` → `/`, justo la caja de «Videoconsulta»); 4.6 no lo usa y sigue en 4932 px. Al cerrar la fase 5: probar las dos candidatas; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
+| 5 · V2a ✓ | **Foco al desaparecer «Semana anterior». Cerrado en V2a:** el foco pasa a «Semana siguiente» en el mismo commit y la región de la semana la anuncia; lo simétrico en la semana de `maxValue` (medido en `pnpm verify 5.2` y `--preview`) |
+| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). **V1a:** `/kit/estados` → 01.1 en `pnpm verify 5.1`, 0 píxeles, ✗ declarado por la misma regla. **Tras V1b** (`pnpm dev` recién arrancado, Edge headless a 1350): 2793 px en 445,129 → 508,192, iguales a los 4 s, en 20 de 20 pasadas, 10 con el foco de la búsqueda en `useEffect` y 10 en `useLayoutEffect`: no depende de ese cambio. La caja es la foto de la Dra. Ruiz en la primera tarjeta; a simple vista, las dos capturas son iguales. Sin medir si es el mismo resto o una resolución distinta de la foto tomada de la caché (docs/verificacion.md, Trampas, «`sizes` y la caché de imágenes»). Al cerrar la fase 5, junto a las dos candidatas. En el cierre de V1b, con un `pnpm dev` de días, medía 0: el servidor recién arrancado no lo evita, al revés que la hipótesis de sesión larga. Desde V1a, 5.0 y 5.1 aparcan el puntero antes de cada captura (`park`): la portada tiene casillas al final y el puntero dejaba en `:hover` la que pasaba bajo él al bajar con la rueda (188 px en `/kit` → `/`, justo la caja de «Videoconsulta»); 4.6 no lo usa y sigue en 4932 px. **V2a:** desde que `/kit/fecha-hora` muestra la segunda variante None (90 px más de página), 4.6 mide 18632 px en 67,759 → 1267,879, iguales a los 4 s, en 2 de 2 pasadas: el mismo resto (avatares de `/kit` bajo la última Booking Bar), que ahora tapa la barra «Confirmar hora» entera; 01.1 → perfil en `pnpm verify 5.2`, 0 píxeles, ✗ declarado por la misma regla. Al cerrar la fase 5: probar las dos candidatas; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
 | 5 · T1 ✓ | **Foco al cambiar de ruta. Cerrado en T1** (`useRouteFocus`, D12): PUSH, POP, `search`, carga inicial y `state.focus` medidos en `pnpm verify 5.0` y en `--preview`; 4.7 pasa a ✓ con la contraprueba manual (sin el hook, foco en `body`). D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
 | 5 · V4a | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
 | 5 · T1 ✓ | **Filtro de consola en `4.7-citas.mjs`. Cerrado en T1:** «Reprogramar» llega a la ruta provisional con el foco en su `h1` y sin errores. El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |
@@ -1090,8 +1204,8 @@ médico no toca a otro, cada uno con su contraprueba.
 | 7     | **Carga diferida por ruta.** 4.6 lleva el JS de 393 a 595 kB (gzip 121 → 183) y Vite avisa del chunk de más de 500 kB. Medido en 8087662 y en 4.6 |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |
 | 5 · cierre | **`pnpm verify 4.4`, «Header/Desktop Signed-in … control a 16», con un `pnpm dev` de larga duración.** Contra el servidor de desarrollo que llevaba días arrancado, `/kit/navegacion?sesion=iniciada&actual=especialistas` cargaba en el Edge del arnés con `scrollY` 766 (el máximo) y el foco en `body`, y la medida daba −750 (61/62): 6 de 6 pasadas, en 7b1ceaa, 745f442, 0439ec3 y con V1b, y también sin `c-button__label`. En el navegador integrado cargaba en 0. Con `pnpm dev` recién arrancado: 62/62 en 3 de 3 (V1b). No es de la app ni de un commit: es un estado del servidor, sin aislar. Al cerrar la fase 5, junto a la ronda de T0: comprobar si reaparece con un servidor de larga duración y si comparte causa con el resto de pintado |
-| 5 · V2 | **Variante inferior de `c-sheet`** para la hoja del calendario (02.2), sobre el mismo bloque que la hoja de filtros (D5) |
-| 7 | **Atrás con la hoja abierta.** En Chrome Android ≥ 120 el gesto Atrás dispara `cancel` en un `<dialog>` modal (CloseWatcher) y cerraría la hoja. Comprobar Atrás con la hoja abierta en Android (Chrome, Safari iOS) y el botón Atrás en escritorio estrecho |
+| 5 · V2a ✓ | **Variante inferior de `c-sheet`. Cerrado en V2a:** `c-sheet--bottom` sobre el mismo bloque (D5); 02.2 a ±1 px (§ Fecha y hora, Vista 2) |
+| 7 | **Atrás con la hoja abierta** (filtros y calendario). En Chrome Android ≥ 120 el gesto Atrás dispara `cancel` en un `<dialog>` modal (CloseWatcher) y cerraría la hoja. Comprobar Atrás con la hoja abierta en Android (Chrome, Safari iOS) y el botón Atrás en escritorio estrecho |
 | 7 | **Hoja de filtros con lector.** Foco en el título al abrir, la región oculta del borrador («N resultados») y los dos mensajes al aplicar (el nombre del disparador con «N filtros aplicados» y la región del recuento) |
 | 7 | **Foco devuelto por la hoja en Safari y Firefox.** En Chromium lo devuelve el propio `<dialog>` al cerrar (la contraprueba de orden no discrimina); `Sheet` lo devuelve también de forma explícita |
 | 5 · tras V1b ✓ | **Foco en `body` un instante al cambiar de página con `lenta`. Cerrado:** «Siguiente» 8 → 9 y «Anterior» 2 → 1 se desmontan en el commit que trae los datos, y el `useEffect` de foco corría en otra tarea, 0,4–1,7 ms después. Sonda con MutationObserver (dev y preview, 40 pasadas): al terminar el commit, el foco estaba en `body` en 40 de 40, con un frame pintado entre medias en 7. El muestreo de 100 ms de 5.1 lo veía en 3 de 10 pasadas (V1b). Con `useLayoutEffect`, el foco llega a la tarjeta en el mismo commit: sonda, `H3` en 40 de 40 y ningún frame con `body`. 5.1 lo mide ahora en el desmontaje (`focoAlDesmontar`): 10 de 10 en `pnpm verify 5.1` (el único ✗ es el declarado del resto de pintado) y 10 de 10 en `--preview` (16/16). Contraprueba con `useEffect`: `focoAlDesmontar` `BODY` en 10 de 10 pasadas, en las dos líneas (49/52) |

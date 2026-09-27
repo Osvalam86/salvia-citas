@@ -5,6 +5,8 @@ type Day = {
   date: CalendarDate
   /** Horas libres; 0 es lleno. */
   free: number
+  /** Fuera de [hoy, maxValue]: aspecto de día pasado, no enfocable. Por defecto, dentro. */
+  inRange?: boolean
 }
 
 type DayStripProps = {
@@ -24,12 +26,13 @@ type DayStripProps = {
 export default function DayStrip({ name, days, value, onChange, today }: DayStripProps) {
   return (
     <div className="c-day-strip">
-      {days.map(({ date, free }) => (
+      {days.map(({ date, free, inRange = true }) => (
         <DayChip
           key={date.toString()}
           name={name}
           date={date}
           free={free}
+          inRange={inRange}
           isToday={date.compare(today) === 0}
           checked={value !== null && date.compare(value) === 0}
           onChange={onChange}

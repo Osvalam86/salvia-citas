@@ -463,6 +463,10 @@ props: etiqueta y glifo portan el estado.
     estático.
 - Info nunca lleva cierre ni acción, y su título es nominal, sin verbo de
   resultado.
+- El título es un encabezado cuyo nivel pone la pantalla, salvo en Info
+  cuando es texto destacado: «Antes de continuar» en «Tu cita» (vista 2) no es
+  encabezado (panel 02.0), y en código `headingLevel={null}` lo pinta como
+  `<p>`.
 - El glifo de Info es contextual (por ejemplo `calendar-check` en la placa de
   reprogramación); los de Success y Error portan el tono y no se cambian.
 

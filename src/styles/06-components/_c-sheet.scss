@@ -16,12 +16,19 @@
 //
 // Zona segura lateral y bajo el pie, como c-app-layout y su hueco de barra.
 .c-sheet {
-  inset: 0;
+  --_inset-block-start: 0;
+  --_block-size: 100%;
+  --_max-block-size: none;
+  --_radius: 0;
+
+  inset: var(--_inset-block-start) 0 0;
   inline-size: 100%;
   max-inline-size: none;
-  block-size: 100%;
-  max-block-size: none;
+  block-size: var(--_block-size);
+  max-block-size: var(--_max-block-size);
   margin: 0;
+  border-start-start-radius: var(--_radius);
+  border-start-end-radius: var(--_radius);
   padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
   overflow: hidden;
   color: var(--color-text-primary);
@@ -116,4 +123,22 @@
   &__fill {
     flex: 1 1 auto;
   }
+
+  // Hoja inferior (Figma 02.2, «Elige una fecha»): anclada abajo, con el alto
+  // de su contenido y como mucho el del viewport (entonces el cuerpo se
+  // desplaza, o la hoja entera con texto grande, como la de pantalla
+  // completa). radius-md arriba, sin marco propio. El velo es el ::backdrop,
+  // color-scrim al 45 %, como c-dialog; aquí el elemento es la hoja y no el
+  // velo, porque ninguna container query mide el velo.
+  &--bottom {
+    --_inset-block-start: auto;
+    --_block-size: auto;
+    --_max-block-size: 100%;
+    --_radius: var(--radius-md);
+  }
+}
+
+// Fuera del bloque: un solo nivel de anidamiento.
+.c-sheet--bottom::backdrop {
+  background-color: color-mix(in srgb, var(--color-scrim) 45%, transparent);
 }

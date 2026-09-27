@@ -115,8 +115,11 @@ export default async function run(b, expect) {
   // en Figma: el botón queda en 126 y el resumen en 201.
   expect('Booking Bar Chosen en la barra del shell a 375 (Figma 02.1: 74; resumen 200 y botón 127 con la etiqueta de 77)', await b.ev(barBox("document.querySelector('.c-app-layout__bar')")), { etiqueta: 76.3, barra: '375×74', resumen: '16,15 201×44', boton: '233,12 126×50' })
   await b.style('#kit-barras-variantes { inline-size: 375px; margin-inline: -16px }')
-  expect('«Confirmar hora» a 375 (Figma 02.7): botón de 167, resumen en el techo de 160, una línea cada texto', await b.ev(`(() => { const bar = document.querySelectorAll('#kit-barras-variantes .c-booking-bar')[3]; return { boton: Math.round(bar.querySelector('.c-booking-bar__submit').getBoundingClientRect().width), resumen: Math.round(bar.querySelector('.c-booking-bar__summary').getBoundingClientRect().width), alto: bar.getBoundingClientRect().height } })()`), { boton: 167, resumen: 160, alto: 74 })
-  expect('las tres variantes a 375: 74 de alto', await b.ev("[...document.querySelectorAll('#kit-barras-variantes .c-booking-bar')].slice(0, 3).map((x) => x.getBoundingClientRect().height)"), [74, 74, 74])
+  // Desde V2a el catálogo muestra None dos veces (día con horas, «Elige un
+  // horario»; día lleno, «Elige un día con horarios»): «Confirmar hora» es la
+  // quinta barra, no la cuarta, y las variantes a medir son cuatro.
+  expect('«Confirmar hora» a 375 (Figma 02.7): botón de 167, resumen en el techo de 160, una línea cada texto', await b.ev(`(() => { const bar = document.querySelectorAll('#kit-barras-variantes .c-booking-bar')[4]; return { boton: Math.round(bar.querySelector('.c-booking-bar__submit').getBoundingClientRect().width), resumen: Math.round(bar.querySelector('.c-booking-bar__summary').getBoundingClientRect().width), alto: bar.getBoundingClientRect().height } })()`), { boton: 167, resumen: 160, alto: 74 })
+  expect('las tres variantes (None con sus dos metas) a 375: 74 de alto', await b.ev("[...document.querySelectorAll('#kit-barras-variantes .c-booking-bar')].slice(0, 4).map((x) => x.getBoundingClientRect().height)"), [74, 74, 74, 74])
   await b.style('.c-booking-bar__inner { padding-block: var(--space-3) !important }')
   expect('contraprueba: sin restar el borde, 75', await b.ev("document.querySelector('#kit-barras-variantes .c-booking-bar').getBoundingClientRect().height"), 75)
   await b.unstyle()
@@ -643,7 +646,7 @@ import Calendar from '../components/Calendar.tsx'
 import DayStrip from '../components/DayStrip.tsx'
 const d = new CalendarDate(2029, 4, 23), w = { date: d, free: 0 }, f = () => {}
 export const V1 = () => <BookingBar selection="chosen" summary="s" meta="m" formId="f" submitLabel="Continuar" />
-export const V2 = () => <BookingBar selection="none" formId="f" submitLabel="Confirmar hora" />
+export const V2 = () => <BookingBar selection="none" fullDay={false} formId="f" submitLabel="Confirmar hora" />
 export const V3 = () => <BookingBar selection="missing" messageId="m" formId="f" submitLabel="Continuar" />
 export const V4 = () => <DayStrip name="n" days={[w, w, w, w, w, w, w]} value={d} onChange={f} today={d} />
 export const V5 = () => <Calendar value={null} onChange={f} today={d} maxValue={d} freeSlots={() => 0} focusedValue={d} onFocusChange={f} />

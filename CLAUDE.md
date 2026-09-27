@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a y V1b hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b y V2a hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -64,10 +64,18 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   almacén en memoria (D16, `src/data/notify.ts`); `c-button__label` (etiqueta
   que llena); `empty-state-compact`; página bloqueada bajo un diálogo modal
   (`html:has(dialog:modal)`, `04-elements`). `pnpm verify 5.1` ampliado.
+- Fase 5 · V2a: la vista 2 en `/especialistas/:slug` (`src/views/Specialist.tsx`,
+  02.1–02.3, 02.5, 02.6): `useSlotPicker` (D2, `src/hooks/`), `c-slot-picker`
+  (fieldset con tira y semana en móvil, tarjeta con calendario en escritorio,
+  umbral `slot-picker` 44.5625rem), `c-booking-summary` («Tu cita»), hoja del
+  calendario `c-sheet--bottom`, bloque sin horarios con el conmutador
+  «Avisarme si se libera un hueco» (D16), Missing en las dos plataformas;
+  `PageHeader` con `back` y `profile`; `BookingBar` con `fullDay`; `Notice`
+  Info con `headingLevel={null}`; `pnpm verify 5.2` (y `--preview`).
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
 T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a → V2b → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (02.4, confirmación previa) → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos
@@ -166,7 +174,7 @@ No hay test runner configurado.
 | 2    | tools, generic, elements (reset, foco global, `a` subrayado)                                         |
 | 3    | objects de layout                                                                                    |
 | 4    | Los 34 componentes del kit, con sus estados y su accesibilidad                                       |
-| 5    | Vistas 1 → 4, par móvil/escritorio por vista, y las tres piezas sin frame (página genérica en T1, conmutador «Avisarme» en V1b y V2b, aviso de reprogramación en V4b) |
+| 5    | Vistas 1 → 4, par móvil/escritorio por vista, y las tres piezas sin frame (página genérica en T1, conmutador «Avisarme» en V1b y V2a, aviso de reprogramación en V4b) |
 | 6    | Absorbida en la 5: las piezas sin frame las necesitan las vistas que las usan                        |
 | 7    | Auditoría (teclado, lector de pantalla, contraste en navegador) y despliegue                         |
 

@@ -3,14 +3,44 @@
 // Encabezado de página de las vistas (PageHeader.tsx). No es uno de los 34
 // (excepción declarada en D5). El h1 usa page-title: heading/lg por debajo de
 // lg y display desde lg, sin media query aquí (DESIGN.md § Paso derivado).
-// Título y subtítulo separados por space-2 (Figma 01.1, 01.5: Page Title).
+// Título y subtítulo separados por space-2 (Figma 01.1, 01.5: Page Title); el
+// retroceso, también a space-2 de lo que sigue (Figma 02.1: Page Heading).
+//
+// Perfil (--profile, vista 2). Excepción declarada: media query en lg, porque
+// el encabezado es layout de página y cambia con el chrome (breadcrumb en vez
+// de Back Link, avatar Large en vez de Medium, D7), como el page-title.
+// - Por debajo de lg (02.1): Back Link a space-2; avatar y h1 en fila y
+//   especialidad y meta debajo a todo el ancho, separados por space-3.
+// - Desde lg (02.5): breadcrumb a space-4; avatar a la izquierda, centrado en
+//   el alto del texto, a space-5; nombre, especialidad y meta en columna a
+//   space-2, y la meta en fila a space-4.
 .c-page-header {
+  --_gap: var(--space-2);
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--_gap);
+
+  &--profile {
+    @include tools.respond-to(lg) {
+      --_gap: var(--space-4);
+    }
+  }
+
+  // Mezcla sobre el retroceso: sin ella, el Back Link (flex) llenaría la fila
+  // y su área de clic excedería su contenido.
+  &__back {
+    align-self: flex-start;
+  }
 
   &__title {
     @include tools.text(page-title);
+  }
+
+  // En la fila del perfil, base 8rem (ver __identity).
+  &__title--profile {
+    flex: 1 1 8rem;
+    text-wrap: pretty;
   }
 
   // text-secondary solo sobre color-surface: el fondo de la vista.
@@ -18,5 +48,80 @@
     @include tools.text(body-md);
 
     color: var(--color-text-secondary);
+  }
+
+  // Perfil del médico (Figma 02.1: Profile): identidad, especialidad y meta,
+  // separados por space-3.
+  &__profile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    @include tools.respond-to(lg) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-2) var(--space-5);
+    }
+  }
+
+  // Avatar y h1 en fila, centrados (Figma: Profile Heading, gap 16). Con
+  // flex-wrap y base 8rem en el h1: el avatar sube a su propia línea antes de
+  // que el nombre parta palabras (DESIGN.md § Controles con icono y etiqueta).
+  // Desde lg, avatar y h1 son celdas de la rejilla del perfil.
+  &__identity {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+
+    @include tools.respond-to(lg) {
+      display: contents;
+    }
+  }
+
+  // Mezcla sobre c-avatar.
+  &__avatar {
+    @include tools.respond-to(lg) {
+      grid-row: 1 / span 3;
+      align-self: center;
+    }
+  }
+
+  &__specialty {
+    @include tools.text(body-md);
+
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+
+  // Ubicación y modalidad apiladas a space-2 (Figma 02.1: Meta).
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+
+    @include tools.respond-to(lg) {
+      flex-flow: row wrap;
+      gap: var(--space-2) var(--space-4);
+      align-items: center;
+    }
+  }
+
+  // Icono y texto: el icono baja de línea antes de que el texto parta (base
+  // 8rem, como la ubicación de Result Card).
+  &__location {
+    @include tools.text(caption);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: flex-start;
+    color: var(--color-text-secondary);
+  }
+
+  &__location-text {
+    flex: 1 1 8rem;
+    text-wrap: pretty;
   }
 }

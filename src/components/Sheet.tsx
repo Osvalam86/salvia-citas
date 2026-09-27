@@ -1,9 +1,17 @@
-import { useEffect, useId, useRef, type FormEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useId, useRef, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode, type RefObject } from 'react'
 import IconButton from './IconButton.tsx'
 
 type SheetProps = {
-  /** Título de la hoja («Filtrar y ordenar»): el h2, el nombre del diálogo y su primer foco. */
+  /**
+   * full: a pantalla completa, sin velo (01.2, «Filtrar y ordenar»). bottom:
+   * hoja inferior con el alto de su contenido, sobre el velo (02.2, «Elige
+   * una fecha»); un clic en el velo la cierra como «Cerrar».
+   */
+  variant?: 'full' | 'bottom'
+  /** Título de la hoja: el h2, el nombre del diálogo y, sin initialFocus, su primer foco. */
   title: string
+  /** Primer foco, si no es el título: el día seleccionado del calendario (panel 02.0). */
+  initialFocus?: (dialog: HTMLDialogElement) => HTMLElement | null
   /** El disparador: recibe el foco al cerrar, se aplique o no. */
   returnFocus: RefObject<HTMLElement | null>
   /** «Cerrar» o Escape: se descarta lo que haya en la hoja. */
@@ -16,9 +24,10 @@ type SheetProps = {
   children: ReactNode
 }
 
-// Hoja a pantalla completa (c-sheet; Figma 01.2). No es uno de los 34:
-// excepción declarada en D5. Se monta al abrirse y se desmonta al cerrarse,
-// así que su estado (el borrador de filtros) nace y muere con ella.
+// Hoja a pantalla completa (c-sheet; Figma 01.2) o inferior (c-sheet--bottom;
+// Figma 02.2). No es uno de los 34: excepción declarada en D5. Se monta al
+// abrirse y se desmonta al cerrarse, así que su estado (el borrador de
+// filtros o de fecha) nace y muere con ella.
 //
 // <dialog> nativo con showModal(), como UI/Dialog: capa superior, fondo inert
 // y Escape por el evento cancel. role dialog (panel 01.0), nombrado por su
@@ -34,10 +43,11 @@ type SheetProps = {
 // Chromium ya devuelve el foco al cerrar (al elemento que lo tenía antes de
 // showModal()); el explícito es el respaldo para Safari y Firefox, como en
 // UI/Dialog (DESIGN.md, Pendientes, fase 7).
-export default function Sheet({ title, returnFocus, onDismiss, onSubmit, footer, children }: SheetProps) {
+export default function Sheet({ variant = 'full', title, initialFocus, returnFocus, onDismiss, onSubmit, footer, children }: SheetProps) {
   const dialog = useRef<HTMLDialogElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const submitted = useRef(false)
+  const pressedOnScrim = useRef(false)
   const titleId = useId()
 
   // StrictMode repite el efecto: con la hoja ya abierta no se vuelve a abrir.
@@ -45,8 +55,33 @@ export default function Sheet({ title, returnFocus, onDismiss, onSubmit, footer,
     const element = dialog.current
     if (!element || element.open) return
     element.showModal()
-    heading.current?.focus()
+    ;(initialFocus?.(element) ?? heading.current)?.focus()
+    // Solo al abrir: initialFocus no reabre la hoja.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Velo de la hoja inferior: el ::backdrop es del propio <dialog>, así que
+  // un clic en él llega al dialog fuera de su caja. Cierra solo si el botón
+  // se pulsó y se soltó en el velo: arrastrar desde la hoja y soltar fuera
+  // (el click va al ancestro común, el dialog) no cierra.
+  const onScrim = (event: PointerEvent<HTMLDialogElement> | MouseEvent<HTMLDialogElement>) => {
+    const element = dialog.current
+    if (!element || event.target !== element) return false
+    const box = element.getBoundingClientRect()
+    return event.clientY < box.top || event.clientY > box.bottom || event.clientX < box.left || event.clientX > box.right
+  }
+  const scrimHandlers =
+    variant === 'bottom'
+      ? {
+          onPointerDown: (event: PointerEvent<HTMLDialogElement>) => {
+            pressedOnScrim.current = onScrim(event)
+          },
+          onClick: (event: MouseEvent<HTMLDialogElement>) => {
+            if (pressedOnScrim.current && onScrim(event)) dialog.current?.close()
+            pressedOnScrim.current = false
+          },
+        }
+      : {}
 
   // Todo cierre pasa por aquí: «Cerrar», Escape y el envío.
   const handleClose = () => {
@@ -67,7 +102,14 @@ export default function Sheet({ title, returnFocus, onDismiss, onSubmit, footer,
   }
 
   return (
-    <dialog ref={dialog} className="c-sheet" aria-labelledby={titleId} aria-modal="true" onClose={handleClose}>
+    <dialog
+      ref={dialog}
+      className={variant === 'bottom' ? 'c-sheet c-sheet--bottom' : 'c-sheet'}
+      aria-labelledby={titleId}
+      aria-modal="true"
+      onClose={handleClose}
+      {...scrimHandlers}
+    >
       <div className="c-sheet__header">
         <div className="o-wrapper c-sheet__heading">
           <h2 className="c-sheet__title" id={titleId} ref={heading} tabIndex={-1}>

@@ -19,19 +19,24 @@ type ViewLayoutProps = {
    * Marca su destino solo si la vista es ese destino (currentKind «page»).
    */
   bottomNav?: boolean
+  /**
+   * Barra de tarea de la vista (UI/Booking Bar, Action Bar), en lugar de la
+   * barra inferior. La vista la pasa solo bajo lg (D7).
+   */
+  bar?: ReactNode
   children: ReactNode
 }
 
 // Chrome de cada vista (D7): el de escritorio desde lg y el móvil por debajo,
 // uno solo en el DOM.
-export default function ViewLayout({ title, current, currentKind = 'page', bottomNav = false, children }: ViewLayoutProps) {
+export default function ViewLayout({ title, current, currentKind = 'page', bottomNav = false, bar: taskBar, children }: ViewLayoutProps) {
   const isDesktop = useMediaQuery('lg')
   const header = isDesktop ? (
     <HeaderDesktop session="signed-in" userName="Karla Sánchez" current={current} currentKind={currentKind} />
   ) : (
     <HeaderMobile />
   )
-  const bar = !isDesktop && bottomNav ? <BottomNav current={currentKind === 'page' ? current : undefined} /> : undefined
+  const bar = !isDesktop && bottomNav ? <BottomNav current={currentKind === 'page' ? current : undefined} /> : taskBar
 
   return (
     <AppLayout header={header} bar={bar}>

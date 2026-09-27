@@ -1,0 +1,154 @@
+@use '../02-tools' as tools;
+
+// Selector de fecha y hora de la vista 2 (Specialist.tsx; Figma 02.1–02.3,
+// 02.5, 02.6). Patrón de vista, sin componente propio, como c-search-form.
+// - Móvil: la raíz es el form; separa la fecha y las horas por space-6
+//   (Figma: Main, gap 32).
+// - Escritorio: la raíz es la celda de la rejilla, que aporta el ancho y es
+//   el contenedor slot-picker (DESIGN.md § Contenedores); dentro, la tarjeta
+//   (__card), que cambia de forma. En móvil la raíz también es contenedor,
+//   pero nunca alcanza el umbral (la columna mide como mucho 608).
+.c-slot-picker {
+  container: slot-picker / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  // Fieldset «Elige fecha» (C1, ≠ panel 02.0: los botones de semana van
+  // dentro del grupo para que el DOM siga el orden visual). Fila de legend y
+  // «Ver mes completo» a space-3, centradas (Figma: Date Header); a space-4,
+  // la semana. Con flex-wrap: con el texto ampliado, el botón baja de línea
+  // antes de que la legend parta.
+  &__dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-3);
+    align-items: center;
+  }
+
+  // Mezcla sobre c-legend: flotada, deja de ser la legend renderizada y es
+  // un ítem más; aquí ocupa lo que deja el botón en vez del 100 %.
+  &__legend {
+    flex: 1 1 auto;
+    inline-size: auto;
+  }
+
+  // Mezcla sobre c-button: no crece (ancho intrínseco también al bajar de
+  // línea, sin FILL) y encoge con el texto ampliado, cuando ni sola cabe.
+  &__month {
+    flex: 0 1 auto;
+  }
+
+  // Navegación de semana y tira, a space-2 (Figma: Week Picker).
+  &__week {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  // Etiqueta a la izquierda y botones a la derecha; sin «Semana anterior», el
+  // de avance conserva su sitio (§4.5). flex-wrap: los botones bajan antes de
+  // que la etiqueta parta.
+  &__week-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__week-label {
+    @include tools.text(body-strong);
+
+    color: var(--color-text-primary);
+  }
+
+  // Dos columnas fijas de 48 (UI/Icon Button), una por control: el que queda
+  // conserva su sitio cuando se omite el otro en un límite del rango, el mismo
+  // criterio que la paginación (§4.5).
+  &__week-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 3rem);
+    gap: var(--space-1);
+    margin-inline-start: auto;
+  }
+
+  // Mezclas sobre c-icon-button.
+  &__week-previous {
+    grid-column: 1;
+  }
+
+  &__week-next {
+    grid-column: 2;
+  }
+
+  // Horas: cabecera y lista (o bloque sin horarios) a space-4 (Figma: Time
+  // Section); título y estado a space-2 (Time Header).
+  // En la tarjeta en fila, las horas toman el ancho sobrante.
+  &__times {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    @include tools.container(slot-picker, slot-picker) {
+      flex: 1 1 0;
+      min-inline-size: 0;
+    }
+  }
+
+  &__times-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  &__heading {
+    @include tools.text(heading-sm);
+
+    color: var(--color-text-primary);
+  }
+
+  // text-secondary solo sobre color-surface: el fondo de la vista.
+  &__status {
+    @include tools.text(body-md);
+
+    color: var(--color-text-secondary);
+  }
+
+  // Tarjeta de pantalla (escritorio): color-surface, borde color-border
+  // decorativo, radius-md, padding y gap space-6 (Figma: Frame · Slot
+  // Picker). Apilada por debajo de 44.5625rem de celda; en fila desde ahí,
+  // con el calendario a 360 fijo y las horas fluidas.
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    @include tools.container(slot-picker, slot-picker) {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+
+  // Columna del calendario: «Elige fecha» (h2) y UI/Calendar a space-4. 360
+  // fijos también apilada (sin frame en Figma: el calendario no se estira).
+  &__calendar {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--space-4);
+    inline-size: min(22.5rem, 100%);
+  }
+
+  // Mezcla sobre c-button en el bloque sin horarios de escritorio: acción
+  // intrínseca (diseño §3.6; Figma 02.6), aunque la columna mida menos de
+  // 36rem.
+  &__action {
+    align-self: flex-start;
+  }
+}

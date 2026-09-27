@@ -14,17 +14,19 @@ type LegendProps = Help & {
   level: 'section' | 'group'
   /** D14: <legend><h2>…</h2></legend> cuando la legend es también un encabezado. */
   headingLevel?: 2 | 3
+  /** Clase de elemento del padre para colocarla (mezcla BEM): la fila de «Elige fecha» (V2a). */
+  className?: string
   children: string
 }
 
 // UI/Legend: primer hijo de un <fieldset>, que es patrón de pantalla. Pinta
 // dos bloques, c-legend y c-legend-help (DESIGN.md, D5).
-export default function Legend({ level, headingLevel, help, helpId, children }: LegendProps) {
+export default function Legend({ level, headingLevel, help, helpId, className, children }: LegendProps) {
   const Heading = headingLevel === 2 ? 'h2' : 'h3'
 
   return (
     <>
-      <legend className={`c-legend c-legend--${level}`}>
+      <legend className={[`c-legend c-legend--${level}`, className].filter(Boolean).join(' ')}>
         {headingLevel ? <Heading className="c-legend__heading">{children}</Heading> : children}
       </legend>
       {help && (

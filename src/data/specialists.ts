@@ -195,6 +195,17 @@ export const SLUGS = {
   serrano: 'paula-serrano-vidal',
 } as const
 
+/**
+ * Nombre corto del breadcrumb y del retroceso: tratamiento y primer apellido
+ * («Dra. Ruiz», «Dr. Cortés»). Todos los nombres llevan tratamiento, nombre
+ * de pila y dos apellidos (check-data), así que el primero es la penúltima
+ * palabra.
+ */
+export function shortName(specialist: Pick<Specialist, 'name'>) {
+  const words = specialist.name.split(/\s+/)
+  return `${words[0]} ${words[words.length - 2]}`
+}
+
 export function findSpecialist(slug: string | undefined, specialists = SPECIALISTS) {
   return specialists.find((s) => s.slug === slug)
 }

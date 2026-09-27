@@ -20,10 +20,16 @@ type Chosen = Base & {
   /** «Presencial · 30 min» */
   meta: string
   messageId?: never
+  fullDay?: never
 }
 
 type None = Base & {
   selection: 'none'
+  /**
+   * El día marcado no tiene horas libres: la meta pide otro día. Con horas,
+   * pide un horario (el estado inicial de D2: día elegido, hora no).
+   */
+  fullDay: boolean
   summary?: never
   meta?: never
   messageId?: never
@@ -35,6 +41,7 @@ type Missing = Base & {
   messageId: string
   summary?: never
   meta?: never
+  fullDay?: never
 }
 
 export type BookingBarProps = Chosen | None | Missing
@@ -50,10 +57,12 @@ export default function BookingBar(props: BookingBarProps) {
   const { selection, formId, submitLabel } = props
 
   let title = 'Sin horario elegido'
-  let meta = 'Elige un día con horarios'
+  let meta = 'Elige un horario'
   if (selection === 'chosen') {
     title = props.summary
     meta = props.meta
+  } else if (selection === 'none' && props.fullDay) {
+    meta = 'Elige un día con horarios'
   } else if (selection === 'missing') {
     meta = 'Elige un horario primero'
   }

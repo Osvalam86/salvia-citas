@@ -58,6 +58,29 @@ export function nextOpeningText(opening: CalendarDate) {
   return `Sin disponibilidad · próximo cupo en ${monthName(opening)}`
 }
 
+const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
+
+/** «Martes 24 de abril»: subtítulo de «Elige hora» (Figma 02.1, 02.3). */
+export function dayTitle(date: CalendarDate) {
+  return capitalize(`${weekdayLong.format(toDate(date))} ${date.day} de ${monthName(date)}`)
+}
+
+/**
+ * «martes 24», con « de mayo» solo si el mes no es el de `reference`: en el
+ * bloque sin horarios, el día del que se habla ya dice el mes.
+ */
+export function weekdayDay(date: CalendarDate, reference: CalendarDate) {
+  const month = date.month === reference.month ? '' : ` de ${monthName(date)}`
+  return `${weekdayLong.format(toDate(date))} ${date.day}${month}`
+}
+
+/** Etiqueta de la semana de la tira: «23 – 29 de abril», o «30 de abril – 6 de mayo» entre dos meses. */
+export function weekRangeText(start: CalendarDate) {
+  const end = start.add({ days: 6 })
+  if (start.month === end.month) return `${start.day} – ${end.day} de ${monthName(end)}`
+  return `${start.day} de ${monthName(start)} – ${end.day} de ${monthName(end)}`
+}
+
 /** «6 horarios libres», «1 horario libre», «sin horarios». */
 export function freeSlotsText(free: number) {
   if (free === 0) return 'sin horarios'

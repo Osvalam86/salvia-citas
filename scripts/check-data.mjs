@@ -6,13 +6,13 @@
 // una mutación por aserción y exige que esa aserción falle. La ejecuta
 // pnpm verify 5.0.
 import { CalendarDate } from '@internationalized/date'
-import { AVAILABILITY, CORTES_FULL_MAY, firstFree, isFull, nextOpeningMonth, weekday } from '../src/data/availability.ts'
+import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFreeAfter, nextOpeningMonth, weekday } from '../src/data/availability.ts'
 import { NOW, TODAY } from '../src/data/clock.ts'
 import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appointments.ts'
 import { createNotifyStore } from '../src/data/notify.ts'
 import { SLOW_MS, withScenario } from '../src/data/scenario.ts'
 import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, emptyCause, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
-import { FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS } from '../src/data/specialists.ts'
+import { FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS, shortName } from '../src/data/specialists.ts'
 
 const NOW_TIME = `${String(NOW.hour).padStart(2, '0')}:${String(NOW.minute).padStart(2, '0')}`
 const day = (ctx, slug, iso) => ctx.availability[slug]?.[iso] ?? []
@@ -115,6 +115,24 @@ const ASSERTIONS = {
     const ms = Math.round(performance.now() - start)
     return (ms >= SLOW_MS && ms < 1700) || `${ms} ms`
   }],
+  initialRuiz: ['Selector de Ruiz sin parámetros (D2): empieza el 24', (ctx) => initialDate(SLUGS.ruiz, ctx.availability).toString() === '2029-04-24' || initialDate(SLUGS.ruiz, ctx.availability).toString()],
+  nextFreeRuiz: ['Sin horarios de Ruiz el 23: el hueco más cercano es el 24 a las 10:30', (ctx) => {
+    const next = nextFreeAfter(SLUGS.ruiz, TODAY, ctx.availability)
+    return (next?.date.toString() === '2029-04-24' && next.time === '10:30') || JSON.stringify(next && { date: next.date.toString(), time: next.time })
+  }],
+  rodrigoNoNext: ['Rodrigo: sin hueco más cercano y su selector empieza hoy', (ctx) => {
+    const next = nextFreeAfter(SLUGS.rodrigo, TODAY.subtract({ days: 1 }), ctx.availability)
+    const start = initialDate(SLUGS.rodrigo, ctx.availability)
+    return (next === null && start.compare(TODAY) === 0) || JSON.stringify({ next: next && `${next.date} ${next.time}`, start: start.toString() })
+  }],
+  shortNames: ['Nombres cortos: Dra. Ruiz, Dr. Molina, Dr. Cortés, Dr. Ibarra, Dra. Serrano', (ctx) => {
+    const names = [SLUGS.ruiz, SLUGS.molina, SLUGS.cortes, SLUGS.ibarra, SLUGS.serrano].map((slug) => shortName(ctx.specialists.find((s) => s.slug === slug)))
+    return same(names, ['Dra. Ruiz', 'Dr. Molina', 'Dr. Cortés', 'Dr. Ibarra', 'Dra. Serrano']) || names.join(', ')
+  }],
+  nameShape: ['Todo nombre lleva tratamiento, nombre de pila y dos apellidos (shortName)', (ctx) => {
+    const bad = ctx.specialists.filter((s) => !/^Dra?\. /.test(s.name) || s.name.split(' ').length < 4).map((s) => s.name)
+    return bad.length === 0 || bad.join(', ')
+  }],
   notifyEmpty: ['Avisos (D16): el almacén empieza vacío', (ctx) => ctx.makeNotify().getSnapshot().size === 0 || `${ctx.makeNotify().getSnapshot().size} pedidos`],
   notifyToggle: ['Avisos: conmutar dos veces vuelve al estado inicial', (ctx) => {
     const store = ctx.makeNotify()
@@ -173,6 +191,11 @@ const MUTATIONS = {
   notice: ['el aviso no se consume', (c) => wrapStore(c, () => ({ takeNotice: () => ({ kind: 'reprogramada', id: 'c3' }) }))],
   busy: ['ocupada ignorado', (c) => wrapStore(c, (s) => ({ book: (input) => s.book(input) }))],
   slow: ['lenta sin retraso', (c) => ({ ...c, withScenario: async (_, run) => run() })],
+  initialRuiz: ['liberar Ruiz 23 a las 10:00', (c) => setSlot(c, SLUGS.ruiz, '2029-04-23', '10:00', true)],
+  nextFreeRuiz: ['ocupar Ruiz 24 a las 10:30', (c) => setSlot(c, SLUGS.ruiz, '2029-04-24', '10:30', false)],
+  rodrigoNoNext: ['liberar Rodrigo el 30 a las 09:00', (c) => setSlot(c, SLUGS.rodrigo, '2029-04-30', '09:00', true)],
+  shortNames: ['Ruiz con un solo apellido', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === SLUGS.ruiz ? { ...s, name: 'Dra. Elena Ruiz' } : s)) })],
+  nameShape: ['un generado sin segundo apellido', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === firstGeneratedCardiology ? { ...s, name: s.name.split(' ').slice(0, 3).join(' ') } : s)) })],
   notifyEmpty: ['sembrado con Rodrigo', (c) => wrapNotify(c, (s) => { s.toggle(SLUGS.rodrigo); return {} })],
   notifyToggle: ['conmutar solo añade', (c) => wrapNotify(c, (s) => ({ toggle: (slug) => { if (!s.has(slug)) s.toggle(slug) } }))],
   notifyPerSpecialist: ['clave compartida entre médicos', (c) => wrapNotify(c, (s) => ({ toggle: () => s.toggle('todos'), has: () => s.has('todos') }))],

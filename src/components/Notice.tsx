@@ -9,8 +9,9 @@ type Common = {
   title: string
   /**
    * Nivel del título según dónde vaya el aviso (D14). Sin valor por defecto.
-   * El diseño solo usa 2 (tras el h1 de la vista); 3 y 4 existen para otros
-   * contextos, como el catálogo /kit.
+   * El diseño usa 2 (tras el h1 de la vista); 3 y 4 existen para otros
+   * contextos, como el catálogo /kit. null, solo en Info: el título es texto
+   * destacado y no encabezado («Antes de continuar» en «Tu cita», panel 02.0).
    */
   headingLevel: 2 | 3 | 4
   /** Cuerpo en tinta, contenido de frase: va dentro de un <p>. */
@@ -21,8 +22,9 @@ type Common = {
 
 // Info: contenido estático. Sin rol, sin foco, sin cierre ni acción; su glifo
 // es contextual (por defecto info).
-type InfoProps = Common & {
+type InfoProps = Omit<Common, 'headingLevel'> & {
   tone: 'info'
+  headingLevel: Common['headingLevel'] | null
   icon?: IconName
   delivery?: never
   open?: never
@@ -83,7 +85,7 @@ export default function Notice(props: NoticeProps) {
     if (props.tone !== 'info') props.onDismiss?.()
   }
 
-  const Heading = (['h2', 'h3', 'h4'] as const)[headingLevel - 2]
+  const Heading = headingLevel === null ? 'p' : (['h2', 'h3', 'h4'] as const)[headingLevel - 2]
   const icon: IconName = props.tone === 'info' ? (props.icon ?? 'info') : TONE_ICON[props.tone]
   const classes = ['c-notice', `c-notice--${tone}`, className].filter(Boolean).join(' ')
 

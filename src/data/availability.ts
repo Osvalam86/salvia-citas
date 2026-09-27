@@ -1,5 +1,5 @@
 import { CalendarDate, parseDate } from '@internationalized/date'
-import { NOW, TODAY } from './clock.ts'
+import { MAX_DATE, NOW, TODAY } from './clock.ts'
 import { GENERATED_CARDIOLOGY, SLUGS, SPECIALISTS, type Specialist } from './specialists.ts'
 
 // Disponibilidad (D4). Un registro por médico, Record<ISODate, Slot[]>, desde
@@ -145,6 +145,42 @@ export function firstFree(slug: string, availability: Availability = AVAILABILIT
 
 /** Mes en que se abre la agenda siguiente de un médico lleno (el del día después de publishedUntil). */
 export const nextOpeningMonth = (specialist: Specialist) => specialist.publishedUntil.add({ days: 1 })
+
+/**
+ * Día inicial del selector sin parámetros (D2): el primer día con horas
+ * libres desde hoy. Sin ninguno (Rodrigo, agenda publicada llena), hoy.
+ */
+export function initialDate(slug: string, availability: Availability = AVAILABILITY) {
+  const first = firstFree(slug, availability)
+  return first ? parseDate(first.date) : TODAY
+}
+
+/** Hueco libre más cercano después de un día (bloque sin horarios, §5.2), o null. */
+export function nextFreeAfter(slug: string, date: CalendarDate, availability: Availability = AVAILABILITY) {
+  const after = date.toString()
+  const days = availability[slug] ?? {}
+  for (const iso of Object.keys(days).sort()) {
+    if (iso <= after) continue
+    const slot = days[iso].find((s) => s.available)
+    if (slot) return { date: parseDate(iso), time: slot.time }
+  }
+  return null
+}
+
+/** Último día reservable del selector: maxValue = min(MAX_DATE, publishedUntil) (D4). */
+export const bookableUntil = (specialist: Specialist) =>
+  specialist.publishedUntil.compare(MAX_DATE) < 0 ? specialist.publishedUntil : MAX_DATE
+
+export type SlotGroup = { label: 'Mañana' | 'Tarde'; slots: Slot[] }
+
+/** Franjas (D4): Mañana antes de las 12:00 y Tarde desde las 12:00. Una franja sin horas no se pinta. */
+export function slotGroups(slots: DayAvailability): SlotGroup[] {
+  const groups: SlotGroup[] = [
+    { label: 'Mañana', slots: slots.filter((s) => s.time < '12:00') },
+    { label: 'Tarde', slots: slots.filter((s) => s.time >= '12:00') },
+  ]
+  return groups.filter((g) => g.slots.length > 0)
+}
 
 /** ¿Es `hora` una hora libre de `fecha` para ese médico? (guardas de D1). */
 export function isFreeSlot(slug: string, date: string | null, time: string | null, availability: Availability = AVAILABILITY) {

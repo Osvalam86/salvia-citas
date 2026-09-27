@@ -64,9 +64,11 @@ const MAY_17_DATE = new CalendarDate(2029, 5, 17)
 const META = 'Presencial · 30 min'
 const MESSAGE_ID = 'kit-reserva-mensaje'
 
-// Demo viva: tira, horas y barra comparten estado, como hará useSlotPicker
-// (D2): cambiar de fecha borra la hora. «Continuar» sin hora pasa la barra a
+// Demo viva: tira, horas y barra comparten estado, como useSlotPicker (D2):
+// cambiar de fecha borra la hora. «Continuar» sin hora pasa la barra a
 // Missing y lleva el foco a la primera hora libre, que recibe el mensaje.
+// Missing persiste hasta elegir hora, también si cambia el día: el mensaje
+// sigue siendo cierto (la misma regla que la vista 2).
 function BookingDemo({ onBar }: { onBar: (bar: BookingBarProps) => void }) {
   const [date, setDate] = useState<CalendarDate>(APRIL_24_DATE)
   const [time, setTime] = useState<string | null>('10:30')
@@ -76,9 +78,9 @@ function BookingDemo({ onBar }: { onBar: (bar: BookingBarProps) => void }) {
   const groups = slotsFor(date)
 
   useEffect(() => {
-    let bar: BookingBarProps = { selection: 'none', formId: 'kit-reserva', submitLabel: 'Continuar' }
+    let bar: BookingBarProps = { selection: 'none', fullDay: groups.length === 0, formId: 'kit-reserva', submitLabel: 'Continuar' }
     if (time) bar = { selection: 'chosen', summary: `${shortDate(date)} · ${time}`, meta: META, formId: 'kit-reserva', submitLabel: 'Continuar' }
-    else if (missing && groups.length > 0) bar = { selection: 'missing', messageId: MESSAGE_ID, formId: 'kit-reserva', submitLabel: 'Continuar' }
+    else if (missing) bar = { selection: 'missing', messageId: MESSAGE_ID, formId: 'kit-reserva', submitLabel: 'Continuar' }
     onBar(bar)
   }, [date, time, missing, groups.length, onBar])
 
@@ -90,7 +92,7 @@ function BookingDemo({ onBar }: { onBar: (bar: BookingBarProps) => void }) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (time || groups.length === 0) return
+    if (time) return
     setMissing(true)
     focusPending.current = true
   }
@@ -108,7 +110,6 @@ function BookingDemo({ onBar }: { onBar: (bar: BookingBarProps) => void }) {
           onChange={(d) => {
             setDate(d)
             setTime(null)
-            setMissing(false)
           }}
           today={TODAY}
         />
@@ -231,11 +232,15 @@ export default function KitDateTime() {
           <h2 className="c-kit__heading" id="kit-booking-bar">
             Booking Bar
           </h2>
-          <p>Las tres variantes, fuera de la barra del shell. Envían a un formulario vacío.</p>
+          <p>
+            Las tres variantes, fuera de la barra del shell; None, con el día con horas («Elige un
+            horario») y con el día lleno. Envían a un formulario vacío.
+          </p>
           <form id="kit-barras" onSubmit={(event) => event.preventDefault()} />
           <div className="o-stack o-stack--gap-4" id="kit-barras-variantes">
             <BookingBar selection="chosen" summary="mar 24 abr · 10:30" meta={META} formId="kit-barras" submitLabel="Continuar" />
-            <BookingBar selection="none" formId="kit-barras" submitLabel="Continuar" />
+            <BookingBar selection="none" fullDay={false} formId="kit-barras" submitLabel="Continuar" />
+            <BookingBar selection="none" fullDay formId="kit-barras" submitLabel="Continuar" />
             <BookingBar selection="missing" messageId="kit-barras-mensaje" formId="kit-barras" submitLabel="Continuar" />
             <BookingBar selection="chosen" summary="jue 17 may · 17:00" meta={META} formId="kit-barras" submitLabel="Confirmar hora" />
           </div>

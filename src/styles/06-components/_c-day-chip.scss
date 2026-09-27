@@ -21,6 +21,7 @@
   --_day: var(--color-text-primary);
   --_day-weight: var(--text-body-strong-weight);
   --_day-decoration: none;
+  --_cursor: pointer;
 
   position: relative;
   display: flex;
@@ -28,7 +29,7 @@
   align-items: center;
   padding: var(--space-2) var(--space-1);
   white-space: nowrap;
-  cursor: pointer;
+  cursor: var(--_cursor);
   background-color: var(--_bg);
   border: 1px var(--_border-style) var(--_border);
   border-radius: var(--radius-sm);
@@ -43,7 +44,7 @@
     inset: 0;
     margin: 0;
     appearance: none;
-    cursor: pointer;
+    cursor: var(--_cursor);
     opacity: 0;
   }
 
@@ -68,6 +69,18 @@
     --_day: var(--color-text-secondary);
     --_day-weight: var(--text-body-md-weight);
     --_day-decoration: line-through;
+  }
+
+  // Fuera de rango (fuera de Figma, DESIGN.md § Fecha y hora): el día pasado
+  // del calendario, sin borde visible, sin hover y con el día en body-md
+  // secundario. El radio está disabled: no es enfocable ni se marca.
+  &--out-of-range {
+    --_bg-hover: var(--color-surface);
+    --_border: transparent;
+    --_border-hover: transparent;
+    --_day: var(--color-text-secondary);
+    --_day-weight: var(--text-body-md-weight);
+    --_cursor: default;
   }
 
   &:has(:checked) {
