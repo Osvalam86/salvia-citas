@@ -34,9 +34,14 @@ export function bookingStepLoader(args: LoaderFunctionArgs) {
   return { specialist, date: parseDate(date), time }
 }
 
+/**
+ * Solo una cita Confirmada tiene confirmación (D1, V4a): una cancelada, pasada
+ * o pendiente no está «reservada», y la c1 cancelada en Mis citas tampoco.
+ */
 export function confirmedLoader({ params }: LoaderFunctionArgs) {
   const appointment = appointmentStore.get(params.id)
   if (!appointment) throw notFound()
+  if (appointment.status !== 'confirmed') throw replace('/mis-citas')
   return { appointment, specialist: findSpecialist(appointment.slug)! }
 }
 

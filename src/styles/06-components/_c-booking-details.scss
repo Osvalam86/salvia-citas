@@ -2,19 +2,42 @@
 
 // Datos de la cita (BookingDetails.tsx; Figma 02.4 y 02.5: Details). Patrón
 // de pantalla, sin ser de los 34 (D5). Filas a space-3.
+//
+// Públicas (DESIGN.md § Custom properties públicas), para la fila de 04.4:
+// --booking-details-direction, --booking-details-gap y
+// --booking-details-align. Las fija c-appointment-summary en su mezcla
+// __details desde appointment-summary-wide. Una mezcla que redeclarase las
+// propiedades perdería: este parcial se emite después (orden alfabético).
 .c-booking-details {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  flex-direction: var(--booking-details-direction, column);
+  gap: var(--booking-details-gap, var(--space-3));
+  align-items: var(--booking-details-align, stretch);
 
   // Cada fila del dl: icono de 20 y texto a space-3 (Figma: Detail). El icono
   // va dentro del <dt> (un div de dl solo admite dt y dd); el dt ocupa las dos
   // columnas con subgrid, así el icono queda en la primera y el dd, debajo
   // del término en la segunda.
+  //
+  // En fila (mezcla c-appointment-summary__details, 04.4) Cuándo y Duración
+  // conservan su ancho y Dónde llena el resto y es lo único que parte (su
+  // dirección, en caption). En columna, las dos reglas no hacen nada.
   &__detail {
+    --_grow: 0;
+    --_shrink: 0;
+    --_min-size: auto;
+
     display: grid;
+    flex: var(--_grow) var(--_shrink) auto;
     grid-template-columns: 1.25rem minmax(0, 1fr);
     column-gap: var(--space-3);
+    min-inline-size: var(--_min-size);
+  }
+
+  &__detail--place {
+    --_grow: 1;
+    --_shrink: 1;
+    --_min-size: 0;
   }
 
   &__term {

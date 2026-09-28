@@ -7,9 +7,10 @@
 // es el del DOM (criterio 1.3.2): el aside que actúa sobre la lista
 // (filtros) va antes en el DOM; el de contexto o resumen, después.
 //
-// Por D7, bajo lg el aside no se renderiza en ninguna vista del diseño
-// (filtros → hoja, «Tu cita» → Booking Bar o pantalla de confirmación), así
-// que el gap apilado (layout-gap) no tiene referencia en el diseño hoy.
+// Por D7, bajo lg el aside de las vistas 1 a 3 no se renderiza (filtros →
+// hoja, «Tu cita» → Booking Bar o pantalla de confirmación). La confirmación
+// (V4a, 04.1) apila el resumen y «Qué sigue» con el gap apilado: layout-gap,
+// 32, el hueco de Figma.
 .o-layout {
   --_columns: minmax(0, 1fr);
 

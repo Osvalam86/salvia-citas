@@ -138,6 +138,31 @@ async function guardFocus(b, expect) {
   })
 }
 
+// V4a (D1 ampliada): solo en dev, porque cancela por el módulo del almacén
+// (/src/data/appointments.ts, que la preview no sirve).
+async function confirmedGuard(b, expect) {
+  await b.metrics(1280, 900, 1)
+  // La c1 cancelada en el almacén deja de tener
+  // confirmación. En la misma carga (el almacén se reinicia al recargar), a
+  // /citas/c1/confirmada en cliente: replace a /mis-citas; Atrás vuelve a
+  // /kit/estados. Antes de cancelar, la misma navegación llega a la
+  // confirmación (caso válido).
+  await b.go('/kit/estados')
+  const valid = await clientGo(b, '/citas/c1/confirmada')
+  await b.go('/kit/estados')
+  // La URL exacta del módulo que cargó la app (Vite puede añadirle ?t=): otra
+  // URL daría otra instancia del almacén.
+  await b.ev(`(() => { const url = performance.getEntriesByType('resource').map((e) => e.name).find((n) => n.includes('/src/data/appointments.ts')); return import(url).then((m) => (m.appointmentStore.cancel('c1'), true)) })()`)
+  const i0 = await b.ev('history.state?.idx')
+  const cancelled = { ...(await clientGo(b, '/citas/c1/confirmada')), entradas: (await b.ev('history.state?.idx')) - i0 }
+  await back(b, '/kit/estados')
+  cancelled.atras = await b.ev('location.pathname')
+  expect('guarda de la confirmación en cliente: c1 Confirmada llega; c1 cancelada → replace a /mis-citas (la entrada empujada se sustituye) y Atrás vuelve a /kit/estados', { valid, cancelled }, {
+    valid: { ruta: '/citas/c1/confirmada', h1: 'Tu cita está reservada', foco: 'H1#contenido' },
+    cancelled: { ruta: '/mis-citas', h1: 'Mis citas', foco: 'H1#contenido', entradas: 1, atras: '/kit/estados' },
+  })
+}
+
 export async function previewFlows(b, expect) {
   await pushByClick(b, expect)
   await pop(b, expect)
@@ -293,6 +318,9 @@ export default async function run(b, expect) {
     `${RUIZ}/datos`,
     `${RUIZ}/confirmar?fecha=2029-04-24&hora=09:00`,
     '/citas/c9/confirmada',
+    '/citas/c5/confirmada',
+    '/citas/c4/confirmada',
+    '/citas/c2/confirmada',
     '/mis-citas/c2/reprogramar',
     '/mis-citas/c9/reprogramar',
   ]) {
@@ -305,6 +333,9 @@ export default async function run(b, expect) {
     [`${RUIZ}/datos`]: { ruta: RUIZ, h1: 'Dra. Elena Ruiz Arellano', idx: 0 },
     [`${RUIZ}/confirmar?fecha=2029-04-24&hora=09:00`]: { ruta: `${RUIZ}?fecha=2029-04-24&hora=09:00`, h1: 'Dra. Elena Ruiz Arellano', idx: 0 },
     '/citas/c9/confirmada': notFound('/citas/c9/confirmada'),
+    '/citas/c5/confirmada': { ruta: '/mis-citas', h1: 'Mis citas', idx: 0 },
+    '/citas/c4/confirmada': { ruta: '/mis-citas', h1: 'Mis citas', idx: 0 },
+    '/citas/c2/confirmada': { ruta: '/mis-citas', h1: 'Mis citas', idx: 0 },
     '/mis-citas/c2/reprogramar': { ruta: '/mis-citas', h1: 'Mis citas', idx: 0 },
     '/mis-citas/c9/reprogramar': notFound('/mis-citas/c9/reprogramar'),
   })
@@ -314,6 +345,7 @@ export default async function run(b, expect) {
   expect('404 lanzado por la guarda: título de D15 y chrome sin pestaña actual', await b.ev("({ title: document.title, actual: document.querySelector('.c-header-desktop [aria-current]') })"), { title: 'No encontramos esta página · Salvia', actual: null })
 
   await guardFocus(b, expect)
+  await confirmedGuard(b, expect)
 
   // --- T2: /kit/estados -------------------------------------------------------------------------------------------
   await b.go('/kit/estados')
@@ -362,7 +394,7 @@ export default async function run(b, expect) {
   // inicial de Ruiz, hueco más cercano, Rodrigo sin hueco, nombres cortos y
   // forma de los nombres; 33 desde V2b: el resumen de 02.4; 40 desde V3: la
   // sesión, la validación (03.2, 03.5 y el teléfono) y el borrador (D17).
-  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 40, siguenPasando: [] })
+  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 48, siguenPasando: [] })
 
   // --- Resto de pintado en una navegación real hacia una vista -----------------------------------------------
   await b.metrics(1350, 900, 1)

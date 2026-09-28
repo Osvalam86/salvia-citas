@@ -8,6 +8,7 @@
 // (sin StrictMode): pnpm verify 5.3 --preview.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
+import { H1_ACROSS_LG, h1AcrossLg } from './cruce-lg.mjs'
 import { clientNavigation } from './navegacion.mjs'
 
 const DATOS = '/especialistas/elena-ruiz-arellano/datos'
@@ -800,6 +801,13 @@ async function navigation(b, expect) {
   await b.metrics(1280, 900, 1)
 }
 
+// El h1 se vuelve a montar al cruzar lg (los pasos solo existen en móvil): el
+// foco llega al nuevo sin pasar por body (V4a; DESIGN.md, Pendientes).
+async function h1Cross(b, expect) {
+  await b.overlayScrollbars(true)
+  expect('foco en el h1 al cruzar lg (llegada por useRouteFocus, los dos sentidos): el h1 nuevo, sin ningún lote de mutaciones en body', await h1AcrossLg(b, P031), H1_ACROSS_LG)
+}
+
 export default async function run(b, expect) {
   await figmaPairs(b, expect)
   await desktopPairs(b, expect)
@@ -829,6 +837,7 @@ export default async function run(b, expect) {
   await resubmit(b, expect)
   await crossLg(b, expect)
   await tabOrder(b, expect)
+  await h1Cross(b, expect)
   await navigation(b, expect)
 }
 
@@ -838,4 +847,5 @@ export async function previewFlows(b, expect) {
   await failedFlow(b, expect)
   expect('envío válido (preview): ningún commit ni frame pinta el form reiniciado antes del cambio de ruta', await resetProbe(b), RESET_EXPECTED)
   await crossLg(b, expect)
+  await h1Cross(b, expect)
 }

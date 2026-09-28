@@ -9,7 +9,7 @@
 // c-results-header), los de la vista 2 (c-slot-picker, c-booking-summary y
 // c-booking-review), los de la reserva (c-action-bar, c-appointment-summary
 // y c-booking-details) y los de la vista 3 (c-error-summary y
-// c-patient-form).
+// c-patient-form) y el de la vista 4 (c-my-appointments).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -49,6 +49,7 @@
 @use 'c-load-more';
 @use 'c-menu';
 @use 'c-menu-item';
+@use 'c-my-appointments';
 @use 'c-nav-item';
 @use 'c-nav-link';
 @use 'c-notice';

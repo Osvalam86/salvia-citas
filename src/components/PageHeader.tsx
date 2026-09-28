@@ -35,13 +35,20 @@ type PageHeaderProps = {
    * Heading Group). No se combina con `profile`.
    */
   steps?: ReactNode
+  /**
+   * Insignia de éxito junto al título (confirmación, 04.1 y 04.4): decorativa,
+   * el h1 ya lo dice (panel 04.0). Encima del título por debajo de lg y a su
+   * lado desde lg. No se combina con `profile`.
+   */
+  success?: boolean
 }
 
 // Encabezado de página de las vistas (c-page-header). No es uno de los 34:
 // excepción declarada en D5. Su API crece vista por vista: en V1a, el
 // subtítulo; en V2a, el retroceso y el perfil; en V2b, los pasos; en V3, el
-// grupo de título y subtítulo (__title-group).
-export default function PageHeader({ title, subtitle, back, profile, steps }: PageHeaderProps) {
+// grupo de título y subtítulo (__title-group); en V4a, la insignia de éxito
+// (__headline).
+export default function PageHeader({ title, subtitle, back, profile, steps, success = false }: PageHeaderProps) {
   const h1 = (
     <h1 className={profile ? 'c-page-header__title c-page-header__title--profile' : 'c-page-header__title'} id={MAIN_TITLE_ID} tabIndex={-1}>
       {title}
@@ -57,6 +64,16 @@ export default function PageHeader({ title, subtitle, back, profile, steps }: Pa
     </div>
   ) : (
     h1
+  )
+  const headline = success ? (
+    <div className="c-page-header__headline">
+      <span className="c-page-header__badge" aria-hidden="true">
+        <Icon name="check" size={24} />
+      </span>
+      {heading}
+    </div>
+  ) : (
+    heading
   )
 
   return (
@@ -80,10 +97,10 @@ export default function PageHeader({ title, subtitle, back, profile, steps }: Pa
       ) : steps ? (
         <div className="c-page-header__heading">
           {steps}
-          {heading}
+          {headline}
         </div>
       ) : (
-        heading
+        headline
       )}
     </div>
   )

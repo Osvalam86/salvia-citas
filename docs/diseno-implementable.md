@@ -707,13 +707,16 @@ perdería: **va al título del aviso, y el aviso va sin `role`** (§4.6).
 inferior. Pasos (Done · Done · Current) · insignia de éxito (placa
 `color-success-surface` con `check` en `color-success`, **único uso de la
 familia success** fuera de los avisos) · `h1` «Tu cita está reservada» + nota
-con el correo. Resumen sin la fila de modalidad (la dice la etiqueta) +
+con el correo (el de la reserva, no el de la sesión: DESIGN.md § Confirmación y Mis citas).
+Resumen sin la fila de modalidad (la dice la etiqueta) +
 «Agregar a mi calendario» Secondary (`<a download>` a un `.ics`). Nombre
 accesible «Agregar a mi calendario (archivo .ics)», con el sufijo
 visualmente oculto: empieza por el texto visible (2.5.3) y anuncia la
 descarga. El `.ics` lleva `DTSTART` y `DTEND` en UTC con `Z` (Ciudad de
 México no tiene horario de verano), sin `TZID` ni `VTIMEZONE` (RFC 5545). Aviso Info
-«Qué sigue». Pie solo con «Ver mis citas» Primary.
+«Qué sigue», cuyo cuerpo depende del recordatorio pedido y del plazo: solo promete
+recordatorio y cancelación sin costo cuando son verdad (V4a; copy en DESIGN.md). Pie solo con
+«Ver mis citas» Primary.
 
 **Confirmación (escritorio):** el resumen pasa a la columna principal y el aside
 lleva pasos, «Qué sigue» y «Ver mis citas». En la confirmación la cita es el

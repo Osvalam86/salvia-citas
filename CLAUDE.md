@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b y V3 hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b, V3 y V4a hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -89,10 +89,19 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   breadcrumb a `space-4` desde lg; `AppointmentSummary` con `title` y
   `--aside`; `Link` con `onClick` en anclas; `id` opcional en los campos;
   `ActionBar` con nota opcional; `pnpm verify 5.3` (y `--preview`).
+- Fase 5 · V4a: la confirmación en `/citas/:id/confirmada` (`src/views/BookingConfirmed.tsx`,
+  04.1, 04.4) y Mis citas en `/mis-citas` (`src/views/MyAppointments.tsx`, 04.2, 04.3,
+  04.5–04.9): `PageHeader` con `success` (`__headline`, `__badge`), `AppointmentSummary`
+  con `action` y el umbral `appointment-summary-wide` (43.0625rem), propiedades públicas de
+  `c-booking-details`, `c-my-appointments`; contacto de la reserva, `cancelCopy`,
+  `groupAppointments`, `upcomingText` y `PENDING_NOTE` en `src/data/appointments.ts`,
+  `nextStepsText` en `booking.ts`, el `.ics` en `src/data/calendar.ts`; guarda de D1
+  ampliada (cita no Confirmada → `/mis-citas`); el kit toma el copy de `cancelCopy`;
+  `pnpm verify 5.4` (y `--preview`) y `scripts/verify/cruce-lg.mjs` en 5.3 y 5.4.
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
 T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 (hecho) → V4a → V4b (reprogramación). La fase 6 está absorbida en
+foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 (hecho) → V4a (hecho) → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos

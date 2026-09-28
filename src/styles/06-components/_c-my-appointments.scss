@@ -1,0 +1,56 @@
+@use '../02-tools' as tools;
+
+// Mis citas (MyAppointments.tsx; Figma 04.2, 04.5, 04.8 y 04.9). Patrón de la
+// vista 4, sin componente propio (D5). Las secciones y el aviso van a space-6
+// en la columna (o-stack); dentro de cada sección, el h2 y la lista a space-4.
+.c-my-appointments {
+  // Sección Próximas o Pasadas (Figma: Section).
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  // h2 de sección en heading/md (§5.4; DESIGN.md § Encabezados).
+  &__title {
+    @include tools.text(heading-md);
+
+    color: var(--color-text-primary);
+  }
+
+  // «Agendar otra cita» (04.5: Aside), solo desde lg: tarjeta color-surface
+  // con borde color-border decorativo, radius-md, padding y gap space-5. La
+  // acción es la Primary de la pantalla, fuera de la lista, con su ancho
+  // (diseño §3.6).
+  &__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    align-items: flex-start;
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  // Título y cuerpo a space-2 (Figma: Aside Text).
+  &__aside-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  &__aside-title {
+    @include tools.text(heading-sm);
+
+    color: var(--color-text-primary);
+    text-wrap: balance;
+  }
+
+  // text-secondary solo sobre color-surface: el fondo de la tarjeta.
+  &__aside-body {
+    @include tools.text(body-md);
+
+    color: var(--color-text-secondary);
+  }
+}

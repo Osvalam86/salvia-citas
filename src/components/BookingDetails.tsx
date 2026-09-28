@@ -7,15 +7,17 @@ type BookingDetailsProps = {
   duration: string
   /** Clínica: nombre y, en una segunda línea, la dirección. */
   clinic: { name: string; address: string }
+  /** Clase de elemento del padre (mezcla BEM): c-appointment-summary__details. */
+  className?: string
 }
 
 // Datos de la cita (c-booking-details): Cuándo, Duración y Dónde en un <dl>.
 // Patrón de pantalla, sin ser de los 34 (D5): lo comparten «Tu cita» (02.5) y
 // la tarjeta de la confirmación previa (02.4), y lo reutilizan las vistas 3 y
 // 4. El icono va dentro del <dt>: un div de dl solo admite dt y dd.
-export default function BookingDetails({ when, duration, clinic }: BookingDetailsProps) {
+export default function BookingDetails({ when, duration, clinic, className }: BookingDetailsProps) {
   return (
-    <dl className="c-booking-details">
+    <dl className={className ? `c-booking-details ${className}` : 'c-booking-details'}>
       <div className="c-booking-details__detail">
         <dt className="c-booking-details__term">
           <Icon name="calendar-check" size={20} />
@@ -30,7 +32,7 @@ export default function BookingDetails({ when, duration, clinic }: BookingDetail
         </dt>
         <dd className="c-booking-details__value">{duration}</dd>
       </div>
-      <div className="c-booking-details__detail">
+      <div className="c-booking-details__detail c-booking-details__detail--place">
         <dt className="c-booking-details__term">
           <Icon name="map-pin" size={20} />
           <span>Dónde</span>

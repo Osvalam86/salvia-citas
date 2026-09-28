@@ -10,7 +10,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
 pnpm verify 4.7   # 4.1 a 4.7
-pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2, 5.3)
+pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2, 5.3, 5.4)
 pnpm verify 5.0 --preview   # flujos de foco contra pnpm build && pnpm preview (:4173)
 ```
 
@@ -32,6 +32,8 @@ no se versiona.
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). V2b: 02.4 a ±1 px (375), anchos intermedios y escritorio (C1-A, con la contraprueba de los 38rem), 200 % a 320 con el umbral `appointment-summary-compact` y su contraprueba, padding al 100 %, letra del navegador, forced-colors, estructura, teclado, enlaces y escenario (con contraprueba), guardas, foco (llegada y cruce de lg, con contraprueba) y la regresión exacta de 02.5 y 02.6 frente a la línea base anterior al refactor; navegación en cliente 02.1 → 02.4. `previewFlows`: foco, Missing y el foco de 02.4 |
 | `5.3-datos.mjs` | Vista 3 (V3): pares de Figma 03.1, 03.2, 03.5 (375) y 03.3, 03.4, 03.6 (1440); padding de `--aside` (16 en «Tu cita», 24 en 02.4); resumen de errores (foco en el h2 con clic e Intro, enlaces → control con la etiqueta a la vista y sobre la barra, historial +0, contraprueba del ancla nativa); reserva fallida (foco en el título en el mismo commit, pie, valores, Intro sin envío) y la posición del título; envío válido (replace) y la sonda del form reiniciado (MutationObserver y un muestreo por frame); borrador (D17) al ir al aviso de privacidad y tras «Elegir otra hora»; anchos y paso de la rejilla a dos columnas; 200 % a 320; letra del navegador; forced-colors; estructura y el h2 en el árbol AX; `noValidate` y botón por defecto con sus contrapruebas; volver a enviar; cruce de lg; orden de Tab; navegación en cliente 02.4 → 03.1. `previewFlows`: resumen, reserva fallida, sonda del envío válido y cruce de lg |
+| `5.4-citas.mjs` | Vista 4 (V4a). Confirmación: pares 04.1 (375) y 04.4 (1440), la foto de Ruiz, el umbral `appointment-summary-wide` (689) con su contraprueba (a 688 parte el nombre de la clínica), la regresión exacta de 02.4 y 03.3 frente a la línea base de c5a813a, anchos y el tramo 1024–1104, 200 % a 320, letra del navegador, forced-colors, estructura, Tab, la descarga real del `.ics`, reservas reales (correo, recordatorio y plazo), cruce de lg y navegación 03.1 → 04.1. Mis citas: pares 04.2, 04.5, 04.8 y 04.9 con la foto de Ruiz, 04.7, el diálogo en la vista (04.3, 04.6), la sonda de cancelar, las tres próximas canceladas y el tramo de Appointment Card (1024/1039/1040 y 1054/1055). `previewFlows`: cruces de lg, diálogo, sonda y cancelaciones |
+| `cruce-lg.mjs` | Foco en el h1 al cruzar lg (`h1AcrossLg`, V4a): llegada en cliente por `useRouteFocus`, cruce en los dos sentidos por CDP y un MutationObserver que apunta el foco al final de cada lote de mutaciones (ninguno en body). Lo usan 5.3 y 5.4, también en `--preview` |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). Con `selector`, el elemento pulsado puede ser un botón que navega (V2b: «Continuar» de la Booking Bar). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
@@ -180,6 +182,8 @@ no se versiona.
   respaldo al `h1` se prueba con Atrás hacia esa entrada (T1).
 - **`pnpm verify --preview` mide el build.** Tras cambiar código hay que
   `pnpm build` y reiniciar la preview; si no, mide el build anterior (T1).
+  Para saber qué build midió una pasada, se comprueba el cambio en el CSS o el
+  JS compilado, no la fecha de dist (V4a).
 - **`redirect` añade una entrada; `replace`, no.** En un loader, `redirect`
   empuja una entrada nueva también en carga completa, y Atrás cae en la URL
   que redirige (T2).
@@ -271,6 +275,24 @@ no se versiona.
   sistema y se ve (§3.2: conserva el contorno). El chip fuera de rango de V2a, como el día pasado
   del calendario, se distingue por el peso, no por la ausencia de borde (V2a).
 
+- **La mezcla pierde frente al parcial del hijo.** `.c-appointment-summary__details` con
+  `flex-direction: row` no ganaba a `.c-booking-details { flex-direction: column }`: misma
+  especificidad y el parcial del hijo va después (orden alfabético). Se resuelve con propiedades
+  públicas del hijo (DESIGN.md § Custom properties públicas) (V4a).
+- **Sin scroll no hay barra clásica.** Una página que cabe en el viewport (04.4 a 900)
+  no pinta barra aunque sea clásica: el caso de 1103/1104 se mide con 600 de alto (V4a).
+- **`captureBeyondViewport` saca el foco.** Una captura con el menú de cuenta abierto lo
+  cierra (salir del grupo cierra el disclosure): se lee el estado antes de capturar (V4a).
+- **Importar un módulo de la app en dev.** `import('/src/data/appointments.ts')` puede dar
+  otra instancia que la que usa la app si Vite le añadió `?t=`: se importa la URL exacta
+  de `performance.getEntriesByType('resource')` (V4a).
+- **Un nodo que se vuelve a montar no conserva un parche.** Anular `focus` en el `h1` no
+  sirve si el `h1` se vuelve a montar al cruzar lg: la contraprueba lo anula en el prototipo
+  para `#contenido` (V4a).
+- **El último lote de mutaciones no es el foco final.** Tras cancelar sin `close()` en el
+  manejador, el último lote lo dejaba en el botón del diálogo aún abierto; el foco final, leído
+  después, era `body`. La sonda de cancelar lee los dos (V4a).
+
 ## Comprobaciones manuales
 
 No se automatizan; se repiten a mano cuando cambia lo que prueban.
@@ -296,4 +318,7 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |
 | Vista suscrita al borrador | Volver a `useSyncExternalStore` en `PatientData.tsx` (con `subscribe` en el almacén de `src/data/patient.ts`) y `pnpm verify 5.3`: la sonda del envío válido ve `[confirmada, "", false]`, un frame y un commit con el form vacío antes de la confirmación. Medido; revertir | V3 |
 | Foco de `Notice` en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en `Notice.tsx`, `pnpm build` y `pnpm verify 5.3 --preview`: la sonda de la reserva fallida sigue viendo el título enfocado en el mismo commit (4/4). No discrimina (Trampas, efectos pasivos tras un evento discreto); el efecto de layout se conserva por la regla de V1b. Medido; revertir | V3 |
+| Guarda de la confirmación con `redirect` | Cambiar `replace` por `redirect` en `confirmedLoader` y `pnpm verify 5.0`: `/citas/c5`, `c4` y `c2/confirmada` llegan a `/mis-citas` con `idx` 1 en vez de 0, y en cliente, con c1 cancelada, la redirección deja 2 entradas y Atrás cae en la confirmación, que vuelve a redirigir a `/mis-citas` (25/28). Medido; revertir | V4a |
+| Cierre del diálogo en un efecto, en Mis citas | Quitar `dialog.current?.close()` de `confirm` en `Dialog.tsx`, `pnpm build` y `pnpm verify 5.4 --preview`: la sonda de cancelar da el foco en el botón del diálogo aún abierto en el commit del aviso y `BODY` al leer (3/6); con `close()`, el título del aviso (6/6). Medido; revertir | V4a |
+| Confirmación sin `useLgFocusFallback` | Quitar `useLgFocusFallback(isDesktop)` de `BookingConfirmed.tsx` y cruzar lg (375 → 1100) por CDP: con el foco en el h1 (llegada por `useRouteFocus`) y con el foco en «Ver mis citas» de la barra, el foco acaba en `BODY`; con el hook, en `H1#contenido`. El h1 se vuelve a montar al cruzar (su padre cambia) y solo el respaldo lo recoge. La contraprueba de `pnpm verify 5.4` lo emula anulando `focus()` en el prototipo para `#contenido` (en el nodo no sirve: el nodo es nuevo); durante el cruce, la única llamada que bloquea es la del hook. Medido; revertir | V4a |
 | Cierre del diálogo en un efecto, con `Notice` en layout | Repetida en V3 contra la preview, con el foco de `Notice` en `useLayoutEffect`: con `close()`, el foco llega a «Cita cancelada» y la sonda lo ve ya en el commit; sin él, `body`. Revertido | V3 |

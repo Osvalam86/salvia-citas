@@ -14,6 +14,9 @@
 //   (Figma 04.1: Title Group; 01.1, 01.5: Page Title). Solo existe con
 //   subtítulo.
 // - Pasos y h1, a space-4 en __heading (Figma 02.4: Heading Group).
+// - Insignia de éxito y título en __headline (V4a): apilados a space-4 por
+//   debajo de lg (Figma 04.1) y en fila a space-5, centrados, desde lg (04.4:
+//   Heading Row).
 //
 // Perfil (--profile, vista 2):
 // - Por debajo de lg (02.1): avatar y h1 en fila y especialidad y meta debajo
@@ -43,7 +46,38 @@
     gap: var(--space-4);
   }
 
+  &__headline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    @include tools.respond-to(lg) {
+      flex-direction: row;
+      gap: var(--space-5);
+      align-items: center;
+    }
+  }
+
+  // Insignia de 48 (Figma: Success Badge): check de 24 en color-success sobre
+  // color-success-surface (4.82:1), único uso de la familia success fuera de
+  // los avisos (diseño §5.4). Decorativa. El color va en la insignia y el
+  // icono lo hereda (currentColor): en forced-colors se fuerza con el texto.
+  &__badge {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    color: var(--color-success);
+    background-color: var(--color-success-surface);
+    border-radius: var(--radius-pill);
+  }
+
+  // flex-grow: en la fila de __headline (lg) llena el resto; en las columnas
+  // (raíz, __heading, __headline bajo lg) no hay alto sobrante y no hace nada.
   &__title-group {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);

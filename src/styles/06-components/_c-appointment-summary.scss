@@ -12,11 +12,28 @@
 // aplica a sus descendientes, así que el padding automático lo decide __card
 // (--_card-padding-auto) y el modificador fija en la raíz --_card-padding, que
 // __card hereda y antepone.
+//
+// Ancho (appointment-summary-wide, 43.0625rem; Figma 04.4): padding space-6,
+// gap space-5 y los datos en fila a space-6 (mezcla __details sobre
+// c-booking-details). Hoy solo lo alcanza la confirmación de escritorio.
+//
+// --action (V4a, 04.1 y 04.4): quién y los datos van en __body, y la acción
+// es hermana de __body dentro de __card. El marco (borde y padding) lo decide
+// un interruptor por elemento: --_frame-card y --_frame-body valen 1 o 0 y
+// multiplican el borde y el padding. Por debajo de -wide, el marco en __body y
+// la acción fuera, a ancho completo y a space-4 (04.1); desde el umbral, el
+// marco en __card y la acción dentro, con su ancho (04.4). Sin el modificador,
+// --_frame-card vale 1 y __body no existe: 02.4 y 03.3 no cambian.
 .c-appointment-summary {
   container: appointment-summary / inline-size;
 
   &--aside {
     --_card-padding: var(--space-4);
+  }
+
+  &--action {
+    --_frame-card: 0;
+    --_frame-body: 1;
   }
 
   // Compacto (base, raíz por debajo de 16.75rem: solo con texto grande):
@@ -29,13 +46,56 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    padding: var(--_card-padding, var(--_card-padding-auto));
+    padding: calc(var(--_frame-card, 1) * var(--_card-padding, var(--_card-padding-auto)));
     background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
+    // stylelint-disable-next-line unit-disallowed-list -- ancho del borde por el interruptor del marco
+    border: calc(var(--_frame-card, 1) * 1px) solid var(--color-border);
     border-radius: var(--radius-md);
 
     @include tools.container(appointment-summary, appointment-summary-compact) {
       --_card-padding-auto: var(--space-5);
+    }
+
+    @include tools.container(appointment-summary, appointment-summary-wide) {
+      --_card-padding-auto: var(--space-6);
+      --_frame-card: 1;
+
+      gap: var(--space-5);
+    }
+  }
+
+  // Solo con --action: quién y los datos, con el marco por debajo de -wide.
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: calc(var(--_frame-body) * var(--_card-padding, var(--_card-padding-auto)));
+    // stylelint-disable-next-line unit-disallowed-list -- ancho del borde por el interruptor del marco
+    border: calc(var(--_frame-body) * 1px) solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    @include tools.container(appointment-summary, appointment-summary-wide) {
+      --_frame-body: 0;
+
+      gap: var(--space-5);
+    }
+  }
+
+  // Mezcla sobre la acción: por debajo de -wide llena la columna (el
+  // estirado de __card); desde el umbral, su ancho (diseño §3.6).
+  &__action {
+    @include tools.container(appointment-summary, appointment-summary-wide) {
+      align-self: flex-start;
+    }
+  }
+
+  // Mezcla sobre c-booking-details: en fila desde -wide, a space-6 y
+  // alineados arriba (Figma 04.4: Details), por sus propiedades públicas.
+  &__details {
+    @include tools.container(appointment-summary, appointment-summary-wide) {
+      --booking-details-direction: row;
+      --booking-details-gap: var(--space-6);
+      --booking-details-align: flex-start;
     }
   }
 

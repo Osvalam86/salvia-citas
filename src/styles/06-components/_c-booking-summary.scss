@@ -3,7 +3,9 @@
 // Sección «Tu cita» de la vista 2 en escritorio (Specialist.tsx; Figma 02.5,
 // 02.6). Patrón de vista, sin componente propio. Una <section> dentro del form
 // y no un <aside>: contiene el envío (panel 02.0). Pasos (BookingSteps),
-// tarjeta, aviso Info y acciones, a space-4 (Figma: Aside).
+// tarjeta, aviso Info y acciones, a space-4 (Figma: Aside). La reutilizan la
+// vista 3 (03.3) y la columna de la confirmación de escritorio (04.4: pasos,
+// «Qué sigue» y «Ver mis citas»; un div, sin landmark).
 .c-booking-summary {
   display: flex;
   flex-direction: column;

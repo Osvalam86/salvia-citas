@@ -72,19 +72,21 @@ export const patientStore = createPatientStore()
 
 type Stores = {
   appointments: Pick<typeof appointmentStore, 'book'>
-  patient: Pick<typeof patientStore, 'reset'>
+  patient: Pick<typeof patientStore, 'getSnapshot' | 'reset'>
 }
 
 /**
  * Envío válido de la vista 3: reserva (D13; `ocupada` falla sin tocar el
- * almacén, D8) y, solo si sale bien, reinicia el borrador (D17).
+ * almacén, D8) con el correo y el recordatorio del borrador, que la
+ * confirmación nombra (04.1), y solo si sale bien reinicia el borrador (D17).
  */
 export function submitBooking(
   booking: Pick<Appointment, 'slug' | 'date' | 'time'>,
   scenario: Scenario,
   stores: Stores = { appointments: appointmentStore, patient: patientStore },
 ): BookingResult {
-  const result = stores.appointments.book(booking, scenario)
+  const { email, reminder } = stores.patient.getSnapshot()
+  const result = stores.appointments.book({ ...booking, contact: { email: email.trim(), reminder } }, scenario)
   if (result.ok) stores.patient.reset()
   return result
 }

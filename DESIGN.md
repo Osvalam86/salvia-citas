@@ -305,6 +305,7 @@ el mismo `container-name`, sin un segundo nombre
 | `result-card`          | el `li` de la lista de resultados                  | 36rem (576) | Stacked pasa a Row                              | Con 32rem, a 512 la disponibilidad partía en 3–4 líneas en una columna de 158; a 576 (222), en dos como mucho. El `li` no tiene padding                                             |
 | `empty-state-compact`  | la raíz de `c-empty-state` | 16.75rem (268) | Por debajo, marco con padding `space-4` | `tools.large-text` (18.75rem) menos el gutter (2rem): la raíz mide el viewport − 2rem. A 320 al 100 % mide 17,06rem con barra clásica y no se activa (con 18.75rem se activaría: 288 = 18rem, medido). Al 200 % a 320 el interior de la acción pasa de 45/60 a 77/92, el mismo límite que el CTA de Result Card (V1b) |
 | `appointment-summary-compact` | la raíz de `c-appointment-summary` (sin padding) | 16.75rem (268) | Por debajo, tarjeta con padding `space-4` | El mismo valor y la misma derivación que `empty-state-compact`: la raíz mide el viewport − 2rem. Al 100 % a 320 mide 288 (273 con barra clásica, 17,06rem) y a 375, 343: no se activa y el padding sigue en 24 (02.4). Al 200 % a 320, con `space-5`, a la columna de los datos le quedaban 94 / 79 (superpuesta / clásica) y partía «10:30» (82), el dato principal de la pantalla; con `space-4`, 126 / 111 y cabe (V2b, contraprueba en `pnpm verify 5.2`) |
+| `appointment-summary-wide` | la raíz de `c-appointment-summary` (sin padding) | 43.0625rem (689) | Datos en fila a `space-6`, padding `space-6` y gap `space-5`; con `--action`, el marco pasa de `__body` a `__card` y la acción va dentro con su ancho (04.4) | Criterio: que no parta un dato principal. Cuándo más ancho alcanzable («Miércoles 30 de mayo, 09:00», 221,4, entre las 1577 horas reservables hasta `MAX_DATE` y las citas sembradas) + Duración (84,4) + el nombre de clínica más largo («Consultorio Del Valle», 157,1), cada uno con icono 20 + 12, dos huecos de 32, padding 2 × 32 y bordes 2 = 688,9 (medido en V4a con las clases reales). La dirección, en caption, es secundaria y puede partir. Contraprueba en `pnpm verify 5.4`: a 688 en fila parte el nombre de la clínica; a 689, no. **Coste:** con el aside de la confirmación, la raíz mide viewport − 400; entre 1024 y 1088 de viewport (1103 con barra clásica) los datos van en columna y «Agregar a mi calendario» a ancho completo, un patrón móvil en escritorio (diseño §3.6), del mismo tipo que el de `appointment-card`; sin frame. Entre 1089 y ~1172 la dirección más larga va en dos líneas. 04.4 (848) no cambia |
 | `empty-state`          | la raíz de `c-empty-state` (sin padding), en el hueco de la lista | 36rem (576) | Acción intrínseca | El mismo ancho en que Result Card pasa a Row con su CTA fijo. Figma solo da 343 (acción llena, 01.3) y 848 (intrínseca, 01.6) |
 | `appointment-card` | el `li` de su sección                              | 40rem (640) | Stacked pasa a Row                  | Figma (descripción del maestro). Medido: a 640 al cuerpo de Row le quedan 342 y la línea más ancha, la ubicación con icono, mide 296; con 34rem (544) le quedaban 246 y partían la fecha y la ubicación |
 | `dialog-compact`   | el velo (contenedor `dialog`)                      | 18.75rem (300) | Por debajo, el panel pierde el margen lateral y su padding baja a `space-4` | El valor de `tools.large-text` como container query: en rem sigue a la letra por los dos métodos, y con la letra a 16 solo se activa por debajo de 300 px (a 320 y 375 al 100 %, como Figma). Desde V1b la página no tiene barra con el diálogo abierto (§ Citas y diálogos): a 375 con la letra a 20 el velo mide 18.75rem con las dos barras y no es compacto (hasta V1b, con barra clásica medía 360 = 18rem y lo era). Medido a 320 con la letra a 32: sin el umbral, el interior del botón mide 47 y parte «cita»; con él, 143 con barra clásica (el velo, que se desplaza, pinta su propia barra de 15) y 158 con la superpuesta. Con la clásica aún parte «Mantener», más ancha que su interior; con la superpuesta, ninguna |
@@ -317,7 +318,9 @@ el mismo `container-name`, sin un segundo nombre
 - Desde `lg`, con el aside de Mis citas, la columna mide viewport − 400: Row desde 1040 de
   viewport (1055 con barra clásica). Entre 1024 y 1039 (1054) van en Stacked con las acciones a
   ancho completo, un patrón móvil en escritorio (diseño §3.6). Sale de la cuenta de
-  § Breakpoints; se mide en la vista 4 (fase 5).
+  § Breakpoints. Medido en la vista montada (V4a, `pnpm verify 5.4`): a 1024 y 1039 (superpuesta)
+  y 1054 (clásica), `li` de 624 / 639 / 639, Stacked, acciones de 590 / 605 / 605 y tarjeta de
+  324; a 1040 y 1055, `li` de 640, Row, acciones de 224 y tarjeta de 212.
 - En Row, la nota de Pending (485) va en dos líneas hasta un `li` de 783 y la tarjeta mide 260
   en vez de 240; desde 784, una línea y 240 (medido a 640, 782, 783 y 784).
 - Stacked a 375 con barra clásica: el `li` mide 328, la nota de Pending va en tres líneas y la
@@ -331,7 +334,7 @@ el mismo `container-name`, sin un segundo nombre
 Un bloque puede publicar una propiedad sin guion bajo cuando alguien de fuera
 tiene que fijar un valor que el bloque no deduce de sus props. El nombre es el
 del bloque sin el prefijo `c-` más la propiedad: `--avatar-size`, no
-`--c-avatar-size`. Lo privado sigue en `--_*`. Hay dos clases:
+`--c-avatar-size`. Lo privado sigue en `--_*`. Hay tres clases:
 
 **La fija un padre por CSS, con un valor por defecto que depende de la
 variante: lleva el patrón `-default`.**
@@ -365,6 +368,18 @@ sin `-default`.** No hay variantes que cambien el respaldo.
 Caso: `--app-layout-bar-size` (`AppLayout.tsx` la escribe en `:root` con un
 `ResizeObserver` sobre el hueco de la barra; `c-app-layout` la lee con
 `var(--app-layout-bar-size, 0)`).
+
+**La fija un padre por CSS y el bloque no tiene variantes: sin `-default`.**
+Sin modificadores, `-default` no protege nada: no hay ninguno que pueda
+redeclarar la propiedad. El bloque la lee con un único valor por defecto y el
+padre la fija en su elemento de mezcla. Hace falta cuando la mezcla perdería
+en la cascada: el parcial del hijo se emite después (orden alfabético) y sus
+propiedades ganan a las de la mezcla con la misma especificidad.
+
+Caso: `--booking-details-direction`, `--booking-details-gap` y
+`--booking-details-align` (`c-booking-details` las lee con `column`,
+`var(--space-3)` y `stretch`), fijadas por `c-appointment-summary__details`
+dentro de su `@container` `appointment-summary-wide` (04.4: datos en fila).
 
 ---
 
@@ -841,6 +856,69 @@ aviso Error) y, con barra clásica, «Confirmar» (interior de 143, como
 
 ---
 
+## Confirmación y Mis citas (V4a)
+
+**Confirmación** (`BookingConfirmed.tsx`, 04.1 y 04.4). `PageHeader` con `success`:
+la insignia (48, `color-success-surface`, check de 24 en `color-success`, decorativa) va
+en `__headline` junto al grupo del título, apilada a `space-4` por debajo de lg y en fila a
+`space-5` desde lg (media query: la excepción ya declarada de `c-page-header`). Pasos,
+barra («Ver mis citas») y el sitio de «Qué sigue» cambian con `useMediaQuery` (D7); desde lg
+van en una columna que reutiliza `c-booking-summary` (un `div`, sin landmark).
+«Agregar a mi calendario» es la `action` de `AppointmentSummary`: presentación, no control,
+así que cambia de sitio por container query (`appointment-summary-wide`, § Contenedores) y
+conserva el nodo y el foco al cruzar lg (medido).
+
+**Interruptor del marco (`c-appointment-summary--action`).** Con `action`, quién y los datos
+van en `__body` y la acción es su hermana dentro de `__card`. Dos variables valen 1 o 0 y
+multiplican el borde y el padding del elemento que las lee: `border: calc(var(--_frame-card, 1)
+* 1px)` y `padding: calc(var(--_frame-card, 1) * …)` en `__card`; lo mismo con
+`--_frame-body` en `__body`.
+
+| Variable | Dónde se fija | Por debajo de `appointment-summary-wide` | Desde el umbral |
+| --- | --- | --- | --- |
+| `--_frame-card` | raíz con `--action` (0); `__card` en su `@container` (1) | 0: `__card` sin borde ni padding | 1: el marco en `__card` |
+| `--_frame-body` | raíz con `--action` (1); `__body` en su `@container` (0) | 1: el marco en `__body` | 0: `__body` sin borde ni padding |
+
+Sin `--action`, `--_frame-card` no existe y vale 1 por su respaldo, y `__body` no se pinta:
+02.4 y 03.3 no cambian (regresión exacta en `pnpm verify 5.4`). Razones: el marco cambia de
+elemento según el ancho, y un `@container` solo aplica a descendientes de la raíz, así que la
+decisión se toma en `__card` y en `__body`; el modificador y la container query cambian
+variables `--_`, no redeclaran propiedades (la regla de estados de `bemit-scss`); y el
+`1px` es la excepción de `border`, la única unidad `px` permitida, que el `calc` escala a 0 sin
+otro literal. Con la acción fuera, a ancho completo por el estirado de `__card`; desde el
+umbral, `c-appointment-summary__action` le da su ancho (`align-self: flex-start`).
+
+**Correo y recordatorio de la nota y de «Qué sigue».** Salen de la cita (`contact`, que
+`submitBooking` copia del borrador antes de reiniciarlo, D17), no de la sesión: si se editó el
+correo en la vista 3, la confirmación nombra el editado. El cuerpo de «Qué sigue»
+(`nextStepsText`, `src/data/booking.ts`) depende del recordatorio y del plazo contra `NOW`:
+con recordatorio y 24 h o más, el de Figma; sin recordatorio, «Puedes cancelar o reprogramar
+sin costo desde Mis citas hasta 24 horas antes. Llega 10 minutos antes con una
+identificación.»; a menos de 24 h (Mariana, hoy a las 19:15), «Puedes gestionar tu cita desde
+Mis citas. Llega 10 minutos antes con una identificación.». «Mis citas» con espacio de no
+separación en las tres (diseño §8).
+
+**`.ics`** (`src/data/calendar.ts`): URI `data:` con `download="cita-salvia-AAAA-MM-DD.ics"`;
+`DTSTART`/`DTEND` en UTC con Z (Ciudad de México, UTC−6 todo el año), `DTSTAMP` desde
+`NOW`, `UID` `{id}@salvia.example`, `SUMMARY` «Cita con {nombre}», `LOCATION` «{clínica},
+{dirección}, Ciudad de México», líneas de 75 octetos como mucho y CRLF. Nombre accesible
+«Agregar a mi calendario (archivo .ics)» con el sufijo en `u-sr-only` (diseño §5.4).
+
+**Texto al 200 % a 320.** Sin desborde; parten el h1 («reservada»), el correo de la nota,
+«calendario» y el final del aviso, más anchos que su elemento. Con barra clásica, «enviaremos»
+mide 175,08 en un párrafo de 175 y el detector lo marca como «pudiendo caber» por su margen de
++0,5 (docs/verificacion.md, Trampas), como «experiencia» en 4.5.
+
+**Mis citas** (`MyAppointments.tsx`, 04.2, 04.5, 04.7–04.9). `c-my-appointments`: secciones
+con `h2` en `heading/md` y la lista a `space-4`; el aside «Agendar otra cita» solo desde lg
+(`<aside aria-labelledby>`, tras las secciones en el DOM). El aviso «Cita cancelada» es estado
+de la vista, no del almacén: `cancel()` y el aviso en el mismo manejador, un solo commit (sonda
+en `pnpm verify 5.4` y `--preview`: ningún lote de mutaciones ni frame con la tarjeta en
+Pasadas sin el aviso, ni al revés; el foco en su título en ese commit). Con 0 citas próximas,
+subtítulo «No tienes citas próximas» y sin sección Próximas (sin `h2` vacío).
+
+---
+
 ## Citas y diálogos
 
 **`UI/Dialog` es un `<dialog>` nativo con `showModal()`.** El elemento es el
@@ -855,6 +933,11 @@ mantener).
 - **forced-colors.** El velo conserva el alfa: Canvas al 45 %, no opaco. El
   panel, también en Canvas, solo se separa del fondo por su contorno: el borde
   transparente, forzado a CanvasText.
+- **Copy (V4a).** `cancelCopy` (`src/data/appointments.ts`) es la única fuente del cuerpo
+  del diálogo y del aviso «Cita cancelada», para Mis citas y el kit. El de Molina es el literal
+  de Figma (04.3, 04.8); el de Ruiz, Cortés y las reservas nuevas es **derivado, fuera de
+  Figma**: el mismo patrón, con «el Dr.» o «la Dra.» según el tratamiento, y sin prometer
+  cancelación sin costo (diseño §5.4). Aserción en `check-data`.
 - **Página bloqueada (V1b).** `:where(html):has(dialog:modal) { overflow: hidden }`
   en `04-elements/_base.scss`, que vale también para la hoja `c-sheet`. Con barra
   clásica, el velo y la hoja miden el viewport entero (antes, viewport − 15, con
@@ -941,7 +1024,7 @@ más la del 404:
 | `/especialistas/:slug`           | V2 · reserva                             | Sin horarios, Missing, hoja del calendario                             | Slug desconocido → 404. `fecha` fuera de rango u `hora` no libre se ignoran (estado inicial de D2)                 |
 | `/especialistas/:slug/confirmar` | V2 · confirmación previa (móvil)         | —                                                                      | Slug desconocido → 404. Sin `fecha` y `hora` libres → redirige a `/especialistas/:slug` con los mismos parámetros |
 | `/especialistas/:slug/datos`     | V3                                       | Errores, reserva fallida                                               | Igual que `/confirmar`                                                                                             |
-| `/citas/:id/confirmada`          | V4 · confirmación                        | —                                                                      | Id que no está en el almacén → 404                                                                                 |
+| `/citas/:id/confirmada`          | V4 · confirmación                        | —                                                                      | Id que no está en el almacén → 404. Cita que no está Confirmada → redirige a `/mis-citas` (V4a: una cancelada, pasada o pendiente no está «reservada») |
 | `/mis-citas`                     | V4 · Mis citas                           | Diálogo, avisos de cancelada y reprogramada, menú de cuenta            | —                                                                                                                  |
 | `/mis-citas/:id/reprogramar`     | V4b · reprogramación (selector de la V2) | Los de la V2                                                           | Id desconocido → 404. Cita que no está Confirmada → redirige a `/mis-citas` (solo Confirmed ofrece «Reprogramar») |
 | `/fuera-de-alcance`              | Página genérica                          | —                                                                      | —                                                                                                                  |
@@ -1129,6 +1212,11 @@ VP8) a calidad 0,9, de 96 y 192 px.
   toma el siguiente id del contador (c6); cancel y reschedule cambian la
   cita; el aviso de reprogramada es de un solo uso; `ocupada` no toca el
   almacén; `lenta` tarda entre 1500 y 1700 ms.
+- V4a: la reserva guarda el correo y el recordatorio del borrador; la c1 sembrada usa el
+  respaldo (sesión y recordatorio); el orden de Próximas y Pasadas, también tras cancelar c2
+  (04.8); el subtítulo con 3, 1 y 0; el copy de cancelar (Molina literal, Ruiz derivado);
+  «Qué sigue» por recordatorio y por plazo (el límite de 24 h justas cuenta como «con plazo»);
+  el `.ics` de c1 en UTC, CRLF y líneas de 75 octetos.
 
 `--contrapruebas`: una mutación por aserción que la rompe (salvo las semanas,
 un hecho del calendario).
@@ -1173,7 +1261,12 @@ y vista 3), `c-appointment-summary` (`AppointmentSummary.tsx`) y
 (`__heading`), y en V3 `__title-group`, título y subtítulo; la de
 `AppointmentSummary`, `title` y `--aside`. `c-sheet` (`Sheet.tsx`)
 es la hoja a pantalla completa (01.2), sin ser de los 34; su variante
-inferior, `c-sheet--bottom`, es la del calendario (02.2, V2a). Los hooks (`useDisclosure`, `useMediaQuery`, `useLgFocusFallback`) viven
+inferior, `c-sheet--bottom`, es la del calendario (02.2, V2a).
+`c-my-appointments` es el patrón de Mis citas (`MyAppointments.tsx`, V4a), sin componente
+propio: secciones, título de sección y aside; la raíz se mezcla con `o-layout`. En V4a,
+`c-page-header` suma `success` (`__headline` y `__badge`), `AppointmentSummary` suma
+`action` (`--action`, `__body`, mezclas `__action` y `__details`) y `c-booking-details`
+publica sus tres propiedades de fila (§ Custom properties públicas). Los hooks (`useDisclosure`, `useMediaQuery`, `useLgFocusFallback`) viven
 en `src/hooks/`, y el espejo del breakpoint (D7) en `src/breakpoints.ts`,
 comprobado en `pnpm lint`.
 
@@ -1247,6 +1340,11 @@ página. Reservar con Ruiz en otra fecha u hora conserva c1.
 Los avisos que cruzan una navegación (reprogramada) son de un solo uso y
 viven en el almacén, no en `history.state`: tras recargar, el almacén se
 reinicia y el aviso no debe volver.
+**Contacto de la reserva (V4a).** Una reserva guarda el correo y el
+recordatorio del borrador de D17 (`contact`), que la confirmación nombra. La
+c1 sembrada no lo tiene: al recargar su confirmación, **respaldo declarado**,
+el correo de la sesión y el recordatorio pedido (`contactOf`), como una
+reserva anterior de Karla. Así 04.1 se mide por URL directa.
 
 **D14 · Legend con encabezado.** `UI/Legend` recibe una prop opcional de nivel
 de encabezado. La vista 2 la usa (`<legend><h2>Elige fecha</h2></legend>`) y
@@ -1332,15 +1430,18 @@ contraprueba; la validación, con los escenarios de 03.2 y 03.5 y el teléfono.
 | 7 | **`last baseline` en Safari.** Cabecera de resultados y `c-field` (V1a) solo se midieron en Edge. Si no se soporta, la declaración se ignora y el recuento se centra en la cabecera: comprobar en Safari de macOS e iOS |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |
 | 5 · V2a ✓ | **Foco al desaparecer «Semana anterior». Cerrado en V2a:** el foco pasa a «Semana siguiente» en el mismo commit y la región de la semana la anuncia; lo simétrico en la semana de `maxValue` (medido en `pnpm verify 5.2` y `--preview`) |
-| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). **V1a:** `/kit/estados` → 01.1 en `pnpm verify 5.1`, 0 píxeles, ✗ declarado por la misma regla. **Tras V1b** (`pnpm dev` recién arrancado, Edge headless a 1350): 2793 px en 445,129 → 508,192, iguales a los 4 s, en 20 de 20 pasadas, 10 con el foco de la búsqueda en `useEffect` y 10 en `useLayoutEffect`: no depende de ese cambio. La caja es la foto de la Dra. Ruiz en la primera tarjeta; a simple vista, las dos capturas son iguales. Sin medir si es el mismo resto o una resolución distinta de la foto tomada de la caché (docs/verificacion.md, Trampas, «`sizes` y la caché de imágenes»). Al cerrar la fase 5, junto a las dos candidatas. En el cierre de V1b, con un `pnpm dev` de días, medía 0: el servidor recién arrancado no lo evita, al revés que la hipótesis de sesión larga. Desde V1a, 5.0 y 5.1 aparcan el puntero antes de cada captura (`park`): la portada tiene casillas al final y el puntero dejaba en `:hover` la que pasaba bajo él al bajar con la rueda (188 px en `/kit` → `/`, justo la caja de «Videoconsulta»); 4.6 no lo usa y sigue en 4932 px. **V2a:** desde que `/kit/fecha-hora` muestra la segunda variante None (90 px más de página), 4.6 mide 18632 px en 67,759 → 1267,879, iguales a los 4 s, en 2 de 2 pasadas: el mismo resto (avatares de `/kit` bajo la última Booking Bar), que ahora tapa la barra «Confirmar hora» entera; 01.1 → perfil en `pnpm verify 5.2`, 0 píxeles, ✗ declarado por la misma regla. **V2b:** 02.1 → 02.4 con «Continuar» (clic real, 375, barra clásica), 1484 px en 41,191 → 88,238, iguales a los 4 s: la foto de la Dra. Ruiz en «Who» (48 × 48); a simple vista, las dos capturas son iguales. Una sonda da la misma candidata (`elena-ruiz-arellano-96.webp`) tras navegar en cliente y tras recargar: no es la resolución elegida por la caché. ✗ declarado por la misma regla. **V3:** 02.4 → 03.1 con «Continuar con tus datos» (clic real, 375) en `pnpm verify 5.3`, 0 píxeles, ✗ declarado por la misma regla (`explicado: false`). **Hipótesis para el cierre de la fase 5 (sin investigar):** los restos medidos en vistas reales caen sobre la foto de la Dra. Ruiz (V1b, primera tarjeta, 2793 px; V2b, «Who», 1484 px) y los de 4.6, sobre avatares; descartada la resolución de la caché, apunta a la decodificación o el pintado de imágenes al navegar en cliente. Al cerrar la fase 5: probar las dos candidatas y esta hipótesis; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
+| 5 · cierre | **Resto de pintado tras navegar en cliente (defecto 2 de 4.6, abierto; T0 cerró en la salida (c)).** De `/kit` a `/kit/fecha-hora` con el enlace del catálogo, al bajar al final se ven los avatares de `/kit` bajo la última Booking Bar; sin nodo en el DOM. Osvaldo lo reprodujo en su Chrome real (Windows, barra clásica), **sin CDP**: no es un defecto del arnés. **Ronda T0:** se reproduce de forma estable en `pnpm verify 4.6` (3 de 3: 4932 píxeles en x 68–304 · y 849–879 a 1350 con barra clásica, iguales a los 4 s; 0 a 375) y no en pasadas aisladas con Edge y perfil nuevos: 0 de 40 (dev a 1350 con las dos barras, dev a 375, Edge con ventana a 1350) y 0 de 40 con una preparación previa, una variable cada vez (letra del navegador a 24 y 32 y vuelta a 16; forced-colors; barras alternadas; 30 cargas completas). **Condición previa sin aislar.** La hipótesis de 4.6 («la primera navegación en cliente de la sesión») no se sostiene: lo dispara algún estado que deja la sesión larga. **Anterior a T0, sigue siendo cierto:** con `scrollTo` o un clic por script no sale; desaparece con el árbol de capas de CDP activo; hipótesis sin confirmar: el compositor de Chromium reutiliza teselas de la página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`, ni quitar el desplazador del calendario; la prueba `/kit` → `/kit/resultados` de 8087662 no llegó a hacerse. Candidatas sin probar: el barrido de 52 cargas a 320–345 con cambio de viewport que precede a la comprobación, y el perfil persistente de 4.6. La comprobación sigue en su sitio como ✗ declarado (`explicado: false`) y cada vista la repite en su navegación real (`navegacion.mjs`). **V1a:** `/kit/estados` → 01.1 en `pnpm verify 5.1`, 0 píxeles, ✗ declarado por la misma regla. **Tras V1b** (`pnpm dev` recién arrancado, Edge headless a 1350): 2793 px en 445,129 → 508,192, iguales a los 4 s, en 20 de 20 pasadas, 10 con el foco de la búsqueda en `useEffect` y 10 en `useLayoutEffect`: no depende de ese cambio. La caja es la foto de la Dra. Ruiz en la primera tarjeta; a simple vista, las dos capturas son iguales. Sin medir si es el mismo resto o una resolución distinta de la foto tomada de la caché (docs/verificacion.md, Trampas, «`sizes` y la caché de imágenes»). Al cerrar la fase 5, junto a las dos candidatas. En el cierre de V1b, con un `pnpm dev` de días, medía 0: el servidor recién arrancado no lo evita, al revés que la hipótesis de sesión larga. Desde V1a, 5.0 y 5.1 aparcan el puntero antes de cada captura (`park`): la portada tiene casillas al final y el puntero dejaba en `:hover` la que pasaba bajo él al bajar con la rueda (188 px en `/kit` → `/`, justo la caja de «Videoconsulta»); 4.6 no lo usa y sigue en 4932 px. **V2a:** desde que `/kit/fecha-hora` muestra la segunda variante None (90 px más de página), 4.6 mide 18632 px en 67,759 → 1267,879, iguales a los 4 s, en 2 de 2 pasadas: el mismo resto (avatares de `/kit` bajo la última Booking Bar), que ahora tapa la barra «Confirmar hora» entera; 01.1 → perfil en `pnpm verify 5.2`, 0 píxeles, ✗ declarado por la misma regla. **V2b:** 02.1 → 02.4 con «Continuar» (clic real, 375, barra clásica), 1484 px en 41,191 → 88,238, iguales a los 4 s: la foto de la Dra. Ruiz en «Who» (48 × 48); a simple vista, las dos capturas son iguales. Una sonda da la misma candidata (`elena-ruiz-arellano-96.webp`) tras navegar en cliente y tras recargar: no es la resolución elegida por la caché. ✗ declarado por la misma regla. **V3:** 02.4 → 03.1 con «Continuar con tus datos» (clic real, 375) en `pnpm verify 5.3`, 0 píxeles, ✗ declarado por la misma regla (`explicado: false`). **V4a:** 03.1 → 04.1 con el envío real (375, barra clásica) en `pnpm verify 5.4`, 0 píxeles, ✗ declarado por la misma regla. **Hipótesis para el cierre de la fase 5 (sin investigar):** los restos medidos en vistas reales caen sobre la foto de la Dra. Ruiz (V1b, primera tarjeta, 2793 px; V2b, «Who», 1484 px) y los de 4.6, sobre avatares; descartada la resolución de la caché, apunta a la decodificación o el pintado de imágenes al navegar en cliente. Al cerrar la fase 5: probar las dos candidatas y esta hipótesis; si sigue sin aislar, Osvaldo decide entre límite declarado (seguimiento en la fase 7) u otra ronda |
 | 5 · T1 ✓ | **Foco al cambiar de ruta. Cerrado en T1** (`useRouteFocus`, D12): PUSH, POP, `search`, carga inicial y `state.focus` medidos en `pnpm verify 5.0` y en `--preview`; 4.7 pasa a ✓ con la contraprueba manual (sin el hook, foco en `body`). D12 y § Constantes dicen que al navegar el foco va al `h1` de la vista (`id="contenido"`), pero no está implementado: solo lo hace el salto al contenido. Tras un clic en un enlace del catálogo el foco queda en `body` (medido en 4.7, `/kit` → `/kit/citas`; ✗ declarado en `pnpm verify 4.7`). Se implementa con las vistas |
-| 5 · V4a | **Appointment Card entre 1024 y 1055 de viewport.** Medir en la vista 4 montada el paso Stacked → Row (1040, y 1055 con barra clásica), con acciones a ancho completo en el tramo (§ Contenedores, costes) |
+| 5 · cierre | **El h1 se vuelve a montar al cruzar lg en la confirmación (V4a) y en la vista 3.** Su padre cambia: por debajo de lg los pasos van en `c-page-header__heading` junto al título; desde lg no hay pasos y `__heading` no existe. Con el foco en el h1, el nodo se desmonta y el foco lo recoge `useLgFocusFallback` en el mismo commit: medido en `pnpm verify 5.3` y `5.4` (y `--preview`), el h1 nuevo sin ningún lote de mutaciones en body; sin el hook, body (comprobación manual en docs/verificacion.md). En 02.4 los pasos existen en las dos plataformas y el h1 es el mismo nodo. Opción estructural: `__heading` siempre presente en `PageHeader` (repasaría 5.0–5.3). El posible nuevo anuncio del h1 con lector al cruzar va a la fase 7 |
+| 5 · V4a ✓ | **Appointment Card entre 1024 y 1055 de viewport. Cerrado en V4a como coste medido** (§ Contenedores, costes): Stacked con acciones a ancho completo a 1024 y 1039 (superpuesta) y 1054 (clásica), `li` de 624 / 639 / 639 y acciones de 590 / 605 / 605; Row desde 1040 (1055), `li` de 640 y acciones de 224. En `pnpm verify 5.4`, con capturas del tramo |
 | 5 · T1 ✓ | **Filtro de consola en `4.7-citas.mjs`. Cerrado en T1:** «Reprogramar» llega a la ruta provisional con el foco en su `h1` y sin errores. El clic en «Reprogramar» llega al 404 de React Router y se filtran sus 2 errores de consola. Retirar el filtro cuando exista `/mis-citas/:id/reprogramar` |
-| 5 · V4a | **Origen del correo de 04.1.** La nota de la confirmación nombra el correo: decidir si sale de la sesión (`src/data/session.ts`) o del borrador de D17, que se reinicia tras una reserva correcta (y el correo escrito en la vista 3 se pierde con él) |
+| 5 · V4a ✓ | **Origen del correo de 04.1. Cerrado en V4a:** de la cita (`contact`, copiado del borrador antes de reiniciarlo), con el respaldo declarado de la c1 sembrada (D13). Medido con una reserva real: con «karla@otro.mx», la nota lo nombra; aserción y contraprueba en `check-data`. Arrastra el recordatorio: «Qué sigue» ya no promete uno que no se pidió (§ Confirmación y Mis citas) |
 | 7 | **Anuncio del h2 del resumen de errores.** Comprobar con NVDA y VoiceOver que al recibir el foco se anuncia «Corrige N campos para continuar», encabezado de nivel 2. En el árbol de accesibilidad de Chromium, medido en `pnpm verify 5.3`: heading, nivel 2, enfocado |
-| 5 · V4a | **Próximas vacía.** Si se cancelan todas las citas próximas, la sección no tiene diseño. En `/kit/citas` la sección desaparece (sin `h2` vacío); la vista 4 decide |
-| 5 · V4a | **Subtítulo con 0 citas.** «Tienes 0 citas próximas» no existe en el diseño (sí «Tienes N citas próximas»; el singular «Tienes 1 cita próxima» es derivado). En el kit el subtítulo desaparece con 0; la vista 4 decide |
-| 5 · T1 → V4b | **Flujos de foco contra la preview.** Método hecho en T1 (`pnpm verify 5.N --preview`; 5.0: 5/5); cada bloque mide los suyos. `pnpm verify` corre contra `pnpm dev`, con `StrictMode`, que vuelve a ejecutar los efectos y puede ocultar un fallo de orden (docs/verificacion.md, Trampas). Medir contra `pnpm preview` los flujos de foco de las vistas que dependen del orden de los efectos: cierre del diálogo → título del aviso, «Ver más», resumen de errores, reserva fallida. **V2b:** 02.4 (llegada desde «Continuar» y cruce de lg en los dos sentidos, con su contraprueba) en `pnpm verify 5.2 --preview`, 6/6. **V3:** resumen de errores, reserva fallida, la sonda del envío válido (ningún frame con el form reiniciado) y el cruce de lg en `pnpm verify 5.3 --preview`, 4/4 |
+| 5 · V4a ✓ | **Próximas vacía. Cerrado en V4a:** sin sección Próximas, como el kit (sin `h2` vacío). Medido cancelando las tres en `pnpm verify 5.4` y `--preview`: encabezados `H1 Mis citas`, `H2 Cita cancelada`, `H2 Pasadas`; las cinco en Pasadas; el foco en el título de cada aviso |
+| 5 · V4a ✓ | **Subtítulo con 0 citas. Cerrado en V4a:** «No tienes citas próximas» (copy fuera de Figma, aprobado); «Tienes 1 cita próxima» en singular (`upcomingText`, aserción en `check-data` con 3, 1 y 0). El kit conserva su comportamiento (sin subtítulo con 0): el kit demuestra el componente, no el copy de la vista; unificarlo cambiaría las cifras de 4.7 |
+| 5 · cierre | **`BOOKING_POLICY` a menos de 24 horas.** «Antes de continuar» en 02.4 y 02.5 promete «cancelar o reprogramar sin costo hasta 24 horas antes» también en una cita a menos de 24 h (Mariana, hoy a las 19:15, la primera hora del listado). La confirmación ya lo resuelve (`nextStepsText`, V4a); la política de la vista 2 no se tocó en V4a |
+| 7 | **`.ics` en Safari y en los calendarios.** La descarga con `<a download>` y URI `data:` se midió en Edge (`pnpm verify 5.4`). Comprobar en Safari de iOS y macOS que descarga o abre Calendario, y la importación en Google Calendar y Outlook (hora en UTC con Z, `LOCATION` con comas escapadas) |
+| 5 · T1 → V4b | **Flujos de foco contra la preview.** Método hecho en T1 (`pnpm verify 5.N --preview`; 5.0: 5/5); cada bloque mide los suyos. `pnpm verify` corre contra `pnpm dev`, con `StrictMode`, que vuelve a ejecutar los efectos y puede ocultar un fallo de orden (docs/verificacion.md, Trampas). Medir contra `pnpm preview` los flujos de foco de las vistas que dependen del orden de los efectos: cierre del diálogo → título del aviso, «Ver más», resumen de errores, reserva fallida. **V2b:** 02.4 (llegada desde «Continuar» y cruce de lg en los dos sentidos, con su contraprueba) en `pnpm verify 5.2 --preview`, 6/6. **V3:** resumen de errores, reserva fallida, la sonda del envío válido (ningún frame con el form reiniciado) y el cruce de lg en `pnpm verify 5.3 --preview`, 4/4. **V4a:** confirmación (cruce de lg con su contraprueba y el h1 que se vuelve a montar), diálogo en la vista, sonda de cancelar (MutationObserver y `requestAnimationFrame`; contraprueba con `close()` en un efecto: `BODY`) y las tres próximas canceladas en `pnpm verify 5.4 --preview`, 6/6; el h1 de la vista 3 en `5.3 --preview`, 5/5. Queda la reprogramación (V4b) |
 | 7     | **Ciclo de Tab del diálogo en Firefox y Safari.** Comprobar que Tab y Mayús+Tab dentro de `UI/Dialog` recorren sus botones y, como mucho, salen a la interfaz del navegador, sin caer nunca en la página. En Edge con ventana, medido (docs/verificacion.md, comprobaciones manuales); en headless, `pnpm verify 4.7` |
 | 7     | **Foco devuelto al disparador tras `close()` en Safari y Firefox.** `UI/Dialog` lo devuelve de forma explícita (`returnFocus`) además del nativo; solo se midió en Edge |
 | 7     | **`alertdialog` con lector.** Que NVDA y VoiceOver anuncien el título y el cuerpo al abrir (`aria-labelledby` y `aria-describedby`), y que el foco inicial en «Mantener mi cita» no tape el anuncio |

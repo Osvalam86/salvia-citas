@@ -1,4 +1,4 @@
-// Aserciones de los datos simulados (DESIGN.md, D4, D13, D16 y D17). Falla si los datos
+// Aserciones de los datos simulados (DESIGN.md, D4, D13, D16, D17 y V4a). Falla si los datos
 // dejan de cumplir los hechos declarados del diseño. Va encadenado en pnpm
 // lint; importa el TS de src/data/ directamente (Node ≥ 22.18).
 //
@@ -8,7 +8,9 @@
 import { CalendarDate } from '@internationalized/date'
 import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFreeAfter, nextOpeningMonth, weekday } from '../src/data/availability.ts'
 import { NOW, TODAY } from '../src/data/clock.ts'
-import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appointments.ts'
+import { cancelCopy, contactOf, createAppointmentStore, groupAppointments, RUIZ_APPOINTMENT_ID, upcomingText } from '../src/data/appointments.ts'
+import { nextStepsText } from '../src/data/booking.ts'
+import { calendarFile } from '../src/data/calendar.ts'
 import { createNotifyStore } from '../src/data/notify.ts'
 import { createPatientStore, initialDraft, submitBooking, validatePatient } from '../src/data/patient.ts'
 import { SESSION } from '../src/data/session.ts'
@@ -183,6 +185,57 @@ const ASSERTIONS = {
     const result = ctx.submit({ slug: SLUGS.ruiz, date: '2029-04-24', time: '10:30' }, 'ocupada', { appointments: ctx.makeStore(), patient })
     return (!result.ok && patient.getSnapshot() === kept) || JSON.stringify({ result, draft: patient.getSnapshot() })
   }],
+  contactStored: ['Una reserva guarda el correo y el recordatorio del borrador (04.1)', (ctx) => {
+    const appointments = ctx.makeStore()
+    const patient = ctx.makePatient()
+    patient.update({ email: ' otra@ejemplo.com ', reminder: true })
+    const result = ctx.submit({ slug: SLUGS.mariana, date: '2029-04-23', time: '19:15' }, null, { appointments, patient })
+    const contact = result.ok && appointments.get(result.id)?.contact
+    return same(contact, { email: 'otra@ejemplo.com', reminder: true }) || JSON.stringify(contact)
+  }],
+  contactFallback: ['La c1 sembrada, sin contacto, usa la sesión y el recordatorio pedido', (ctx) => {
+    const found = ctx.contactOf(ctx.makeStore().get(RUIZ_APPOINTMENT_ID))
+    return same(found, { email: 'karla.sanchez@ejemplo.com', reminder: true }) || JSON.stringify(found)
+  }],
+  groups: ['Mis citas: Próximas ascendente y Pasadas descendente con las canceladas; tras cancelar c2, el orden de 04.8', (ctx) => {
+    const store = ctx.makeStore()
+    const ids = () => { const g = ctx.group(store.getSnapshot()); return [g.upcoming.map((a) => a.id), g.past.map((a) => a.id)] }
+    const before = ids()
+    store.cancel('c2')
+    const after = ids()
+    return (same(before, [['c1', 'c2', 'c3'], ['c4', 'c5']]) && same(after, [['c1', 'c3'], ['c2', 'c4', 'c5']])) || JSON.stringify({ before, after })
+  }],
+  upcomingText: ['Subtítulo: «Tienes 3 citas próximas», «Tienes 1 cita próxima», «No tienes citas próximas»', (ctx) => {
+    const found = [3, 1, 0].map(ctx.upcomingText)
+    return same(found, ['Tienes 3 citas próximas', 'Tienes 1 cita próxima', 'No tienes citas próximas']) || found.join(' · ')
+  }],
+  cancelCopy: ['Copy de cancelar: Molina, el literal de Figma (04.3, 04.8); Ruiz, el mismo patrón con «la Dra.»', (ctx) => {
+    const find = (slug) => ctx.specialists.find((s) => s.slug === slug)
+    const molina = ctx.cancelCopy({ date: '2029-05-08', time: '17:00' }, find(SLUGS.molina))
+    const ruiz = ctx.cancelCopy({ date: '2029-04-24', time: '10:30' }, find(SLUGS.ruiz))
+    return same([molina, ruiz], [
+      { dialog: 'Martes 8 de mayo, 17:00, con el Dr. Andrés Molina Paz. Esta acción no se puede deshacer.', notice: 'Ya no tienes la cita del martes 8 de mayo a las 17:00 con el Dr. Molina.' },
+      { dialog: 'Martes 24 de abril, 10:30, con la Dra. Elena Ruiz Arellano. Esta acción no se puede deshacer.', notice: 'Ya no tienes la cita del martes 24 de abril a las 10:30 con la Dra. Ruiz.' },
+    ]) || JSON.stringify([molina, ruiz])
+  }],
+  nextStepsReminder: ['«Qué sigue»: c1 (25,5 h) con recordatorio da el copy de Figma; sin él, la política sin la promesa', (ctx) => {
+    const c1 = { date: '2029-04-24', time: '10:30' }
+    const found = [true, false].map((reminder) => ctx.nextSteps({ ...c1, contact: { email: '', reminder } }).split('.')[0])
+    return same(found, ['Te enviaremos un recordatorio por correo 24 horas antes', 'Puedes cancelar o reprogramar sin costo desde Mis\u00a0citas hasta 24 horas antes']) || found.join(' · ')
+  }],
+  nextStepsWindow: ['«Qué sigue»: Mariana hoy a las 19:15 no promete nada; a 24 h justas de NOW, sí (≥ 24 h)', (ctx) => {
+    const contact = { email: '', reminder: true }
+    const today = ctx.nextSteps({ date: '2029-04-23', time: '19:15', contact }).split('.')[0]
+    const edge = ctx.nextSteps({ date: '2029-04-24', time: '09:00', contact }).split('.')[0]
+    return (today === 'Puedes gestionar tu cita desde Mis\u00a0citas' && edge === 'Te enviaremos un recordatorio por correo 24 horas antes') || JSON.stringify({ today, edge })
+  }],
+  ics: ['.ics de c1: 10:30 de Ciudad de México = 16:30Z, 30 min, CRLF y líneas de 75 octetos como mucho', (ctx) => {
+    const file = ctx.ics({ id: 'c1', date: '2029-04-24', time: '10:30' }, ctx.specialists.find((s) => s.slug === SLUGS.ruiz))
+    const lines = file.split('\r\n')
+    const long = lines.filter((l) => new TextEncoder().encode(l).length > 75)
+    const ok = lines.includes('DTSTART:20290424T163000Z') && lines.includes('DTEND:20290424T170000Z') && lines.includes('DTSTAMP:20290423T150000Z') && !/[^\r]\n/.test(file) && file.endsWith('\r\n') && long.length === 0
+    return ok || JSON.stringify(lines)
+  }],
 }
 
 const base = () => ({
@@ -196,6 +249,12 @@ const base = () => ({
   validate: validatePatient,
   submit: submitBooking,
   withScenario,
+  contactOf,
+  group: groupAppointments,
+  upcomingText,
+  cancelCopy,
+  nextSteps: nextStepsText,
+  ics: calendarFile,
 })
 
 // Mutaciones: una por aserción (salvo weeks, un hecho del calendario).
@@ -248,6 +307,14 @@ const MUTATIONS = {
   phone: ['el teléfono no se valida', (c) => ({ ...c, validate: (v) => validatePatient({ ...v, phone: '' }) })],
   draftInitial: ['borrador sembrado con un motivo', (c) => ({ ...c, makePatient: () => { const s = createPatientStore(); s.update({ reason: 'Seguimiento' }); return s } })],
   draftResetOnBooking: ['submitBooking sin el reinicio', (c) => ({ ...c, submit: (booking, scenario, stores) => stores.appointments.book(booking, scenario) })],
+  contactStored: ['submitBooking sin el contacto', (c) => ({ ...c, submit: (booking, scenario, stores) => stores.appointments.book(booking, scenario) })],
+  contactFallback: ['el respaldo sin recordatorio', (c) => ({ ...c, contactOf: (a) => a.contact ?? { email: SESSION.email, reminder: false } })],
+  groups: ['Pasadas en orden ascendente', (c) => ({ ...c, group: (list) => { const g = groupAppointments(list); return { ...g, past: [...g.past].reverse() } } })],
+  upcomingText: ['el singular en plural', (c) => ({ ...c, upcomingText: (n) => (n === 0 ? upcomingText(0) : `Tienes ${n} citas próximas`) })],
+  cancelCopy: ['«el Dr.» también para una doctora', (c) => ({ ...c, cancelCopy: (a, s) => cancelCopy(a, { name: s.name.replace(/^Dra\./, 'Dr.') }) })],
+  nextStepsReminder: ['el recordatorio se da por pedido', (c) => ({ ...c, nextSteps: (a) => nextStepsText({ ...a, contact: { ...a.contact, reminder: true } }) })],
+  nextStepsWindow: ['el plazo contra NOW + 1 min (> en vez de ≥)', (c) => ({ ...c, nextSteps: (a) => nextStepsText(a, NOW.add({ minutes: 1 })) })],
+  ics: ['la hora local sin pasar a UTC', (c) => ({ ...c, ics: (a, s) => calendarFile(a, s, 0) })],
   draftKeptWhenBusy: ['submitBooking reinicia siempre', (c) => ({ ...c, submit: (booking, scenario, stores) => { stores.patient.reset(); return stores.appointments.book(booking, scenario) } })],
 }
 
