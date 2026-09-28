@@ -6,16 +6,22 @@
 // Slot, que no son de los 34), c-page-header (encabezado de las vistas),
 // c-empty-state (estado vacío de pantalla), c-sheet (hoja a pantalla
 // completa), los patrones de la vista 1 (c-search-form, c-search-filters y
-// c-results-header) y los de la vista 2 (c-slot-picker y c-booking-summary).
+// c-results-header), los de la vista 2 (c-slot-picker, c-booking-summary y
+// c-booking-review) y los de la reserva (c-action-bar, c-appointment-summary
+// y c-booking-details).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
 // contenido no controlado y _states solo con un estado genérico sin ARIA.
+@use 'c-action-bar';
 @use 'c-app-layout';
 @use 'c-appointment-card';
+@use 'c-appointment-summary';
 @use 'c-avatar';
 @use 'c-back-link';
 @use 'c-booking-bar';
+@use 'c-booking-details';
+@use 'c-booking-review';
 @use 'c-booking-summary';
 @use 'c-bottom-nav';
 @use 'c-breadcrumb';

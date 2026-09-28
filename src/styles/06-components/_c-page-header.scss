@@ -33,6 +33,13 @@
     align-self: flex-start;
   }
 
+  // Pasos y h1 a space-4 (Figma 02.4: Heading Group).
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
   &__title {
     @include tools.text(page-title);
   }

@@ -47,11 +47,13 @@ const parkPointer = async (b) => {
  * persistente). Deja la página en `to` recargada y al final. Con `park`, el
  * puntero va a la esquina antes de cada captura (las vistas con hover al
  * final de la página); 4.6 no lo usa, para no cambiar la reproducción del
- * resto de pintado.
+ * resto de pintado. `selector` elige entre qué elementos se busca `link`: un
+ * envío que navega es un botón (V2b: «Continuar» de la Booking Bar lleva a
+ * /confirmar).
  */
-export async function clientNavigation(b, { from, link, to, state = 'null', park = false }) {
+export async function clientNavigation(b, { from, link, to, state = 'null', park = false, selector = 'a' }) {
   await b.go(from)
-  const { x, y } = await b.ev(`(() => { const a = [...document.querySelectorAll('a')].find((e) => e.textContent === ${JSON.stringify(link)}); a.scrollIntoView({ block: 'center' }); const r = a.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
+  const { x, y } = await b.ev(`(() => { const a = [...document.querySelectorAll(${JSON.stringify(selector)})].find((e) => e.textContent === ${JSON.stringify(link)}); a.scrollIntoView({ block: 'center' }); const r = a.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
   await b.click(x, y)
   // Con search: el destino puede llevar consulta (5.1, /kit/estados → /?q=…).
   for (let i = 0; i < 50 && (await b.ev('location.pathname + location.search')) !== to; i++) await sleep(100)

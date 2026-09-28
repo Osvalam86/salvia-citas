@@ -2,8 +2,8 @@
 
 // Sección «Tu cita» de la vista 2 en escritorio (Specialist.tsx; Figma 02.5,
 // 02.6). Patrón de vista, sin componente propio. Una <section> dentro del form
-// y no un <aside>: contiene el envío (panel 02.0). Pasos, tarjeta, aviso Info
-// y acciones, a space-4 (Figma: Aside).
+// y no un <aside>: contiene el envío (panel 02.0). Pasos (BookingSteps),
+// tarjeta, aviso Info y acciones, a space-4 (Figma: Aside).
 .c-booking-summary {
   display: flex;
   flex-direction: column;
@@ -27,45 +27,7 @@
     color: var(--color-text-primary);
   }
 
-  &__details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  // Cada fila del dl: icono de 20 y texto a space-3 (Figma: Detail). El icono
-  // va dentro del <dt> (un div de dl solo admite dt y dd); el dt ocupa las dos
-  // columnas con subgrid, así el icono queda en la primera y el dd, debajo
-  // del término en la segunda.
-  &__detail {
-    display: grid;
-    grid-template-columns: 1.25rem minmax(0, 1fr);
-    column-gap: var(--space-3);
-  }
-
-  &__term {
-    @include tools.text(caption);
-
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-column: 1 / -1;
-    color: var(--color-text-secondary);
-  }
-
-  &__value {
-    @include tools.text(body-md);
-
-    grid-column: 2;
-    color: var(--color-text-primary);
-  }
-
-  // Segunda línea de «Dónde»: la dirección.
-  &__address {
-    @include tools.text(caption);
-
-    grid-column: 2;
-    color: var(--color-text-secondary);
-  }
+  // El dl es c-booking-details (V2b), compartido con la confirmación previa.
 
   // Envío intrínseco (diseño §3.6) y la nota a space-2 (Figma: Actions).
   &__actions {

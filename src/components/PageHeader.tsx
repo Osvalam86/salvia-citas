@@ -30,12 +30,17 @@ type PageHeaderProps = {
    * las dos plataformas (panel 02.0).
    */
   profile?: Profile
+  /**
+   * Pasos de la reserva (BookingSteps) sobre el h1, a space-4 (Figma 02.4:
+   * Heading Group). No se combina con `profile`.
+   */
+  steps?: ReactNode
 }
 
 // Encabezado de página de las vistas (c-page-header). No es uno de los 34:
 // excepción declarada en D5. Su API crece vista por vista: en V1a, el
-// subtítulo; en V2a, el retroceso y el perfil.
-export default function PageHeader({ title, subtitle, back, profile }: PageHeaderProps) {
+// subtítulo; en V2a, el retroceso y el perfil; en V2b, los pasos.
+export default function PageHeader({ title, subtitle, back, profile, steps }: PageHeaderProps) {
   const heading = (
     <h1 className={profile ? 'c-page-header__title c-page-header__title--profile' : 'c-page-header__title'} id={MAIN_TITLE_ID} tabIndex={-1}>
       {title}
@@ -59,6 +64,11 @@ export default function PageHeader({ title, subtitle, back, profile }: PageHeade
             </p>
             <Tag className="c-page-header__tag">{profile.modality}</Tag>
           </div>
+        </div>
+      ) : steps ? (
+        <div className="c-page-header__heading">
+          {steps}
+          {heading}
         </div>
       ) : (
         heading

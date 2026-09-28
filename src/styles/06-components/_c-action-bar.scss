@@ -1,0 +1,32 @@
+@use '../02-tools' as tools;
+
+// Action Bar (ActionBar.tsx; Figma 02.4: Action Bar). Patrón de pantalla, sin
+// ser de los 34 (D5). Pieza a sangre: fondo y borde superior a todo el ancho;
+// el interior es o-wrapper (DESIGN.md § Tramo intermedio). El shell la fija
+// al pie (c-app-layout__bar).
+//
+// Alto 102 con el borde dentro, como en Figma (trazo INSIDE): borde 1 + 11 +
+// acción 50 + 8 + nota 20 + 12. La acción llena la columna (FILL: acción de
+// bloque en móvil, §3.6) y la nota va centrada debajo.
+//
+// Texto grande: el shell la saca de la posición fija y la deja al final del
+// flujo; el interior ya es una columna, así que no cambia nada más.
+.c-action-bar {
+  background-color: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    // stylelint-disable-next-line unit-disallowed-list -- compensa 1px de borde, que no escala con el texto
+    padding-block: calc(var(--space-3) - 1px) var(--space-3);
+  }
+
+  &__note {
+    @include tools.text(caption);
+
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}

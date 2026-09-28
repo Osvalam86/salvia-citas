@@ -5,8 +5,12 @@
 // estructura, el teclado (tira, ListBox, Intro y el botón por defecto), la URL
 // (replace, push, guardas y parámetros que viajan), Missing y su regla de
 // salida, los flujos de foco (semana, «Ver horarios del …», hoja, cruce de lg)
-// y el conmutador «Avisarme» (D16). `previewFlows` repite los flujos de foco
-// contra pnpm preview (sin StrictMode): pnpm verify 5.2 --preview.
+// y el conmutador «Avisarme» (D16). V2b: la confirmación previa (02.4) con
+// sus anchos, texto ampliado, forced-colors, estructura, enlaces, guardas y
+// foco, y la regresión exacta de 02.5 y 02.6 tras sacar BookingSteps,
+// BookingDetails y useLgFocusFallback de Specialist.tsx. `previewFlows`
+// repite los flujos de foco contra pnpm preview (sin StrictMode): pnpm verify
+// 5.2 --preview.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { clientNavigation } from './navegacion.mjs'
@@ -679,9 +683,357 @@ async function notify(b, expect) {
   })
 }
 
+// --- V2b: confirmación previa (/confirmar, Figma 02.4) ----------------------------------------------------------
+
+const CONFIRM = `${RUIZ}/confirmar?fecha=2029-04-24&hora=10:30`
+const CONFIRM_PARTS = {
+  header: '.c-header-mobile',
+  retroceso: '.c-back-link',
+  pasos: '.c-page-header__heading ol',
+  paso3: '.c-page-header__heading ol li:nth-child(3)',
+  h1: 'main h1',
+  tarjeta: '.c-appointment-summary__card',
+  quien:'.c-appointment-summary__who',
+  avatar: '.c-appointment-summary .c-avatar',
+  nombre: '.c-appointment-summary__name',
+  especialidad: '.c-appointment-summary__specialty',
+  modalidad: '.c-appointment-summary .c-tag',
+  dl: '.c-appointment-summary dl',
+  fila3: '.c-appointment-summary dl > div:nth-child(3)',
+  cambiar: '.c-booking-review .c-button',
+  aviso: '.c-booking-review .c-notice',
+  main: 'main',
+  barra: '.c-app-layout__bar',
+  continuar: '.c-action-bar .c-button',
+  nota: '.c-action-bar__note',
+}
+// Figma 02.4 (236:5722), en coordenadas del frame de 375 × 986. Los pasos
+// miden 312 en Figma (HUG) y llenan la columna en código: se compara su y, su
+// alto y la x del tercero.
+const FIGMA_024 = {
+  header: [0, 0, 375, 64], retroceso: [16, 88, null, 48], pasos: [16, 144, null, 24], paso3: [264, 144, null, 24], h1: [16, 184, 343, 36],
+  tarjeta: [16, 252, 343, 344], quien: [41, 277, 293, 102], avatar: [41, 277, 48, 48], nombre: [105, 277, 229, 24], especialidad: [105, 301, 229, 24],
+  modalidad: [105, 333, null, 30], dl: [41, 395, 293, 176], fila3: [41, 507, 293, 64], cambiar: [16, 612, 343, 50], aviso: [16, 694, 343, 158],
+  main: [0, 64, 375, 820], barra: [0, 884, 375, 102], continuar: [16, 896, 343, 50], nota: [16, 954, 343, 20],
+}
+
+async function confirmPairs(b, expect) {
+  await b.overlayScrollbars(true)
+  const h = await fullPage(b, 375, CONFIRM)
+  const actual = await measure(b, CONFIRM_PARTS)
+  await b.shot('02.4.png', { x: 0, y: 0, width: 375, height: h })
+  expect('02.4 (375, barra superpuesta) a ±1 px de Figma, y el alto de página', { fuera: outside(actual, FIGMA_024), alto: h }, { fuera: [], alto: 986 })
+  // Contraprueba: sin el −1px, el trazo de «Who» se suma a su padding.
+  await b.style('.c-appointment-summary__who { padding-block-end: var(--space-4) }')
+  expect('contraprueba: sin el −1px, «Who» mide 103 (Figma 102)', (await b.ev(rect(CONFIRM_PARTS.quien)))[3], 103)
+  await b.unstyle()
+  await b.metrics(1280, 900)
+}
+
+// Refactor de V2b (BookingSteps, BookingDetails, useLgFocusFallback salen de
+// Specialist.tsx): las cajas de «Tu cita» en 02.5 y 02.6, exactas (sin el
+// ±1), frente a la línea base medida antes del cambio (b58cad4).
+const V2A_BASE = {
+  header: [0, 0, 1440, 82], breadcrumb: [120, 114, 1200, 28], h1: [240, 158, 1080, 44], tarjeta: [120, 304, 848, 558], pasos: [1000, 304, 320, 24],
+  paso1: [1000, 304, 118.7, 24], paso3: [1247, 304, 63.5, 24], resumen: [1000, 344, 320, 254], tituloResumen: [1017, 361, 286, 28], dl: [1017, 405, 286, 176],
+  fila1: [1017, 405, 286, 44], fila2: [1017, 461, 286, 44], fila3: [1017, 517, 286, 64], dd3b: [1049, 561, 254, 20], aviso: [1000, 614, 320, 158],
+  acciones: [1000, 788, 320, 78], envio: [1000, 788, 234.7, 50], nota: [1000, 846, 182.1, 20], main: [0, 82, 1440, 832],
+}
+const V2A_PARTS = {
+  header: '.c-header-desktop', breadcrumb: '.c-breadcrumb', h1: 'main h1', tarjeta: '.c-slot-picker__card', pasos: '.c-booking-summary ol',
+  paso1: '.c-booking-summary ol li:nth-child(1)', paso3: '.c-booking-summary ol li:nth-child(3)', resumen: '.c-booking-summary__card',
+  tituloResumen: '.c-booking-summary__card h2', dl: '.c-booking-summary__card dl', fila1: '.c-booking-summary__card dl > div:nth-child(1)',
+  fila2: '.c-booking-summary__card dl > div:nth-child(2)', fila3: '.c-booking-summary__card dl > div:nth-child(3)',
+  dd3b: '.c-booking-summary__card dl > div:nth-child(3) dd:last-child', aviso: '.c-booking-summary .c-notice', acciones: '.c-booking-summary__actions',
+  envio: '.c-booking-summary__actions .c-button', nota: '.c-booking-summary__actions p', main: 'main',
+}
+
+async function refactorV2a(b, expect) {
+  await b.overlayScrollbars(true)
+  const out = {}
+  for (const [name, url] of [['02.5', P021], ['02.6', P023]]) {
+    const h = await fullPage(b, 1440, url)
+    const boxes = await measure(b, V2A_PARTS)
+    out[name] = { alto: h, distintas: Object.entries(V2A_BASE).filter(([k, v]) => JSON.stringify(boxes[k]) !== JSON.stringify(v)).map(([k]) => `${k}: ${JSON.stringify(boxes[k])}`) }
+  }
+  expect('refactor de V2b: las cajas de 02.5 y 02.6 son las de la línea base (exactas, sin ±1)', out, { '02.5': { alto: 914, distintas: [] }, '02.6': { alto: 914, distintas: [] } })
+  await b.metrics(1280, 900)
+}
+
+// Anchos: la columna y el interior de la barra comparten eje en el tramo; desde
+// lg, breadcrumb de tres niveles, sin barra, columna de 38rem y acciones
+// intrínsecas (C1-A).
+async function confirmWidths(b, expect) {
+  const mobile = `(() => { const x = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().x) : null }; return { desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth, h1: x('main h1'), tarjeta: x('.c-appointment-summary'), continuar: x('.c-action-bar .c-button'), anchoContinuar: Math.round(document.querySelector('.c-action-bar .c-button').getBoundingClientRect().width) } })()`
+  const out = {}
+  for (const [w, overlay] of [[320, true], [320, false], [360, true], [800, true], [1023, false]]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(w, 900)
+    await b.go(CONFIRM)
+    out[`${w} ${overlay ? 'sup' : 'clás'}`] = await b.ev(mobile)
+  }
+  expect('02.4 en anchos intermedios: sin desborde; h1, tarjeta y «Continuar» en el mismo eje, también en el tramo (la barra reutiliza o-wrapper)', out, {
+    '320 sup': { desborde: 0, h1: 16, tarjeta: 16, continuar: 16, anchoContinuar: 288 },
+    '320 clás': { desborde: 0, h1: 16, tarjeta: 16, continuar: 16, anchoContinuar: 273 },
+    '360 sup': { desborde: 0, h1: 16, tarjeta: 16, continuar: 16, anchoContinuar: 328 },
+    '800 sup': { desborde: 0, h1: 96, tarjeta: 96, continuar: 96, anchoContinuar: 608 },
+    '1023 clás': { desborde: 0, h1: 200, tarjeta: 200, continuar: 200, anchoContinuar: 608 },
+  })
+
+  const desktop = `(() => { const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.x), Math.round(b.y + scrollY), Math.round(b.width), Math.round(b.height)] }; return { desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth, barra: Boolean(document.querySelector('.c-app-layout__bar')), migas: [...document.querySelectorAll('.c-breadcrumb li')].map((l) => l.textContent.replace('/', '').trim()), h1: r('main h1'), columna: r('.c-booking-review'), cambiar: r('.c-booking-review > div > .c-button'), aviso: r('.c-booking-review .c-notice'), continuar: r('.c-booking-review__actions .c-button'), nota: r('.c-booking-review__note') } })()`
+  const wide = {}
+  for (const w of [1024, 1440]) {
+    await b.overlayScrollbars(true)
+    await b.metrics(w, 900)
+    await b.go(CONFIRM)
+    wide[w] = await b.ev(desktop)
+  }
+  await b.shot('02.4-1440.png', { x: 0, y: 0, width: 1440, height: 900 })
+  // Sin frame: cifras medidas. Breadcrumb 114–142, pasos a 150, h1 a 190; la
+  // columna a 32 del h1 (tarjeta 344, «Cambiar» a 16, aviso a 32 en dos
+  // líneas: 110, acciones a 32); envío y nota con las medidas de 02.5 (234,7
+  // y 182,1).
+  expect('02.4 desde lg (C1-A, sin frame): breadcrumb de tres niveles, sin barra, columna de 38rem alineada con el h1, «Cambiar» y «Continuar» intrínsecos y la nota debajo', wide, {
+    1024: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [24, 190, 976, 44], columna: [24, 266, 608, 662], cambiar: [24, 626, 216, 50], aviso: [24, 708, 608, 110], continuar: [24, 850, 235, 50], nota: [24, 908, 182, 20] },
+    1440: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [120, 190, 1200, 44], columna: [120, 266, 608, 662], cambiar: [120, 626, 216, 50], aviso: [120, 708, 608, 110], continuar: [120, 850, 235, 50], nota: [120, 908, 182, 20] },
+  })
+  // Contraprueba: sin el tope, la columna llena los 1200 del contenedor.
+  await b.style('.c-booking-review { max-inline-size: none }')
+  expect('contraprueba: sin los 38rem, la columna mide 1200 a 1440', (await b.ev(desktop)).columna[2], 1200)
+  await b.unstyle()
+  await b.metrics(1280, 900)
+}
+
+// 200 % a 320 con las dos barras y letra del navegador a 24 y 32 (320) y a 20
+// (375): el chrome móvil. Solo parten palabras más anchas que su interior.
+const TEXT_024 = '.c-back-link, .c-step__label, .c-page-header__title, .c-appointment-summary__name, .c-appointment-summary__specialty, .c-tag, .c-booking-details__term span, .c-booking-details__value, .c-booking-details__address, .c-booking-review .c-button, .c-notice__text > *, .c-action-bar .c-button, .c-action-bar__note'
+
+async function confirmZoom(b, expect) {
+  const out = {}
+  for (const overlay of [true, false]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(320, 900)
+    await b.go(CONFIRM)
+    const html = await b.run(text200)
+    await settle(b, 300)
+    const words = await b.run(splitWords, TEXT_024)
+    out[overlay ? 'sup' : 'clás'] = {
+      html,
+      desborde: await b.run(overflow),
+      interiores: await b.ev(inner('.c-booking-review .c-button, .c-action-bar .c-button')),
+      tarjeta: (await b.ev(inner('.c-appointment-summary__card')))[0],
+      padding: await b.ev(`getComputedStyle(document.querySelector('.c-appointment-summary__card')).paddingLeft`),
+      columnaDatos: (await b.ev(inner('.c-booking-details__value')))[0],
+      parten: words.split.sort(),
+      pudiendoCaber: words.couldFit.sort(),
+    }
+  }
+  // appointment-summary-compact (16.75rem): la raíz mide 8 / 7,53rem y la
+  // tarjeta pasa a padding space-4 (32 al 200 %). Interior 190 / 175 y
+  // columna de datos 126 / 111 (tras icono 40 y hueco 24): «10:30» (82) cabe.
+  // Solo parten palabras más anchas que su elemento: el h1 y el aviso fuera
+  // de la tarjeta; con barra clásica, además, «Duración», «minutos»,
+  // «Obregón» y «Presencial» (antes, 17 palabras; con superpuesta, 10).
+  expect('02.4 al 200 % a 320: tarjeta compacta (padding space-4), sin desborde, «10:30» no parte; solo parten palabras más anchas que su interior', out, {
+    sup: { html: '32px', desborde: 0, interiores: [158, 158], tarjeta: 190, padding: '32px', columnaDatos: 126, parten: ['Confirma', 'identificación.'], pudiendoCaber: [] },
+    clás: { html: '32px', desborde: 0, interiores: [143, 143], tarjeta: 175, padding: '32px', columnaDatos: 111, parten: ['Confirma', 'Continuar', 'Duración', 'Obregón', 'Presencial', 'identificación.', 'minutos', 'reprogramar'], pudiendoCaber: [] },
+  })
+  // Contraprueba: con el padding space-5 de siempre, a la columna le quedan
+  // 79 con barra clásica y «10:30» parte.
+  await b.overlayScrollbars(false)
+  await b.metrics(320, 900)
+  await b.go(CONFIRM)
+  await b.run(text200)
+  await b.style('.c-appointment-summary__card { padding: var(--space-5) }')
+  await settle(b, 300)
+  expect('contraprueba: sin el umbral compacto, al 200 % a 320 (barra clásica) la columna mide 79 y «10:30» parte', { columnaDatos: (await b.ev(inner('.c-booking-details__value')))[0], parte1030: (await b.run(splitWords, '.c-booking-details__value')).split.includes('10:30') }, { columnaDatos: 79, parte1030: true })
+  await b.unstyle()
+
+  // Al 100 % la raíz supera el umbral: padding 24 (Figma), también a 320 con
+  // barra clásica (273 = 17,06rem).
+  const normal = {}
+  for (const [w, overlay] of [[320, true], [320, false], [375, true]]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(w, 900)
+    await b.go(CONFIRM)
+    normal[`${w} ${overlay ? 'sup' : 'clás'}`] = { raiz: await b.ev(`Math.round(document.querySelector('.c-appointment-summary').getBoundingClientRect().width)`), padding: await b.ev(`getComputedStyle(document.querySelector('.c-appointment-summary__card')).paddingLeft`) }
+  }
+  expect('al 100 %, la tarjeta conserva el padding de Figma (24) a 320 con las dos barras y a 375', normal, {
+    '320 sup': { raiz: 288, padding: '24px' },
+    '320 clás': { raiz: 273, padding: '24px' },
+    '375 sup': { raiz: 343, padding: '24px' },
+  })
+
+  const large = {}
+  for (const [w, px] of [[320, 24], [320, 32], [375, 20]]) {
+    await b.overlayScrollbars(false)
+    await b.metrics(w, 800)
+    await font(b, px)
+    await b.go(CONFIRM)
+    const page = await b.ev(`({ html: getComputedStyle(document.documentElement).fontSize, barra: getComputedStyle(document.querySelector('.c-app-layout__bar')).position, desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth, barraAlFinal: Math.round(document.querySelector('.c-app-layout__bar').getBoundingClientRect().bottom + scrollY) === document.documentElement.scrollHeight })`)
+    large[`${w} letra ${px}`] = { ...page, pudiendoCaber: (await b.run(splitWords, TEXT_024)).couldFit }
+  }
+  await font(b, 16)
+  expect('02.4 con la letra del navegador a 24 y 32 (320) y a 20 (375): Action Bar estática al final del flujo, sin desborde ni palabras partidas pudiendo caber', large, {
+    '320 letra 24': { html: '24px', barra: 'static', desborde: 0, barraAlFinal: true, pudiendoCaber: [] },
+    '320 letra 32': { html: '32px', barra: 'static', desborde: 0, barraAlFinal: true, pudiendoCaber: [] },
+    '375 letra 20': { html: '20px', barra: 'static', desborde: 0, barraAlFinal: true, pudiendoCaber: [] },
+  })
+  await b.metrics(1280, 900)
+}
+
+async function confirmForced(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.forcedColors(true)
+  await b.metrics(375, 900)
+  await b.go(CONFIRM)
+  const border = (s, side = 'Top') => `(() => { const c = getComputedStyle(document.querySelector(${JSON.stringify(s)})); return c.border${side}Style + ' ' + c.border${side}Width + ' ' + (c.border${side}Color === 'rgba(0, 0, 0, 0)' ? 'transparente' : 'visible') })()`
+  const out = {
+    tarjeta: await b.ev(border('.c-appointment-summary__card')),
+    quien: await b.ev(border('.c-appointment-summary__who', 'Bottom')),
+    aviso: await b.ev(border('.c-booking-review .c-notice')),
+    barra: await b.ev(border('.c-action-bar')),
+    continuar: await b.ev(border('.c-action-bar .c-button')),
+    cambiar: await b.ev(border('.c-booking-review .c-button')),
+  }
+  await b.shot('forced-02.4.png', { x: 0, y: 0, width: 375, height: 900 })
+  await b.forcedColors(false)
+  expect('02.4 en forced-colors: tarjeta, separador de «Who», aviso, barra y los dos botones conservan su contorno', out, {
+    tarjeta: 'solid 1px visible', quien: 'solid 1px visible', aviso: 'solid 1px visible', barra: 'solid 1px visible', continuar: 'solid 1px visible', cambiar: 'solid 1px visible',
+  })
+}
+
+async function confirmStructure(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 900)
+  await b.go(CONFIRM)
+  const common = {
+    titulo: await b.ev('document.title'),
+    encabezados: await b.ev(`[...document.querySelectorAll('h1, h2, h3, h4')].map((h) => h.tagName + ' ' + h.textContent.trim())`),
+    pasos: await b.ev(`(() => { const o = document.querySelector('.c-page-header ol'); return o.getAttribute('aria-label') + ' · ' + [...o.querySelectorAll('li')].map((l) => (l.getAttribute('aria-current') ?? '-') + ' ' + l.querySelector('.c-step__label').textContent).join(' | ') })()`),
+    quien: await b.ev(`(() => { const w = document.querySelector('.c-appointment-summary__who'); return { avatar: w.querySelector('.c-avatar').getAttribute('aria-hidden'), foto: w.querySelector('img')?.getAttribute('alt'), texto: [...w.querySelectorAll('p, .c-tag')].map((e) => e.tagName + ' ' + e.textContent) } })()`),
+    dl: await b.ev(`[...document.querySelectorAll('.c-appointment-summary dl > div')].map((d) => [...d.children].map((c) => c.tagName + ' ' + c.textContent.trim()).join(' / '))`),
+    aviso: await b.ev(`(() => { const n = document.querySelector('.c-booking-review .c-notice'); return { titulo: n.querySelector('.c-notice__title').tagName, role: n.getAttribute('role') } })()`),
+    continuar: await b.ev(`(() => { const e = document.querySelector('.c-action-bar .c-button'); return e.tagName + ' · ' + document.getElementById(e.getAttribute('aria-describedby')).textContent + ' · fuera de main: ' + !e.closest('main') })()`),
+  }
+  expect('02.4: título (D15), un solo encabezado, pasos (Fecha y hora actual), «Who» con avatar decorativo, dl, aviso Info sin encabezado ni role, «Continuar» enlace descrito por la nota', common, {
+    titulo: 'Confirma tu cita · Salvia',
+    encabezados: ['H1 Confirma tu cita'],
+    pasos: 'Pasos de la reserva · step Fecha y hora | - Tus datos, pendiente | - Listo, pendiente',
+    quien: { avatar: 'true', foto: '', texto: ['P Dra. Elena Ruiz Arellano', 'P Cardiología', 'SPAN Presencial'] },
+    dl: ['DT Cuándo / DD Martes 24 de abril, 10:30', 'DT Duración / DD 30 minutos', 'DT Dónde / DD Clínica Roma Norte / DD Av. Álvaro Obregón 123, Roma Norte'],
+    aviso: { titulo: 'P', role: null },
+    continuar: 'A · Todavía no se reserva nada · fuera de main: true',
+  })
+  await b.metrics(1440, 900)
+  await b.go(CONFIRM)
+  expect('02.4 desde lg: «Continuar con tus datos» al final de main, descrito por la nota', await b.ev(`(() => { const e = document.querySelector('.c-booking-review__actions .c-button'); return e.tagName + ' · ' + document.getElementById(e.getAttribute('aria-describedby')).textContent + ' · en main: ' + Boolean(e.closest('main')) })()`), 'A · Todavía no se reserva nada · en main: true')
+
+  await b.metrics(375, 900)
+  await b.go(CONFIRM)
+  const order = []
+  await b.ev('document.activeElement?.blur(), window.scrollTo(0, 0), true')
+  for (let i = 0; i < 7; i++) {
+    await b.tab()
+    order.push(await b.ev(focused))
+  }
+  expect('orden de Tab en 02.4: salto, header, retroceso, «Cambiar fecha u hora» y «Continuar con tus datos» (la barra va tras main)', order, [
+    'A Saltar al contenido', 'A Salvia', 'A Ayuda', 'A Dra. Ruiz', 'A Cambiar fecha u hora', 'A Continuar con tus datos', 'BODY',
+  ])
+  await b.metrics(1280, 900)
+}
+
+// URL (D1): los enlaces llevan la selección, los parámetros de V1 y el
+// escenario; un parámetro ajeno no viaja. Pendiente de V2a: el salto
+// /confirmar → /datos repite la prueba de escenario.
+async function confirmUrl(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 900)
+  const carried = 'q=Cardiolog%C3%ADa&especialidad=cardiologia&pagina=2&escenario=ocupada'
+  const hrefs = `({ retroceso: document.querySelector('.c-back-link').getAttribute('href'), cambiar: document.querySelector('.c-booking-review .c-button').getAttribute('href'), continuar: document.querySelector('.c-action-bar .c-button').getAttribute('href') })`
+  await b.go(`${RUIZ}/confirmar?${carried}&foo=1&fecha=2029-04-24&hora=10%3A30`)
+  const links = await b.ev(hrefs)
+  const i0 = await b.ev(idx)
+  await clickSel(b, '.c-action-bar .c-button')
+  const datos = { ruta: await b.ev('location.pathname + location.search'), push: (await b.ev(idx)) === i0 + 1, foco: await b.ev(focused) }
+  await b.go(CONFIRM)
+  const sinEscenario = await b.ev(hrefs)
+  const profile = `${RUIZ}?${carried}&fecha=2029-04-24&hora=10%3A30`
+  expect('enlaces de 02.4: retroceso y «Cambiar» con el mismo href al perfil con la selección; «Continuar» a /datos (push, foco en su h1) con los parámetros de V1 y escenario; foo no viaja; sin escenario en la URL, el href no lo lleva (contraprueba)', { links, datos, sinEscenario }, {
+    links: { retroceso: profile, cambiar: profile, continuar: `${RUIZ}/datos?${carried}&fecha=2029-04-24&hora=10%3A30` },
+    datos: { ruta: `${RUIZ}/datos?${carried}&fecha=2029-04-24&hora=10%3A30`, push: true, foco: 'H1 Tus datos' },
+    sinEscenario: { retroceso: `${RUIZ}?fecha=2029-04-24&hora=10%3A30`, cambiar: `${RUIZ}?fecha=2029-04-24&hora=10%3A30`, continuar: `${RUIZ}/datos?fecha=2029-04-24&hora=10%3A30` },
+  })
+
+  // Retroceso: push al perfil, foco en su h1 y la hora de la URL marcada (D2).
+  await b.go(CONFIRM)
+  const i1 = await b.ev(idx)
+  await clickSel(b, '.c-back-link')
+  const back = { ruta: await b.ev('location.pathname + location.search'), push: (await b.ev(idx)) === i1 + 1, foco: await b.ev(focused), hora: await b.ev(`document.querySelector('[aria-selected=true]')?.textContent ?? null`), barra: await b.ev(`document.querySelector('.c-booking-bar__title').textContent`) }
+  expect('retroceso «Dra. Ruiz»: push al perfil con la selección, foco en su h1 y las 10:30 marcadas', back, {
+    ruta: `${RUIZ}?fecha=2029-04-24&hora=10%3A30`, push: true, foco: 'H1 Dra. Elena Ruiz Arellano', hora: '10:30', barra: 'mar 24 abr · 10:30',
+  })
+
+  // Guardas propias de /confirmar (las de 5.0 cubren hora pasada y slug en /datos).
+  const guards = {}
+  for (const [name, path] of [['sin hora', `${RUIZ}/confirmar?fecha=2029-04-24`], ['slug desconocido', '/especialistas/no-existe/confirmar?fecha=2029-04-24&hora=10:30']]) {
+    await b.send('Page.navigate', { url: (process.env.VERIFY_BASE ?? 'http://localhost:5173') + path })
+    await sleep(900)
+    guards[name] = { ruta: await b.ev('location.pathname + location.search'), h1: await b.ev(`document.querySelector('h1')?.textContent`), idx: await b.ev(idx) }
+  }
+  expect('guardas de /confirmar: sin hora, replace al perfil con los mismos parámetros (idx 0); slug desconocido, 404', guards, {
+    'sin hora': { ruta: `${RUIZ}?fecha=2029-04-24`, h1: 'Dra. Elena Ruiz Arellano', idx: 0 },
+    'slug desconocido': { ruta: '/especialistas/no-existe/confirmar?fecha=2029-04-24&hora=10:30', h1: 'No encontramos esta página', idx: 0 },
+  })
+  await b.metrics(1280, 900)
+}
+
+// Flujos de foco (también contra la preview): llegada desde el perfil y cruce
+// de lg en los dos sentidos.
+async function confirmFocus(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 900)
+  const out = {}
+  await b.go(P021)
+  await clickSel(b, '.c-booking-bar__submit')
+  out.llegada = { ruta: await b.ev('location.pathname'), foco: await b.ev(focused) }
+  // El retroceso deja de existir: al h1.
+  await b.go(CONFIRM)
+  await b.ev(`document.querySelector('.c-back-link').focus(), true`)
+  await b.metrics(1100, 900)
+  await settle(b, 400)
+  out.aEscritorio = await b.ev(focused)
+  // Y de vuelta, desde el breadcrumb.
+  await b.ev(`document.querySelector('.c-breadcrumb a').focus(), true`)
+  await b.metrics(375, 900)
+  await settle(b, 400)
+  out.aMovil = await b.ev(focused)
+  // «Cambiar fecha u hora» sigue existiendo: el foco se queda.
+  await b.ev(`document.querySelector('.c-booking-review .c-button').focus(), true`)
+  await b.metrics(1100, 900)
+  await settle(b, 400)
+  out.cambiarSeQueda = await b.ev(focused)
+  // Contraprueba: con el foco del h1 anulado, el cruce deja el foco en body.
+  await b.metrics(375, 900)
+  await b.go(CONFIRM)
+  await b.ev(`document.getElementById('contenido').focus = () => {}, document.querySelector('.c-action-bar .c-button').focus(), true`)
+  await b.metrics(1100, 900)
+  await settle(b, 400)
+  out.sinRespaldo = await b.ev(focused)
+  expect('foco en 02.4: llegada desde «Continuar» → h1; cruce de lg desde el retroceso o el breadcrumb → h1; «Cambiar», que no cambia de control, conserva el foco; sin el respaldo, body (contraprueba)', out, {
+    llegada: { ruta: `${RUIZ}/confirmar`, foco: 'H1 Confirma tu cita' },
+    aEscritorio: 'H1 Confirma tu cita',
+    aMovil: 'H1 Confirma tu cita',
+    cambiarSeQueda: 'A Cambiar fecha u hora',
+    sinRespaldo: 'BODY',
+  })
+  await b.metrics(1280, 900)
+}
+
 export async function previewFlows(b, expect) {
   await focusFlows(b, expect)
   await missing(b, expect)
+  await confirmFocus(b, expect)
 }
 
 export default async function run(b, expect) {
@@ -699,6 +1051,16 @@ export default async function run(b, expect) {
   await focusFlows(b, expect)
   await notify(b, expect)
 
+  // V2b
+  await refactorV2a(b, expect)
+  await confirmPairs(b, expect)
+  await confirmWidths(b, expect)
+  await confirmZoom(b, expect)
+  await confirmForced(b, expect)
+  await confirmStructure(b, expect)
+  await confirmUrl(b, expect)
+  await confirmFocus(b, expect)
+
   // Navegación real hacia la vista: «Ver horarios» de la primera tarjeta de
   // 01.1. Regla de T0: la línea repite la comprobación del resto de pintado y
   // sigue en ✗ declarado (explicado: false) aunque mida 0 (DESIGN.md,
@@ -715,6 +1077,21 @@ export default async function run(b, expect) {
     'navegación en cliente 01.1 → perfil («Ver horarios», clic real): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
     { ...nav, explicado: false },
     { ruta: to, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+  )
+
+  // V2b: 02.1 → 02.4 con «Continuar» de la Booking Bar (un botón: solo existe
+  // bajo lg), a 375 con barra clásica. Misma regla de T0.
+  await b.metrics(375, 900, 1)
+  const toConfirm = `${RUIZ}/confirmar?fecha=2029-04-24&hora=10%3A30`
+  const { afterClient: clientShot, afterReload: reloadShot, ...confirmArrival } = await clientNavigation(b, { from: P021, link: 'Continuar', selector: 'button', to: toConfirm, park: true })
+  if (confirmArrival.pixelesDistintosDeLaRecarga !== 0) {
+    await b.saveBase64('navegacion-confirmar-cliente-375.png', clientShot)
+    await b.saveBase64('navegacion-confirmar-recarga-375.png', reloadShot)
+  }
+  expect(
+    'navegación en cliente 02.1 → 02.4 («Continuar», clic real, 375): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
+    { ...confirmArrival, explicado: false },
+    { ruta: toConfirm, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
   )
   await b.metrics(1280, 900, 1)
 }

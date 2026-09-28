@@ -632,6 +632,13 @@ resumen (quién + `dl` con Cuándo `calendar-check`, Duración `clock`, Dónde
 «Continuar con tus datos» Primary y la nota «Todavía no se reserva nada»
 (`aria-describedby`).
 
+**Desde lg** (sin frame): la misma pantalla con el header de escritorio y
+breadcrumb de tres niveles («Especialistas / Dra. Ruiz / Confirma tu cita»);
+columna de 38rem, «Cambiar fecha u hora» y «Continuar con tus datos»
+intrínsecos (§3.6) y la nota debajo. Especialidad del área («Cardiología») y
+etiqueta «Presencial», la modalidad de la cita. «Cambiar» y «Continuar» son
+enlaces: la pantalla no envía nada.
+
 **Datos (año 2029, hoy lunes 23 de abril):**
 
 - Tira lun 23 – dom 29. El 23 y el 29 llenos; el 24 seleccionado.

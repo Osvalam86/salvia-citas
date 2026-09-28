@@ -1,0 +1,43 @@
+@use '../02-tools' as tools;
+
+// Datos de la cita (BookingDetails.tsx; Figma 02.4 y 02.5: Details). Patrón
+// de pantalla, sin ser de los 34 (D5). Filas a space-3.
+.c-booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  // Cada fila del dl: icono de 20 y texto a space-3 (Figma: Detail). El icono
+  // va dentro del <dt> (un div de dl solo admite dt y dd); el dt ocupa las dos
+  // columnas con subgrid, así el icono queda en la primera y el dd, debajo
+  // del término en la segunda.
+  &__detail {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+  }
+
+  &__term {
+    @include tools.text(caption);
+
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    color: var(--color-text-secondary);
+  }
+
+  &__value {
+    @include tools.text(body-md);
+
+    grid-column: 2;
+    color: var(--color-text-primary);
+  }
+
+  // Segunda línea de «Dónde»: la dirección.
+  &__address {
+    @include tools.text(caption);
+
+    grid-column: 2;
+    color: var(--color-text-secondary);
+  }
+}

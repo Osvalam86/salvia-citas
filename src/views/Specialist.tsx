@@ -1,14 +1,14 @@
 import type { CalendarDate } from '@internationalized/date'
 import { useId, useLayoutEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
-import { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import Avatar from '../components/Avatar.tsx'
 import BackLink from '../components/BackLink.tsx'
 import BookingBar, { type BookingBarProps } from '../components/BookingBar.tsx'
+import BookingDetails from '../components/BookingDetails.tsx'
+import BookingSteps from '../components/BookingSteps.tsx'
 import Breadcrumb from '../components/Breadcrumb.tsx'
 import Icon from '../components/Icon.tsx'
 import Notice from '../components/Notice.tsx'
-import Step from '../components/Step.tsx'
 import Button from '../components/Button.tsx'
 import Calendar from '../components/Calendar.tsx'
 import DayStrip from '../components/DayStrip.tsx'
@@ -20,11 +20,13 @@ import Sheet from '../components/Sheet.tsx'
 import SlotList, { type SlotListHandle } from '../components/SlotList.tsx'
 import { dayTitle, freeSlotsText, monthName, shortDate, weekdayDay, weekRangeText } from '../components/dates.ts'
 import { bookableUntil, nextFreeAfter, nextOpeningMonth } from '../data/availability.ts'
+import { BOOKING_DURATION, BOOKING_META, BOOKING_POLICY } from '../data/booking.ts'
 import { TODAY } from '../data/clock.ts'
 import { notifyStore, useNotified } from '../data/notify.ts'
 import { PHOTOS } from '../data/photos.ts'
 import { carriedParams } from '../data/search.ts'
 import { CITY, CLINICS, MODALITIES, shortName } from '../data/specialists.ts'
+import useLgFocusFallback from '../hooks/useLgFocusFallback.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 import useSlotPicker from '../hooks/useSlotPicker.ts'
 import type { specialistLoader } from './loaders.ts'
@@ -38,10 +40,6 @@ import ViewLayout from './ViewLayout.tsx'
 // cambia el día: el mensaje sigue siendo cierto. El destino del foco y de su
 // aria-describedby es la primera hora libre; sin horas, «Ver horarios del …»;
 // sin hueco publicado, «Avisarme si se libera un hueco».
-
-// Toda reserva es presencial: la videoconsulta está fuera de alcance (copy de
-// Figma para todos los médicos, DESIGN.md § Fecha y hora).
-const META = 'Presencial · 30 min'
 
 /** Destinos de foco tras un commit: la primera hora libre, el objetivo de Missing o el botón de semana que queda. */
 type PendingFocus = 'first-slot' | 'missing' | 'previous-week' | 'next-week' | null
@@ -105,12 +103,6 @@ type BookingSummaryProps = {
   messageId: string
 }
 
-const STEPS = [
-  { state: 'current', label: 'Fecha y hora' },
-  { state: 'upcoming', label: 'Tus datos' },
-  { state: 'upcoming', label: 'Listo' },
-] as const
-
 // «Tu cita» en escritorio (02.5, 02.6): el trabajo de la Booking Bar y de la
 // confirmación previa de móvil (02.4). Una <section> dentro del form, no un
 // <aside>: contiene el envío (panel 02.0). Sin hora, «Cuándo» dice «Sin
@@ -122,46 +114,14 @@ function BookingSummary({ date, time, clinic, missing, messageId }: BookingSumma
 
   return (
     <section className="c-booking-summary" aria-labelledby={titleId}>
-      <ol className="o-cluster o-cluster--gap-4 o-cluster--align-center" role="list" aria-label="Pasos de la reserva">
-        {STEPS.map((step, index) => (
-          <Step key={step.label} state={step.state} number={index + 1} label={step.label} />
-        ))}
-      </ol>
+      <BookingSteps current={1} />
       <div className="c-booking-summary__card">
         <h2 className="c-booking-summary__title" id={titleId}>
           Tu cita
         </h2>
-        <dl className="c-booking-summary__details">
-          <div className="c-booking-summary__detail">
-            <dt className="c-booking-summary__term">
-              <Icon name="calendar-check" size={20} />
-              <span>Cuándo</span>
-            </dt>
-            <dd className="c-booking-summary__value">{time ? `${dayTitle(date)}, ${time}` : 'Sin horario elegido'}</dd>
-          </div>
-          <div className="c-booking-summary__detail">
-            <dt className="c-booking-summary__term">
-              <Icon name="clock" size={20} />
-              <span>Duración</span>
-            </dt>
-            <dd className="c-booking-summary__value">30 minutos</dd>
-          </div>
-          <div className="c-booking-summary__detail">
-            <dt className="c-booking-summary__term">
-              <Icon name="map-pin" size={20} />
-              <span>Dónde</span>
-            </dt>
-            <dd className="c-booking-summary__value">{clinic.name}</dd>
-            <dd className="c-booking-summary__address">{clinic.address}</dd>
-          </div>
-        </dl>
+        <BookingDetails when={time ? `${dayTitle(date)}, ${time}` : 'Sin horario elegido'} duration={BOOKING_DURATION} clinic={clinic} />
       </div>
-      <Notice
-        tone="info"
-        headingLevel={null}
-        title="Antes de continuar"
-        body="Puedes cancelar o reprogramar sin costo hasta 24 horas antes. Llega 10 minutos antes con una identificación."
-      />
+      <Notice tone="info" headingLevel={null} title="Antes de continuar" body={BOOKING_POLICY} />
       <div className="c-booking-summary__actions">
         <Button type="submit" aria-describedby={missing ? messageId : noteId}>
           Continuar con tus datos
@@ -199,16 +159,8 @@ export default function Specialist() {
 
   // Al cruzar lg cambian de control la tira y el calendario, la Booking Bar y
   // «Tu cita», el Back Link y el breadcrumb (D7). Si el foco estaba en uno de
-  // ellos (o en la hoja), cae en body: va al h1, el respaldo de D12, como la
-  // hoja de filtros en V1b. En el mismo commit, sin pasar un frame por body.
-  const wasDesktop = useRef(isDesktop)
-  useLayoutEffect(() => {
-    if (wasDesktop.current === isDesktop) return
-    wasDesktop.current = isDesktop
-    if (!document.activeElement || document.activeElement === document.body) {
-      document.getElementById(MAIN_TITLE_ID)?.focus({ preventScroll: true })
-    }
-  }, [isDesktop])
+  // ellos (o en la hoja), va al h1, como la hoja de filtros en V1b.
+  useLgFocusFallback(isDesktop)
 
   const [missing, setMissing] = useState(false)
   const [weekAnnouncement, setWeekAnnouncement] = useState('')
@@ -270,7 +222,7 @@ export default function Specialist() {
   }
 
   let bar: BookingBarProps = { selection: 'none', fullDay: picker.full, formId, submitLabel: 'Continuar' }
-  if (picker.time) bar = { selection: 'chosen', summary: `${shortDate(picker.date)} · ${picker.time}`, meta: META, formId, submitLabel: 'Continuar' }
+  if (picker.time) bar = { selection: 'chosen', summary: `${shortDate(picker.date)} · ${picker.time}`, meta: BOOKING_META, formId, submitLabel: 'Continuar' }
   else if (missing) bar = { selection: 'missing', messageId, formId, submitLabel: 'Continuar' }
 
   const clinic = CLINICS[specialist.clinic]

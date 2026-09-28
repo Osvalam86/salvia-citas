@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b y V2a hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a y V2b hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -72,10 +72,19 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   «Avisarme si se libera un hueco» (D16), Missing en las dos plataformas;
   `PageHeader` con `back` y `profile`; `BookingBar` con `fullDay`; `Notice`
   Info con `headingLevel={null}`; `pnpm verify 5.2` (y `--preview`).
+- Fase 5 · V2b: la confirmación previa en `/especialistas/:slug/confirmar`
+  (`src/views/ConfirmBooking.tsx`, 02.4): `ActionBar` (`c-action-bar`),
+  `AppointmentSummary` (`c-appointment-summary`, umbral
+  `appointment-summary-compact`), `BookingDetails` (`c-booking-details`,
+  compartido con «Tu cita»), `BookingSteps`, `c-booking-review` (columna de
+  38rem desde lg), `PageHeader` con `steps`, `useLgFocusFallback`,
+  `src/data/booking.ts` (modalidad, duración, meta y política);
+  `bookingStepLoader` devuelve la selección; desde lg, la misma pantalla con
+  breadcrumb de tres niveles y el envío en línea. `pnpm verify 5.2` ampliado.
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
 T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (02.4, confirmación previa) → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos

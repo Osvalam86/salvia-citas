@@ -12,7 +12,7 @@ import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appoint
 import { createNotifyStore } from '../src/data/notify.ts'
 import { SLOW_MS, withScenario } from '../src/data/scenario.ts'
 import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, emptyCause, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
-import { FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS, shortName } from '../src/data/specialists.ts'
+import { AREAS, CLINICS, FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS, shortName } from '../src/data/specialists.ts'
 
 const NOW_TIME = `${String(NOW.hour).padStart(2, '0')}:${String(NOW.minute).padStart(2, '0')}`
 const day = (ctx, slug, iso) => ctx.availability[slug]?.[iso] ?? []
@@ -129,6 +129,12 @@ const ASSERTIONS = {
     const names = [SLUGS.ruiz, SLUGS.molina, SLUGS.cortes, SLUGS.ibarra, SLUGS.serrano].map((slug) => shortName(ctx.specialists.find((s) => s.slug === slug)))
     return same(names, ['Dra. Ruiz', 'Dr. Molina', 'Dr. Cortés', 'Dr. Ibarra', 'Dra. Serrano']) || names.join(', ')
   }],
+  ruizSummary: ['Resumen de 02.4: Dra. Ruiz, Cardiología, Clínica Roma Norte, Av. Álvaro Obregón 123, Roma Norte', (ctx) => {
+    const ruiz = ctx.specialists.find((s) => s.slug === SLUGS.ruiz)
+    const clinic = ctx.clinics[ruiz.clinic]
+    const found = [shortName(ruiz), AREAS[ruiz.area], clinic.name, clinic.address]
+    return same(found, ['Dra. Ruiz', 'Cardiología', 'Clínica Roma Norte', 'Av. Álvaro Obregón 123, Roma Norte']) || found.join(' · ')
+  }],
   nameShape: ['Todo nombre lleva tratamiento, nombre de pila y dos apellidos (shortName)', (ctx) => {
     const bad = ctx.specialists.filter((s) => !/^Dra?\. /.test(s.name) || s.name.split(' ').length < 4).map((s) => s.name)
     return bad.length === 0 || bad.join(', ')
@@ -150,6 +156,7 @@ const ASSERTIONS = {
 
 const base = () => ({
   specialists: SPECIALISTS,
+  clinics: CLINICS,
   availability: structuredClone(AVAILABILITY),
   makeStore: () => createAppointmentStore(),
   makeNotify: () => createNotifyStore(),
@@ -195,6 +202,7 @@ const MUTATIONS = {
   nextFreeRuiz: ['ocupar Ruiz 24 a las 10:30', (c) => setSlot(c, SLUGS.ruiz, '2029-04-24', '10:30', false)],
   rodrigoNoNext: ['liberar Rodrigo el 30 a las 09:00', (c) => setSlot(c, SLUGS.rodrigo, '2029-04-30', '09:00', true)],
   shortNames: ['Ruiz con un solo apellido', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === SLUGS.ruiz ? { ...s, name: 'Dra. Elena Ruiz' } : s)) })],
+  ruizSummary: ['Ruiz pasa a Clínica Polanco', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === SLUGS.ruiz ? { ...s, clinic: 'polanco' } : s)) })],
   nameShape: ['un generado sin segundo apellido', (c) => ({ ...c, specialists: c.specialists.map((s) => (s.slug === firstGeneratedCardiology ? { ...s, name: s.name.split(' ').slice(0, 3).join(' ') } : s)) })],
   notifyEmpty: ['sembrado con Rodrigo', (c) => wrapNotify(c, (s) => { s.toggle(SLUGS.rodrigo); return {} })],
   notifyToggle: ['conmutar solo añade', (c) => wrapNotify(c, (s) => ({ toggle: (slug) => { if (!s.has(slug)) s.toggle(slug) } }))],
