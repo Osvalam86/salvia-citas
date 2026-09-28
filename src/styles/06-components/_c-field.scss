@@ -15,10 +15,13 @@
   flex-direction: column;
   gap: var(--space-2);
 
+  // scroll-margin: destino del enlace del resumen de errores (vista 3), que la
+  // desplaza al inicio de la vista; space-4 para que no quede pegada al borde.
   &__label {
     @include tools.text(label);
 
     color: var(--color-text-primary);
+    scroll-margin-block-start: var(--space-4);
   }
 
   &__control {

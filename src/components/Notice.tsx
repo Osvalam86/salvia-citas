@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import Icon from './Icon.tsx'
 import IconButton from './IconButton.tsx'
 import Link from './Link.tsx'
@@ -60,7 +60,10 @@ export default function Notice(props: NoticeProps) {
   const isFocus = props.delivery === 'focus'
   const openedOnMount = useRef(props.delivery === 'live' && props.open)
 
-  useEffect(() => {
+  // Efecto de layout: en el mismo commit que desmonta el disparador (el envío
+  // de la vista 3 pasa a «Elegir otra hora»), el foco no pasa por body entre
+  // medias (lección de V1b).
+  useLayoutEffect(() => {
     if (isFocus) titleRef.current?.focus()
   }, [isFocus])
 

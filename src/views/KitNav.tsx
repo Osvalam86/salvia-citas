@@ -7,6 +7,7 @@ import HeaderDesktop from '../components/HeaderDesktop.tsx'
 import HeaderMobile from '../components/HeaderMobile.tsx'
 import Link from '../components/Link.tsx'
 import type { BottomNavDestination } from '../components/destinations.ts'
+import { SESSION } from '../data/session.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 
 // Demo del chrome real en el catálogo (D9): D7 renderiza un solo chrome, el
@@ -30,7 +31,7 @@ export default function KitNav() {
   let header
   if (!isDesktop) header = <HeaderMobile />
   else if (guest) header = <HeaderDesktop session="guest" current={headerCurrent} />
-  else header = <HeaderDesktop session="signed-in" userName="Karla Sánchez" current={headerCurrent} />
+  else header = <HeaderDesktop session="signed-in" userName={SESSION.shortName} current={headerCurrent} />
 
   return (
     <AppLayout header={header} bar={isDesktop ? undefined : <BottomNav current={actual} />}>

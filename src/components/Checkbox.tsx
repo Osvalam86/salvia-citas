@@ -4,6 +4,8 @@ import Icon from './Icon.tsx'
 type CheckboxProps = {
   /** Nombre accesible. Sin enlaces dentro: pulsarlos cambiaría el estado. */
   label: ReactNode
+  /** id del input (opcional): lo da la pantalla cuando un enlace apunta a él (resumen de errores). */
+  id?: string
   name?: string
   value?: string
   checked?: boolean

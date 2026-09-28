@@ -15,6 +15,7 @@ const SECTIONS = {
   '5.0': './5.0-transversal.mjs',
   '5.1': './5.1-busqueda.mjs',
   '5.2': './5.2-perfil.mjs',
+  '5.3': './5.3-datos.mjs',
 }
 
 const [section, flag] = process.argv.slice(2)

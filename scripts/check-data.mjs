@@ -1,4 +1,4 @@
-// Aserciones de los datos simulados (DESIGN.md, D4 y D13). Falla si los datos
+// Aserciones de los datos simulados (DESIGN.md, D4, D13, D16 y D17). Falla si los datos
 // dejan de cumplir los hechos declarados del diseño. Va encadenado en pnpm
 // lint; importa el TS de src/data/ directamente (Node ≥ 22.18).
 //
@@ -10,6 +10,8 @@ import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFree
 import { NOW, TODAY } from '../src/data/clock.ts'
 import { createAppointmentStore, RUIZ_APPOINTMENT_ID } from '../src/data/appointments.ts'
 import { createNotifyStore } from '../src/data/notify.ts'
+import { createPatientStore, initialDraft, submitBooking, validatePatient } from '../src/data/patient.ts'
+import { SESSION } from '../src/data/session.ts'
 import { SLOW_MS, withScenario } from '../src/data/scenario.ts'
 import { MODALITY_FILTERS, AVAILABILITY_WINDOWS, emptyCause, parseSearch, searchSpecialists, pageSlice } from '../src/data/search.ts'
 import { AREAS, CLINICS, FILTER_AREAS, GENERATED_CARDIOLOGY, NEIGHBORHOODS, SLUGS, SPECIALISTS, shortName } from '../src/data/specialists.ts'
@@ -152,6 +154,35 @@ const ASSERTIONS = {
     store.toggle(SLUGS.rodrigo)
     return (store.has(SLUGS.rodrigo) && !store.has(SLUGS.ruiz) && store.getSnapshot().size === 1) || [...store.getSnapshot()].join(', ')
   }],
+  session: ['Sesión (§6): Karla Sánchez Bautista, «Karla Sánchez» en el header, karla.sanchez@ejemplo.com', (ctx) =>
+    same(ctx.session, { fullName: 'Karla Sánchez Bautista', shortName: 'Karla Sánchez', email: 'karla.sanchez@ejemplo.com' }) || JSON.stringify(ctx.session)],
+  errorScenario: ['Errores de 03.2: correo «karla@», motivo sin elegir y aviso sin marcar dan 3 errores, en el orden del DOM', (ctx) => {
+    const fields = ctx.validate({ ...initialDraft(), email: 'karla@' }).map((e) => e.field)
+    return same(fields, ['correo', 'motivo', 'privacidad']) || fields.join(', ')
+  }],
+  validScenario: ['Envío de 03.5: motivo «Primera consulta» y las dos casillas marcadas no dan errores', (ctx) => {
+    const errors = ctx.validate({ ...initialDraft(), reason: 'Primera consulta', privacy: true, reminder: true })
+    return errors.length === 0 || errors.map((e) => e.field).join(', ')
+  }],
+  phone: ['Teléfono opcional: vacío y «55 1234 5678» valen; «5512» falla', (ctx) => {
+    const fails = (phone) => ctx.validate({ ...initialDraft(), phone }).some((e) => e.field === 'telefono')
+    return (!fails('') && !fails('55 1234 5678') && fails('5512')) || JSON.stringify({ vacio: fails(''), ejemplo: fails('55 1234 5678'), corto: fails('5512') })
+  }],
+  draftInitial: ['Borrador (D17): nace de la sesión, con teléfono, motivo y casillas vacíos', (ctx) =>
+    same(ctx.makePatient().getSnapshot(), { name: 'Karla Sánchez Bautista', email: 'karla.sanchez@ejemplo.com', phone: '', reason: '', privacy: false, reminder: false }) || JSON.stringify(ctx.makePatient().getSnapshot())],
+  draftResetOnBooking: ['Borrador: una reserva correcta lo reinicia (submitBooking)', (ctx) => {
+    const patient = ctx.makePatient()
+    patient.update({ reason: 'Primera consulta', privacy: true })
+    const result = ctx.submit({ slug: SLUGS.ruiz, date: '2029-04-24', time: '10:30' }, null, { appointments: ctx.makeStore(), patient })
+    return (result.ok && same(patient.getSnapshot(), initialDraft())) || JSON.stringify({ result, draft: patient.getSnapshot() })
+  }],
+  draftKeptWhenBusy: ['Borrador: con ?escenario=ocupada la reserva falla y se conserva', (ctx) => {
+    const patient = ctx.makePatient()
+    patient.update({ reason: 'Primera consulta', privacy: true })
+    const kept = patient.getSnapshot()
+    const result = ctx.submit({ slug: SLUGS.ruiz, date: '2029-04-24', time: '10:30' }, 'ocupada', { appointments: ctx.makeStore(), patient })
+    return (!result.ok && patient.getSnapshot() === kept) || JSON.stringify({ result, draft: patient.getSnapshot() })
+  }],
 }
 
 const base = () => ({
@@ -160,6 +191,10 @@ const base = () => ({
   availability: structuredClone(AVAILABILITY),
   makeStore: () => createAppointmentStore(),
   makeNotify: () => createNotifyStore(),
+  makePatient: () => createPatientStore(),
+  session: SESSION,
+  validate: validatePatient,
+  submit: submitBooking,
   withScenario,
 })
 
@@ -207,6 +242,13 @@ const MUTATIONS = {
   notifyEmpty: ['sembrado con Rodrigo', (c) => wrapNotify(c, (s) => { s.toggle(SLUGS.rodrigo); return {} })],
   notifyToggle: ['conmutar solo añade', (c) => wrapNotify(c, (s) => ({ toggle: (slug) => { if (!s.has(slug)) s.toggle(slug) } }))],
   notifyPerSpecialist: ['clave compartida entre médicos', (c) => wrapNotify(c, (s) => ({ toggle: () => s.toggle('todos'), has: () => s.has('todos') }))],
+  session: ['el correo sin «.sanchez»', (c) => ({ ...c, session: { ...c.session, email: 'karla@ejemplo.com' } })],
+  errorScenario: ['sin comprobar el formato del correo', (c) => ({ ...c, validate: (v) => validatePatient({ ...v, email: v.email.includes('.') ? v.email : `${v.email}ejemplo.com` }) })],
+  validScenario: ['el teléfono pasa a obligatorio', (c) => ({ ...c, validate: (v) => [...validatePatient(v), ...(v.phone ? [] : [{ field: 'telefono', message: '' }])] })],
+  phone: ['el teléfono no se valida', (c) => ({ ...c, validate: (v) => validatePatient({ ...v, phone: '' }) })],
+  draftInitial: ['borrador sembrado con un motivo', (c) => ({ ...c, makePatient: () => { const s = createPatientStore(); s.update({ reason: 'Seguimiento' }); return s } })],
+  draftResetOnBooking: ['submitBooking sin el reinicio', (c) => ({ ...c, submit: (booking, scenario, stores) => stores.appointments.book(booking, scenario) })],
+  draftKeptWhenBusy: ['submitBooking reinicia siempre', (c) => ({ ...c, submit: (booking, scenario, stores) => { stores.patient.reset(); return stores.appointments.book(booking, scenario) } })],
 }
 
 const check = async (ctx, key) => {

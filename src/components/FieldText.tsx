@@ -5,6 +5,8 @@ type FieldTextProps = {
   /** Etiqueta visible, siempre encima del control. Marca «(opcional)» si lo es. */
   label: string
   name: string
+  /** id del control (por defecto, useId): lo da la pantalla cuando un enlace apunta a él (resumen de errores). */
+  id?: string
   /** Propósito del campo (1.3.5): el tipo y el autocompletado lo declaran. */
   type?: 'text' | 'email' | 'tel'
   autoComplete?: HTMLInputAutoCompleteAttribute
@@ -25,8 +27,9 @@ type FieldTextProps = {
 }
 
 // UI/Field/Text. Bloque c-field, compartido con FieldSelect (DESIGN.md, D5).
-export default function FieldText({ label, hint, error, className, type = 'text', ...input }: FieldTextProps) {
-  const id = useId()
+export default function FieldText({ label, hint, error, className, type = 'text', id: idProp, ...input }: FieldTextProps) {
+  const generatedId = useId()
+  const id = idProp ?? generatedId
   const messageId = `${id}-mensaje`
   const message = error ?? hint
   const classes = ['c-field', className].filter(Boolean).join(' ')

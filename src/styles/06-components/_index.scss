@@ -7,8 +7,9 @@
 // c-empty-state (estado vacío de pantalla), c-sheet (hoja a pantalla
 // completa), los patrones de la vista 1 (c-search-form, c-search-filters y
 // c-results-header), los de la vista 2 (c-slot-picker, c-booking-summary y
-// c-booking-review) y los de la reserva (c-action-bar, c-appointment-summary
-// y c-booking-details).
+// c-booking-review), los de la reserva (c-action-bar, c-appointment-summary
+// y c-booking-details) y los de la vista 3 (c-error-summary y
+// c-patient-form).
 //
 // Sin los transversales del scaffold mientras no hagan falta: _themes no existe
 // (un solo modo, decisión 5), _js-hooks no aplica en React, _scopes solo con
@@ -33,6 +34,7 @@
 @use 'c-day-strip';
 @use 'c-dialog';
 @use 'c-empty-state';
+@use 'c-error-summary';
 @use 'c-field';
 @use 'c-filter-trigger';
 @use 'c-header-desktop';
@@ -53,6 +55,7 @@
 @use 'c-page-header';
 @use 'c-page-link';
 @use 'c-pagination';
+@use 'c-patient-form';
 @use 'c-radio';
 @use 'c-result-card';
 @use 'c-results-header';

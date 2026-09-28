@@ -5,6 +5,8 @@ type FieldSelectProps = {
   /** Etiqueta visible, siempre encima del control. */
   label: string
   name: string
+  /** id del control (por defecto, useId): lo da la pantalla cuando un enlace apunta a él (resumen de errores). */
+  id?: string
   options: readonly { value: string; label: string }[]
   /**
    * Texto de la opción vacía (`value=""`), una opción real que se envía y que
@@ -32,9 +34,11 @@ export default function FieldSelect({
   hint,
   error,
   className,
+  id: idProp,
   ...select
 }: FieldSelectProps) {
-  const id = useId()
+  const generatedId = useId()
+  const id = idProp ?? generatedId
   const messageId = `${id}-mensaje`
   const message = error ?? hint
   const classes = ['c-field', className].filter(Boolean).join(' ')

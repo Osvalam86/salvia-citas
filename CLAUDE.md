@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a y V2b hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b y V3 hechos).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -81,10 +81,18 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `src/data/booking.ts` (modalidad, duración, meta y política);
   `bookingStepLoader` devuelve la selección; desde lg, la misma pantalla con
   breadcrumb de tres niveles y el envío en línea. `pnpm verify 5.2` ampliado.
+- Fase 5 · V3: la vista 3 en `/especialistas/:slug/datos`
+  (`src/views/PatientData.tsx`, 03.1–03.6): `ErrorSummary`
+  (`c-error-summary`), `c-patient-form` (tarjeta y rejilla de escritorio),
+  validación, borrador (D17) y `submitBooking` en `src/data/patient.ts`, sesión
+  en `src/data/session.ts`; `c-page-header` con `__title-group` y el
+  breadcrumb a `space-4` desde lg; `AppointmentSummary` con `title` y
+  `--aside`; `Link` con `onClick` en anclas; `id` opcional en los campos;
+  `ActionBar` con nota opcional; `pnpm verify 5.3` (y `--preview`).
 
 Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
 T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 → V4a → V4b (reprogramación). La fase 6 está absorbida en
+foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 (hecho) → V4a → V4b (reprogramación). La fase 6 está absorbida en
 la 5.
 
 ## Comandos

@@ -1,0 +1,62 @@
+@use '../02-tools' as tools;
+
+// Resumen de errores (ErrorSummary.tsx; diseño §5.3, Figma 03.2 y 03.4).
+// Patrón de pantalla, no uno de los 34 (D5). color-surface con borde 2
+// color-error (no el lenguaje de UI/Notice: es el resultado de un envío dentro
+// del formulario y contiene enlaces), radius-md y padding space-4: 2 + 16 = 18
+// hasta el contenido, como Figma. Cabecera y lista a space-2; los enlaces
+// (UI/Link, 48) sin hueco: 18 + 24 + 8 + 3 × 48 + 18 = 212.
+.c-error-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius-md);
+  // Se desplaza al inicio al enviar: a space-4 del borde, como las etiquetas.
+  scroll-margin-block-start: var(--space-4);
+
+  // Icono en ranura de 20 × 1lh y h2, a space-3 (Figma: Summary Heading). Con
+  // flex-wrap y base 8rem en el título, el icono sube antes de que el título
+  // parta palabras (DESIGN.md § Controles con icono y etiqueta).
+  &__heading {
+    @include tools.text(body-strong);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  &__icon-slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    block-size: 1lh;
+  }
+
+  // Color propio: en forced-colors vuelve a currentcolor (DESIGN.md § Iconos
+  // y roles de color).
+  &__icon {
+    color: var(--color-error-text);
+
+    @media (forced-colors: active) {
+      color: currentcolor;
+    }
+  }
+
+  &__title {
+    @include tools.text(body-strong);
+
+    flex: 1 1 8rem;
+    color: var(--color-error-text);
+  }
+
+  // Cada enlace conserva su ancho: el área de clic es su contenido.
+  &__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

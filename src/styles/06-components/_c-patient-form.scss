@@ -1,0 +1,46 @@
+@use '../02-tools' as tools;
+
+// Formulario de la vista 3 (PatientData.tsx; Figma 03.1–03.6). Patrón de
+// vista, sin componente propio (D5). Una sola estructura en las dos
+// plataformas: el form es o-layout (la sección «Tu cita» solo existe desde
+// lg, D7); la columna del form (o-stack) lleva el resumen de errores o el
+// aviso de reserva fallida y __card, los dos fieldsets, todo a space-6.
+.c-patient-form {
+  // Tarjeta solo en escritorio (03.3). Excepción declarada: media query en
+  // lg, porque es layout de página que cambia con el chrome, como
+  // c-page-header--profile. En móvil los fieldsets van sobre la página (03.1).
+  &__card {
+    @include tools.respond-to(lg) {
+      padding: var(--space-6);
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+    }
+  }
+
+  // Campos de «Datos del paciente» (diseño §5.3): una sola rejilla que
+  // colapsa a una columna; el orden del DOM coincide con el visual. min(): al
+  // 200 % a 320 los 20rem exceden la columna. Filas a space-4 y columnas a
+  // space-6 (Figma 03.3: 375 + 32 + 375).
+  //
+  // El fieldset separa legend y ayuda a space-1 (en Figma, dentro de
+  // UI/Legend); la rejilla suma lo que falta hasta el space-4 que pide la
+  // legend cuando le siguen campos.
+  &__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+    gap: var(--space-4) var(--space-6);
+    padding-block-start: calc(var(--space-4) - var(--space-1));
+  }
+
+  // «Leer el aviso de privacidad» conserva su ancho (Figma: 203).
+  &__link {
+    align-self: flex-start;
+  }
+
+  // Filas de casilla a una columna de 480 (Figma 03.3): son bloques de texto,
+  // no campos. En móvil la columna es más estrecha y no actúa.
+  &__options {
+    max-inline-size: 30rem;
+  }
+}

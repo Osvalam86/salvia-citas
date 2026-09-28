@@ -10,7 +10,7 @@ un cambio que hay que explicar, nunca un número que se ajusta sin más.
 ```bash
 pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
 pnpm verify 4.7   # 4.1 a 4.7
-pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2)
+pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2, 5.3)
 pnpm verify 5.0 --preview   # flujos de foco contra pnpm build && pnpm preview (:4173)
 ```
 
@@ -31,6 +31,7 @@ no se versiona.
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). V2b: 02.4 a ±1 px (375), anchos intermedios y escritorio (C1-A, con la contraprueba de los 38rem), 200 % a 320 con el umbral `appointment-summary-compact` y su contraprueba, padding al 100 %, letra del navegador, forced-colors, estructura, teclado, enlaces y escenario (con contraprueba), guardas, foco (llegada y cruce de lg, con contraprueba) y la regresión exacta de 02.5 y 02.6 frente a la línea base anterior al refactor; navegación en cliente 02.1 → 02.4. `previewFlows`: foco, Missing y el foco de 02.4 |
+| `5.3-datos.mjs` | Vista 3 (V3): pares de Figma 03.1, 03.2, 03.5 (375) y 03.3, 03.4, 03.6 (1440); padding de `--aside` (16 en «Tu cita», 24 en 02.4); resumen de errores (foco en el h2 con clic e Intro, enlaces → control con la etiqueta a la vista y sobre la barra, historial +0, contraprueba del ancla nativa); reserva fallida (foco en el título en el mismo commit, pie, valores, Intro sin envío) y la posición del título; envío válido (replace) y la sonda del form reiniciado (MutationObserver y un muestreo por frame); borrador (D17) al ir al aviso de privacidad y tras «Elegir otra hora»; anchos y paso de la rejilla a dos columnas; 200 % a 320; letra del navegador; forced-colors; estructura y el h2 en el árbol AX; `noValidate` y botón por defecto con sus contrapruebas; volver a enviar; cruce de lg; orden de Tab; navegación en cliente 02.4 → 03.1. `previewFlows`: resumen, reserva fallida, sonda del envío válido y cruce de lg |
 | `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). Con `selector`, el elemento pulsado puede ser un botón que navega (V2b: «Continuar» de la Booking Bar). La usan 4.6 y las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
@@ -256,6 +257,16 @@ no se versiona.
   descendientes contra su propio interior: con `.c-booking-bar *`, «Continuar» (152,6, más ancha
   que los 143 del botón) salía «pudiendo caber» en la fila de 241. El selector lleva las hojas
   del árbol (título, texto de la meta, botón) (V2a).
+- **Efectos pasivos tras un evento discreto.** Es comportamiento documentado de React 18 y
+  posteriores: tras una entrada discreta (clic, tecla), los `useEffect` del commit que provoca se
+  vacían en síncrono al terminar el commit, antes de cualquier otra tarea. En V3 se observó en dev y
+  en la preview: con el foco de `Notice` en `useEffect`, la sonda (MutationObserver) sigue viendo
+  el título enfocado en el mismo commit tras «Confirmar cita», así que esa contraprueba no
+  discrimina `useEffect` de `useLayoutEffect`. No está verificado que sea lo que separa este caso
+  del de V1b (allí el disparador era la llegada de datos y la sonda sí veía `body`) (V3).
+- **`value` y `checked` no mutan el DOM.** React los cambia como propiedades, no como atributos: un
+  MutationObserver no ve un commit que solo reinicia valores. Para saber si un estado llega a
+  pintarse, una muestra por frame con `requestAnimationFrame` (corre antes de cada pintado) (V3).
 - **Borde transparente en forced-colors.** Un borde `transparent` se fuerza a un color de
   sistema y se ve (§3.2: conserva el contorno). El chip fuera de rango de V2a, como el día pasado
   del calendario, se distingue por el peso, no por la ausencia de borde (V2a).
@@ -283,3 +294,6 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Foco de la búsqueda en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en el efecto de foco de `Search.tsx` y `pnpm verify 5.1`: «Siguiente» 8 → 9 y «Anterior» 2 → 1 con `lenta` dan `focoAlDesmontar` `BODY` en 10 de 10 pasadas, en las dos líneas (49/52). Medido; revertir | tras V1b |
 | Envío sin los parámetros de V1 | Cambiar `new URLSearchParams(carried)` por `new URLSearchParams()` en el `submit` de `Specialist.tsx` y, a 1440, «Continuar con tus datos» desde `…?q=Cardiología&escenario=ocupada&fecha=2029-04-24&hora=10:30`: llega a `/datos?fecha=2029-04-24&hora=10%3A30`, sin `q` ni `escenario`, y `?escenario=ocupada` no llega a la vista 3. Medido al construirlo; revertir | V2a |
 | Guarda con `redirect` | Cambiar `replace` por `redirect` en `bookingStepLoader` y `pnpm verify 5.0`: `idx` 1 en la redirección y Atrás cae en la reserva, no en `/kit/estados`. Medido al construirlo; revertir | T2 |
+| Vista suscrita al borrador | Volver a `useSyncExternalStore` en `PatientData.tsx` (con `subscribe` en el almacén de `src/data/patient.ts`) y `pnpm verify 5.3`: la sonda del envío válido ve `[confirmada, "", false]`, un frame y un commit con el form vacío antes de la confirmación. Medido; revertir | V3 |
+| Foco de `Notice` en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en `Notice.tsx`, `pnpm build` y `pnpm verify 5.3 --preview`: la sonda de la reserva fallida sigue viendo el título enfocado en el mismo commit (4/4). No discrimina (Trampas, efectos pasivos tras un evento discreto); el efecto de layout se conserva por la regla de V1b. Medido; revertir | V3 |
+| Cierre del diálogo en un efecto, con `Notice` en layout | Repetida en V3 contra la preview, con el foco de `Notice` en `useLayoutEffect`: con `close()`, el foco llega a «Cita cancelada» y la sonda lo ve ya en el commit; sin él, `body`. Revertido | V3 |

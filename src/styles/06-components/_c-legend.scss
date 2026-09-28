@@ -24,6 +24,9 @@
   line-height: var(--_text-line-height);
   color: var(--color-text-primary);
   letter-spacing: var(--_text-tracking);
+  // Destino del resumen de errores cuando el control es una casilla (vista 3):
+  // la legend del grupo se desplaza al inicio, a space-4 del borde.
+  scroll-margin-block-start: var(--space-4);
 
   &--group {
     --_text-family: var(--text-body-strong-family);

@@ -786,13 +786,15 @@ async function confirmWidths(b, expect) {
     wide[w] = await b.ev(desktop)
   }
   await b.shot('02.4-1440.png', { x: 0, y: 0, width: 1440, height: 900 })
-  // Sin frame: cifras medidas. Breadcrumb 114–142, pasos a 150, h1 a 190; la
+  // Sin frame: cifras medidas. Breadcrumb 114–142, pasos a 158, h1 a 198; la
   // columna a 32 del h1 (tarjeta 344, «Cambiar» a 16, aviso a 32 en dos
   // líneas: 110, acciones a 32); envío y nota con las medidas de 02.5 (234,7
-  // y 182,1).
-  expect('02.4 desde lg (C1-A, sin frame): breadcrumb de tres niveles, sin barra, columna de 38rem alineada con el h1, «Cambiar» y «Continuar» intrínsecos y la nota debajo', wide, {
-    1024: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [24, 190, 976, 44], columna: [24, 266, 608, 662], cambiar: [24, 626, 216, 50], aviso: [24, 708, 608, 110], continuar: [24, 850, 235, 50], nota: [24, 908, 182, 20] },
-    1440: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [120, 190, 1200, 44], columna: [120, 266, 608, 662], cambiar: [120, 626, 216, 50], aviso: [120, 708, 608, 110], continuar: [120, 850, 235, 50], nota: [120, 908, 182, 20] },
+  // y 182,1). Desde V3, el breadcrumb queda a space-4 de lo que sigue: regla
+  // general de c-page-header desde lg (Figma 02.5, 03.3 y 04.4); hasta V3 iba
+  // a space-2 y todo lo de debajo estaba 8 px más arriba (pasos a 150).
+  expect('02.4 desde lg (C1-A, sin frame): breadcrumb de tres niveles a space-4 de los pasos, sin barra, columna de 38rem alineada con el h1, «Cambiar» y «Continuar» intrínsecos y la nota debajo', wide, {
+    1024: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [24, 198, 976, 44], columna: [24, 274, 608, 662], cambiar: [24, 634, 216, 50], aviso: [24, 716, 608, 110], continuar: [24, 858, 235, 50], nota: [24, 916, 182, 20] },
+    1440: { desborde: 0, barra: false, migas: ['Especialistas', 'Dra. Ruiz', 'Confirma tu cita'], h1: [120, 198, 1200, 44], columna: [120, 274, 608, 662], cambiar: [120, 634, 216, 50], aviso: [120, 716, 608, 110], continuar: [120, 858, 235, 50], nota: [120, 916, 182, 20] },
   })
   // Contraprueba: sin el tope, la columna llena los 1200 del contenedor.
   await b.style('.c-booking-review { max-inline-size: none }')

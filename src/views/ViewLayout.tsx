@@ -4,6 +4,7 @@ import BottomNav from '../components/BottomNav.tsx'
 import HeaderDesktop from '../components/HeaderDesktop.tsx'
 import HeaderMobile from '../components/HeaderMobile.tsx'
 import type { HeaderDestination } from '../components/destinations.ts'
+import { SESSION } from '../data/session.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 
 type ViewLayoutProps = {
@@ -32,7 +33,7 @@ type ViewLayoutProps = {
 export default function ViewLayout({ title, current, currentKind = 'page', bottomNav = false, bar: taskBar, children }: ViewLayoutProps) {
   const isDesktop = useMediaQuery('lg')
   const header = isDesktop ? (
-    <HeaderDesktop session="signed-in" userName="Karla Sánchez" current={current} currentKind={currentKind} />
+    <HeaderDesktop session="signed-in" userName={SESSION.shortName} current={current} currentKind={currentKind} />
   ) : (
     <HeaderMobile />
   )

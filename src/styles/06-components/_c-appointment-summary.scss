@@ -5,26 +5,45 @@
 // ancho y es el contenedor, sin padding, como c-empty-state: el umbral es el
 // ancho exterior (DESIGN.md § Contenedores). __card es la tarjeta:
 // color-surface con borde color-border decorativo, radius-md, padding space-5
-// y gap space-4: quién y los datos (c-booking-details).
+// y gap space-4: título opcional, quién y los datos (c-booking-details).
+//
+// --aside («Tu cita» de la vista 3, columna de 320; Figma 03.3): padding
+// space-4 en cualquier ancho. La raíz es el contenedor y un @container solo
+// aplica a sus descendientes, así que el padding automático lo decide __card
+// (--_card-padding-auto) y el modificador fija en la raíz --_card-padding, que
+// __card hereda y antepone.
 .c-appointment-summary {
   container: appointment-summary / inline-size;
+
+  &--aside {
+    --_card-padding: var(--space-4);
+  }
 
   // Compacto (base, raíz por debajo de 16.75rem: solo con texto grande):
   // padding space-4. Con space-5, al 200 % a 320 a la columna de los datos le
   // quedaban 94 / 79 px (barra superpuesta / clásica) y partía «10:30», el
   // dato principal de la pantalla (82).
   &__card {
+    --_card-padding-auto: var(--space-4);
+
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    padding: var(--space-4);
+    padding: var(--_card-padding, var(--_card-padding-auto));
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
 
     @include tools.container(appointment-summary, appointment-summary-compact) {
-      padding: var(--space-5);
+      --_card-padding-auto: var(--space-5);
     }
+  }
+
+  // «Tu cita» (03.3): heading-sm, como el título de «Tu cita» de 02.5.
+  &__title {
+    @include tools.text(heading-sm);
+
+    color: var(--color-text-primary);
   }
 
   // Avatar y datos a space-4 (Figma: Who), separados de los datos por un

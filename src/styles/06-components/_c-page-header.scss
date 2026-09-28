@@ -3,28 +3,31 @@
 // Encabezado de página de las vistas (PageHeader.tsx). No es uno de los 34
 // (excepción declarada en D5). El h1 usa page-title: heading/lg por debajo de
 // lg y display desde lg, sin media query aquí (DESIGN.md § Paso derivado).
-// Título y subtítulo separados por space-2 (Figma 01.1, 01.5: Page Title); el
-// retroceso, también a space-2 de lo que sigue (Figma 02.1: Page Heading).
 //
-// Perfil (--profile, vista 2). Excepción declarada: media query en lg, porque
-// el encabezado es layout de página y cambia con el chrome (breadcrumb en vez
-// de Back Link, avatar Large en vez de Medium, D7), como el page-title.
-// - Por debajo de lg (02.1): Back Link a space-2; avatar y h1 en fila y
-//   especialidad y meta debajo a todo el ancho, separados por space-3.
-// - Desde lg (02.5): breadcrumb a space-4; avatar a la izquierda, centrado en
-//   el alto del texto, a space-5; nombre, especialidad y meta en columna a
-//   space-2, y la meta en fila a space-4.
+// Excepción declarada: media query en lg, porque el encabezado es layout de
+// página y cambia con el chrome (breadcrumb en vez de Back Link, avatar Large
+// en vez de Medium, D7), como el page-title.
+// - La raíz separa el retroceso de lo que sigue: space-2 por debajo de lg (Back
+//   Link, Figma 02.1, 03.1) y space-4 desde lg (breadcrumb, Figma 02.5, 03.3,
+//   04.4). Es regla general desde V3; antes solo la llevaba --profile.
+// - Título y subtítulo, a space-2 en las dos plataformas, en __title-group
+//   (Figma 04.1: Title Group; 01.1, 01.5: Page Title). Solo existe con
+//   subtítulo.
+// - Pasos y h1, a space-4 en __heading (Figma 02.4: Heading Group).
+//
+// Perfil (--profile, vista 2):
+// - Por debajo de lg (02.1): avatar y h1 en fila y especialidad y meta debajo
+//   a todo el ancho, separados por space-3.
+// - Desde lg (02.5): avatar a la izquierda, centrado en el alto del texto, a
+//   space-5; nombre, especialidad y meta en columna a space-2, y la meta en
+//   fila a space-4.
 .c-page-header {
-  --_gap: var(--space-2);
-
   display: flex;
   flex-direction: column;
-  gap: var(--_gap);
+  gap: var(--space-2);
 
-  &--profile {
-    @include tools.respond-to(lg) {
-      --_gap: var(--space-4);
-    }
+  @include tools.respond-to(lg) {
+    gap: var(--space-4);
   }
 
   // Mezcla sobre el retroceso: sin ella, el Back Link (flex) llenaría la fila
@@ -38,6 +41,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  &__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   &__title {

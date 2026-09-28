@@ -39,12 +39,24 @@ type PageHeaderProps = {
 
 // Encabezado de página de las vistas (c-page-header). No es uno de los 34:
 // excepción declarada en D5. Su API crece vista por vista: en V1a, el
-// subtítulo; en V2a, el retroceso y el perfil; en V2b, los pasos.
+// subtítulo; en V2a, el retroceso y el perfil; en V2b, los pasos; en V3, el
+// grupo de título y subtítulo (__title-group).
 export default function PageHeader({ title, subtitle, back, profile, steps }: PageHeaderProps) {
-  const heading = (
+  const h1 = (
     <h1 className={profile ? 'c-page-header__title c-page-header__title--profile' : 'c-page-header__title'} id={MAIN_TITLE_ID} tabIndex={-1}>
       {title}
     </h1>
+  )
+  // Título y subtítulo a space-2 en su propio grupo (Figma 04.1: Title
+  // Group): el hueco de la raíz, entre el retroceso y lo que sigue, crece
+  // desde lg y este no.
+  const heading = subtitle ? (
+    <div className="c-page-header__title-group">
+      {h1}
+      <p className="c-page-header__subtitle">{subtitle}</p>
+    </div>
+  ) : (
+    h1
   )
 
   return (
@@ -54,7 +66,7 @@ export default function PageHeader({ title, subtitle, back, profile, steps }: Pa
         <div className="c-page-header__profile">
           <div className="c-page-header__identity">
             {profile.avatar}
-            {heading}
+            {h1}
           </div>
           <p className="c-page-header__specialty">{profile.specialty}</p>
           <div className="c-page-header__meta">
@@ -73,7 +85,6 @@ export default function PageHeader({ title, subtitle, back, profile, steps }: Pa
       ) : (
         heading
       )}
-      {subtitle && <p className="c-page-header__subtitle">{subtitle}</p>}
     </div>
   )
 }
