@@ -724,10 +724,11 @@ completo» (interior 158 / 143), «Avisarme», «horarios», «martes», «liber
 (175,4 en un título de 175 con barra clásica) es la trampa del margen de +0,5
 del detector, como «experiencia» en 4.5.
 
-**Par de 02.6 (≠ C4).** Figma mide 1440 × 912; el código, 914: +2 px del
-borde (Included) del Notice Info «Antes de continuar» (158), que 02.6 dibuja
-aún con el patrón Policy sin borde (156). En código es el Notice Info de 02.5
-(Pendientes, parche de Figma 02.6).
+**Par de 02.6.** Tras el parche de Figma (Policy → `UI/Notice Info`, instancia
+502:8952, clonada de 02.5), 02.6 mide 1440 × 914, igual que 02.5 y que el
+código: «Antes de continuar» 320 × 158 en y 310 dentro del Aside (de 562 de
+alto), Main 832. El
+par es igual, sin diferencia declarada (Pendientes, parche de Figma 02.6).
 
 ### Vista 2 (V2b)
 
@@ -1235,7 +1236,7 @@ médico no toca a otro, cada uno con su contraprueba.
 | 5 · V1a ✓ | **Foco al cambiar de página. Cerrado en V1a:** ni el `h1` (obligaría a recorrer el formulario) ni el `h2` «Resultados» (visualmente oculto: su anillo no se vería, 2.4.7), sino el nombre de la primera tarjeta, el destino de «Ver más» |
 | 5 · V1a ✓ | **Foto de la tarjeta. Cerrado en V1a:** `ResultCard` expone `photoSizes` y `photoLoading` (Avatar, `sizes`); la vista da `(min-width: 38rem) 4rem, 3rem` y eager solo en las dos primeras tarjetas (§ Búsqueda y resultados, fotos) |
 | 5 · V2a ✓ | **El enlace de V2 a V3 conserva `escenario`. Cerrado en V2a:** «Continuar con tus datos» y «Continuar» llevan los parámetros de V1 y `escenario` a `/datos` y `/confirmar` (medido en `pnpm verify 5.2`). El salto `/confirmar` → `/datos` es de V2b y repite la prueba. **V2b ✓:** `/confirmar` → `/datos` con `escenario` y los parámetros de V1 (clic real, push, foco en su `h1`); un parámetro ajeno no viaja y, sin `escenario` en la URL, el `href` no lo lleva (contraprueba, `pnpm verify 5.2`) |
-| Figma | **Figma 02.6: Policy → UI/Notice Info (parche por Scripter).** 02.6 no entró en la migración a `UI/Notice Info`: dibuja «Antes de continuar» sin borde (156 de alto; el frame mide 1440 × 912). En código es el Notice Info de 02.5 (158): el par de 02.6 mide 914, +2 px, ≠ declarado (C4) |
+| Figma ✓ | **Figma 02.6: Policy → UI/Notice Info. Cerrado:** Osvaldo aplicó el parche (instancia 502:8952, clonada de 02.5). Validado por MCP: Notice 320 × 158 en y 310, Aside 562, Main 832 y frame 1440 × 914, igual que 02.5. Antes, 02.6 dibujaba «Antes de continuar» sin borde (156; frame de 912) y el par medía +2 px, ≠ declarado (C4). `pnpm verify 5.2` espera 914 en los dos frames |
 | 7 | **Envío implícito con Intro en un radio en Firefox y Safari.** En Edge, Intro en un radio de la tira envía por el botón por defecto del form (el de la Booking Bar, por `form=`; § Fecha y hora, Vista 2). Comprobar que Firefox y Safari hacen el mismo envío implícito |
 | 7 | **`last baseline` en Safari.** Cabecera de resultados y `c-field` (V1a) solo se midieron en Edge. Si no se soporta, la declaración se ignora y el recuento se centra en la cabecera: comprobar en Safari de macOS e iOS |
 | 7     | **Resultados con lector.** Conmutador «Avisarme» (desviación de la APG), foco tras «Ver más» y soporte real de `aria-busy` en NVDA y VoiceOver |

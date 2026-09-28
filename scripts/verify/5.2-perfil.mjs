@@ -150,12 +150,9 @@ const DESKTOP_PARTS = {
   main: 'main',
 }
 // Figma 02.5 y 02.6 (236:5881, 236:6276). Los pasos miden 312 en Figma (HUG)
-// y llenan los 320 de la columna en código: se compara su y y su alto. 02.6
-// dibuja «Antes de continuar» con el patrón Policy, sin borde (156 de alto, el
-// frame mide 1440 × 912); en código es el Notice Info de 02.5 (158), así que
-// aviso y acciones se comparan con 02.5 y la página mide 914: +2 px, ≠
-// declarado (C4; DESIGN.md Pendientes: el archivo no se migró a UI/Notice
-// Info).
+// y llenan los 320 de la columna en código: se compara su y y su alto. Desde
+// el parche de 02.6 (UI/Notice Info, 502:8952, clonada de 02.5), aviso y
+// acciones miden lo mismo en los dos frames y los dos miden 1440 × 914.
 const desktopCommon = {
   header: [0, 0, 1440, 82], breadcrumb: [120, 114, null, 28], avatar: [120, 167, 96, 96], h1: [240, 158, 1080, 44], especialidad: [240, 210, 1080, 24],
   ubicacion: [240, 247, 286, 20], modalidad: [542, 242, null, 30], tarjeta: [120, 304, 848, 558], columnaFecha: [153, 337, 360, 492], eligeFecha: [153, 337, 360, 28],
@@ -163,7 +160,7 @@ const desktopCommon = {
 }
 const FIGMA_DESKTOP = {
   '02.5': { url: P021, alto: 914, cajas: { ...desktopCommon, horas: [545, 337, 390, null], lista: [545, 413, 390, 312], hora1: [545, 445, 122, 50], vacio: null } },
-  '02.6': { url: P023, alto: 914, nota: ' (Figma 912: +2 del borde del Notice Info, ≠ C4)', cajas: { ...desktopCommon, horas: [545, 337, 390, null], lista: null, vacio: [545, 413, 390, 342], tituloVacio: [570, 510, 340, 28], accion1: [570, 618, null, 50], accion2: [570, 680, null, 50] } },
+  '02.6': { url: P023, alto: 914, cajas: { ...desktopCommon, horas: [545, 337, 390, null], lista: null, vacio: [545, 413, 390, 342], tituloVacio: [570, 510, 340, 28], accion1: [570, 618, null, 50], accion2: [570, 680, null, 50] } },
 }
 
 async function figmaPairs(b, expect) {
@@ -184,11 +181,11 @@ async function figmaPairs(b, expect) {
   expect('02.2 (375 × 812): la hoja inferior a ±1 px de Figma; velo color-scrim al 45 %', { fuera: outside(hoja, hojaFigma), velo: await b.ev(`getComputedStyle(document.querySelector('dialog.c-sheet'), '::backdrop').backgroundColor`) }, { fuera: [], velo: 'color(srgb 0 0 0 / 0.45)' })
   await escape(b)
 
-  for (const [name, { url, alto, nota = '', cajas }] of Object.entries(FIGMA_DESKTOP)) {
+  for (const [name, { url, alto, cajas }] of Object.entries(FIGMA_DESKTOP)) {
     const h = await fullPage(b, 1440, url)
     const actual = await measure(b, Object.fromEntries(Object.keys(cajas).map((k) => [k, DESKTOP_PARTS[k]])))
     await b.shot(`${name}.png`, { x: 0, y: 0, width: 1440, height: h })
-    expect(`${name} (1440) a ±1 px de Figma, y el alto de página${nota}`, { fuera: outside(actual, cajas), alto: h }, { fuera: [], alto })
+    expect(`${name} (1440) a ±1 px de Figma, y el alto de página`, { fuera: outside(actual, cajas), alto: h }, { fuera: [], alto })
   }
   await b.metrics(1280, 900)
 }
