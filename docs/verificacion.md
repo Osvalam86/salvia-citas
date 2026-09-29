@@ -12,7 +12,12 @@ pnpm dev          # en otra terminal: el servidor tiene que estar en :5173
 pnpm verify 4.7   # 4.1 a 4.7
 pnpm verify 5.0   # bloques de la fase 5 (5.0, 5.1, 5.2, 5.3, 5.4)
 pnpm verify 5.0 --preview   # flujos de foco contra pnpm build && pnpm preview (:4173)
+VERIFY_BASE=https://salvia-citas.netlify.app pnpm verify 7.0             # despliegue (fase 7)
+VERIFY_BASE=https://salvia-citas.netlify.app pnpm verify 5.0 --preview   # flujos de foco en producción
 ```
+
+7.0 se niega a correr fuera de `*.netlify.app`: `pnpm dev` y `pnpm preview` no
+leen `public/_redirects` ni `netlify.toml`.
 
 Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
 Edge. Sin dependencias. La ruta de Edge es la de Windows; en otro sistema,
@@ -27,7 +32,8 @@ no se versiona.
 | Archivo | Qué hace |
 |---|---|
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
-| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2); scroll en cargas completas (`fullLoadScroll`, cierre de la fase 5, también en `--preview`) |
+| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2); scroll en cargas completas (`fullLoadScroll`, cierre de la fase 5, también en `--preview`). Exporta `ROUTES`, que usa 7.0 |
+| `7.0-despliegue.mjs` | Despliegue en Netlify (D12), solo con `VERIFY_BASE` en `*.netlify.app`. Estado HTTP con `fetch` de Node: rutas de D1 y `/kit/*` → 200; fuera de ellas → 404, con `/especialistas` y `/citas` con y sin barra; precisión de los comodines (`/kit-x`, `/mis-citasx`) y su coste declarado (rutas inventadas bajo ellos → 200). Caché: directivas de `/assets/*` e `index.html` sin `immutable`. Carga completa de 16 rutas (h1 y título de D15) sin peticiones a otro origen (D11); nada fuera de `#root` y del `<head>` con caja ni con `tabIndex ≥ 0`; el centro de «Continuar» de la Booking Bar a 375 es el botón. Datos sin criterio: el script `/.netlify/scripts/hud` y el comentario del `<head>`. **Alcance de «nada fuera de #root»:** vale en cargas completas sin interacción; al interactuar, los popovers de React Aria y su anunciador de región viva se montan en `body` fuera de `#root` (un elemento de 1 × 1 sería ese anunciador, no el alojamiento); sin medir; se comprueba en 7.3 (axe con diálogos y hojas abiertos) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). V2b: 02.4 a ±1 px (375), anchos intermedios y escritorio (C1-A, con la contraprueba de los 38rem), 200 % a 320 con el umbral `appointment-summary-compact` y su contraprueba, padding al 100 %, letra del navegador, forced-colors, estructura, teclado, enlaces y escenario (con contraprueba), guardas, foco (llegada y cruce de lg, con contraprueba) y la regresión exacta de 02.5 y 02.6 frente a la línea base anterior al refactor; navegación en cliente 02.1 → 02.4. `previewFlows`: foco, Missing y el foco de 02.4 |
@@ -317,6 +323,21 @@ no se versiona.
   módulo (`…webp?import`) y el patrón lo bloquea también. Con `Fetch.enable` limitado a
   `resourceType: 'Image'` y `Fetch.failRequest`, la vista monta y la foto falla (cierre de la fase 5).
 
+- **Badge «Powered by Netlify».** Activado por defecto en los proyectos Free creados desde el 19 de
+  agosto de 2026; se desactiva en *Project configuration → General → Powered by Netlify badge*, sin
+  volver a desplegar ([documentación](https://docs.netlify.com/manage/projects/powered-by-netlify-badge/)).
+  Activo, el script `/.netlify/scripts/hud` estaba en la página y pintaba un iframe «Powered by
+  Netlify» `position: fixed`, `z-index` 2147483645 y `tabIndex` 0, de 197 × 64 en 178,748 a 375,
+  encima de «Continuar» de la Booking Bar: `elementFromPoint` daba `IFRAME` y `pnpm verify 5.2
+  --preview` daba 4/6 (foco en `IFRAME` en Missing y en la llegada a 02.4). Desactivado, el script
+  no aparece en ninguna de las 16 cargas de 7.0; el comentario «hosted on Netlify» del `<head>` sigue
+  (7.0).
+- **Netlify normaliza `Cache-Control` sin espacios** (`public,max-age=31536000,immutable`): se comparan
+  las directivas, no el texto (7.0).
+- **En `_redirects`, `/x/*` casa también con `/x` y con `/x/`.** Medido: `/especialistas`,
+  `/especialistas/`, `/citas` y `/citas/` daban 200; con sus reglas 404 antes de los comodines, 404
+  (7.0).
+
 ## Comprobaciones manuales
 
 No se automatizan; se repiten a mano cuando cambia lo que prueban.
@@ -352,3 +373,4 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Sin el envoltorio `__heading` | Volver a `steps ? <div className="c-page-header__heading">… : headline` en `PageHeader.tsx` y cruzar lg con `h1AcrossLg` en 03.1 y 04.1: `nodoNuevo: true` en los dos sentidos; con el envoltorio, `false`. Medido; revertir | 5 · cierre |
 | Sin `getKey` en `ScrollRestoration` | Quitar `getKey` en `RootLayout.tsx`: `/kit` al final y carga completa de `/kit/navegacion…` → `scrollY` 766 y foco en body (con `getKey`, 0); 12 Tab en `/kit/fecha-hora`, `/kit` y «Ver fecha y hora» a 1350 → 18632 px con delta 230, en 3 de 3 (con `getKey`, 0 en 3 de 3). Medido; revertir | 5 · cierre |
 | Foto bloqueada en el origen (V2b) | Cargar 02.1 con la petición Image de `elena-ruiz-arellano-96.webp` fallida (`Fetch`, solo el tipo Image), desbloquear y pulsar «Continuar» → 02.4 a 375: 0 píxeles distintos de la recarga en 5 de 5 (sin bloquear, 471 con delta 1 en 3 de 3). El remuestreo viene de la foto ya decodificada en el origen | 5 · cierre |
+| Badge de Netlify activo | Activar *Powered by Netlify badge* y cargar 02.1 a 375 en producción: iframe «Powered by Netlify» 197 × 64 en 178,748, `tabIndex` 0, `elementFromPoint` en su centro = `IFRAME` (navegador integrado de Claude, Chromium) y `pnpm verify 5.2 --preview` 4/6 (Edge headless). Es la contraprueba de las dos comprobaciones de lo inyectado de 7.0, que se escribieron después: 7.0 no se ejecutó con el badge activo. Medido en el deploy de c2b1932, con el badge por defecto; desactivar | 7.0 |

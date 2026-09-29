@@ -115,8 +115,14 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   criterio del resto de pintado con delta > 64 y `prepare` en
   `scripts/verify/navegacion.mjs`; `check-data` con 62 contrapruebas.
 
-Siguiente: la fase 7 (auditoría con teclado, lector de pantalla y contraste en
-navegador, y despliegue), con los pendientes de la fase 7 de DESIGN.md.
+- Fase 7 · 7.0: despliegue continuo desde `main` en Netlify
+  (https://salvia-citas.netlify.app): `netlify.toml` (lint, contrast y build;
+  Node 22; pnpm por `packageManager`; caché inmutable solo en `/assets/*`),
+  `public/_redirects` con 404 real (D12) y `pnpm verify 7.0` contra producción;
+  el badge «Powered by Netlify», desactivado (verificacion.md, Trampas).
+
+Siguiente en la fase 7: 7.1 (títulos, subrayado, favicon, imagen OG y
+`<meta>`), con los pendientes de la fase 7 de DESIGN.md.
 
 ## Comandos
 
@@ -129,6 +135,7 @@ pnpm lint       # eslint, stylelint, breakpoints y check-data (aserciones de D4)
 pnpm contrast   # reproduce los 31 pares de F.3 desde el SCSS compilado
 pnpm verify 4.3 # verifica una sección contra su informe (con pnpm dev; docs/verificacion.md)
 pnpm verify 5.0 --preview # flujos de foco contra pnpm build && pnpm preview
+VERIFY_BASE=https://salvia-citas.netlify.app pnpm verify 7.0 # despliegue; solo contra *.netlify.app
 pnpm preview    # sirve dist/
 ```
 
