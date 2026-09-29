@@ -1,7 +1,7 @@
 import { parseDate } from '@internationalized/date'
 import { useSyncExternalStore } from 'react'
 import { dayTitle, weekdayDay } from '../components/dates.ts'
-import { startOf } from './booking.ts'
+import { inFreeWindow } from './booking.ts'
 import { NOW } from './clock.ts'
 import type { Scenario } from './scenario.ts'
 import { SESSION } from './session.ts'
@@ -171,7 +171,7 @@ export function rescheduleCopy(
 
   let policy = `Al confirmar la nueva hora, se libera la del ${lowerFirst(currentDay)} a las ${current.time}. ${again}`
   if (next.time) {
-    const inWindow = startOf({ date: next.date, time: next.time }).compare(now.add({ hours: 24 })) >= 0
+    const inWindow = inFreeWindow({ date: next.date, time: next.time }, now)
     policy = `Se libera el ${lowerFirst(currentDay)} a las ${current.time} y tu cita pasa al ${weekdayDay(nextDate, currentDate)}.${inWindow ? ` ${again}` : ''}`
   }
 

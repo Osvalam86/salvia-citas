@@ -21,6 +21,37 @@ export const pixelDiff = (a, c) => `(async () => {
   return n === 0 ? 0 : n + ' en ' + [x0, y0, x1, y1].join(',')
 })()`
 
+// Umbral del resto de pintado (cierre de la fase 5): un píxel es resto si su
+// delta máximo por canal frente a la recarga pasa de 64, en cualquier punto de
+// la página (también sobre una foto). Medido: el remuestreo de una foto ya
+// decodificada en la página de origen llega a 39 (V1b, 01.1) y 33 (V2b, 02.4)
+// y no tiene ningún píxel por encima de 64; el resto real de 4.6 (avatares de
+// /kit bajo la última Booking Bar) llega a 230, con 12632 píxeles por encima.
+// Mecanismo probado en V2b: con la foto bloqueada en el origen, 0 de 5.
+export const REST_DELTA = 64
+
+// Píxeles distintos, píxeles con delta > REST_DELTA y delta máximo por canal.
+export const pixelDelta = (a, c) => `(async () => {
+  const load = (d) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + d })
+  const px = (img) => { const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const g = cv.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data }
+  const images = await Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(c)})])
+  const [p, q] = images.map(px)
+  let distintos = 0, sobre = 0, deltaMax = 0
+  for (let i = 0; i < p.length; i += 4) {
+    const d = Math.max(Math.abs(p[i] - q[i]), Math.abs(p[i + 1] - q[i + 1]), Math.abs(p[i + 2] - q[i + 2]))
+    if (!d) continue
+    distintos++
+    if (d > ${REST_DELTA}) sobre++
+    deltaMax = Math.max(deltaMax, d)
+  }
+  return { distintos, sobre64: sobre, deltaMax }
+})()`
+
+// Lo que comparan las vistas: sin resto al llegar ni 4 s después. El
+// remuestreo (delta ≤ 64) no cuenta, pero se informa en la etiqueta.
+export const viewRest = ({ ruta, sinRecarga, estado, delta, deltaCuatroSegundos }) => ({ ruta, sinRecarga, estado, sobre64: delta.sobre64, cuatroSegundosSobre64: deltaCuatroSegundos.sobre64 })
+export const resampleNote = ({ delta }) => `remuestreo con delta ≤ 64: ${delta.distintos - delta.sobre64} px, delta máx. ${delta.deltaMax}`
+
 export const viewport = async (b) => (await b.send('Page.captureScreenshot', { format: 'png' })).data
 
 // La rueda va al centro del viewport: fuera de él (un x fijo a 375) el evento
@@ -49,10 +80,14 @@ const parkPointer = async (b) => {
  * final de la página); 4.6 no lo usa, para no cambiar la reproducción del
  * resto de pintado. `selector` elige entre qué elementos se busca `link`: un
  * envío que navega es un botón (V2b: «Continuar» de la Booking Bar lleva a
- * /confirmar).
+ * /confirmar). `prepare(b)` actúa sobre el origen ya cargado, antes de buscar
+ * el enlace.
  */
-export async function clientNavigation(b, { from, link, to, state = 'null', park = false, selector = 'a' }) {
+export async function clientNavigation(b, { from, link, to, state = 'null', park = false, selector = 'a', prepare = null }) {
   await b.go(from)
+  // Estado del origen antes del clic (cierre de la fase 5): 4.6 baja /kit con
+  // la rueda, la condición en la que aparece el resto de pintado.
+  if (prepare) await prepare(b)
   const { x, y } = await b.ev(`(() => { const a = [...document.querySelectorAll(${JSON.stringify(selector)})].find((e) => e.textContent === ${JSON.stringify(link)}); a.scrollIntoView({ block: 'center' }); const r = a.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
   await b.click(x, y)
   // Con search: el destino puede llevar consulta (5.1, /kit/estados → /?q=…).
@@ -73,6 +108,8 @@ export async function clientNavigation(b, { from, link, to, state = 'null', park
     ...arrival,
     pixelesDistintosDeLaRecarga: await b.ev(pixelDiff(afterClient, afterReload)),
     cuatroSegundosDespues: await b.ev(pixelDiff(later, afterReload)),
+    delta: await b.ev(pixelDelta(afterClient, afterReload)),
+    deltaCuatroSegundos: await b.ev(pixelDelta(later, afterReload)),
     afterClient,
     afterReload,
   }

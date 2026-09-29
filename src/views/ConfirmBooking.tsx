@@ -9,7 +9,7 @@ import Button from '../components/Button.tsx'
 import Notice from '../components/Notice.tsx'
 import PageHeader from '../components/PageHeader.tsx'
 import { dayTitle } from '../components/dates.ts'
-import { BOOKING_DURATION, BOOKING_MODALITY, BOOKING_POLICY } from '../data/booking.ts'
+import { BOOKING_DURATION, BOOKING_MODALITY, policyText } from '../data/booking.ts'
 import { PHOTOS } from '../data/photos.ts'
 import { carriedParams } from '../data/search.ts'
 import { AREAS, CLINICS, shortName } from '../data/specialists.ts'
@@ -106,7 +106,7 @@ export default function ConfirmBooking() {
             Cambiar fecha u hora
           </Button>
         </div>
-        <Notice tone="info" headingLevel={null} title="Antes de continuar" body={BOOKING_POLICY} />
+        <Notice tone="info" headingLevel={null} title="Antes de continuar" body={policyText({ date: date.toString(), time })} />
         {isDesktop && (
           <div className="c-booking-review__actions">
             {submit}

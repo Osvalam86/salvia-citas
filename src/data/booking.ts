@@ -20,8 +20,14 @@ export const BOOKING_META = `${BOOKING_MODALITY} · ${BOOKING_MINUTES} min`
 /** «30 minutos» (Duración del resumen). */
 export const BOOKING_DURATION = `${BOOKING_MINUTES} minutos`
 
-/** Cuerpo del aviso Info «Antes de continuar» (02.4, 02.5). */
+/** Cuerpo del aviso Info «Antes de continuar» (02.4, 02.5, 03.3) con 24 horas o más, o sin hora. */
 export const BOOKING_POLICY = 'Puedes cancelar o reprogramar sin costo hasta 24 horas antes. Llega 10 minutos antes con una identificación.'
+
+/**
+ * La política a menos de 24 horas: sin la promesa de gratuidad, que ya no es
+ * verdad. La misma frase en «Qué sigue» (V4a) y en «Antes de continuar».
+ */
+export const LATE_POLICY = 'Puedes gestionar tu cita desde Mis citas. Llega 10 minutos antes con una identificación.'
 
 /** Inicio de la cita como fecha y hora sin zona (el reloj simulado tampoco la lleva). */
 export const startOf = ({ date, time }: Pick<Appointment, 'date' | 'time'>) => {
@@ -29,6 +35,18 @@ export const startOf = ({ date, time }: Pick<Appointment, 'date' | 'time'>) => {
   const [hour, minute] = time.split(':').map(Number)
   return new CalendarDateTime(day.year, day.month, day.day, hour, minute)
 }
+
+/** Dentro del plazo de cancelar o reprogramar sin costo: faltan 24 horas o más (≥) contra NOW. */
+export const inFreeWindow = (slot: Pick<Appointment, 'date' | 'time'>, now = NOW) =>
+  startOf(slot).compare(now.add({ hours: 24 })) >= 0
+
+/**
+ * Cuerpo de «Antes de continuar» para la hora elegida. Sin hora no hay plazo
+ * que evaluar: la política general, la de Figma. En 02.5 y 02.6 cambia al
+ * elegir hora sin anunciarse (aviso Info sin role; DESIGN.md, cierre).
+ */
+export const policyText = ({ date, time }: { date: string; time: string | null }, now = NOW) =>
+  time && !inFreeWindow({ date, time }, now) ? LATE_POLICY : BOOKING_POLICY
 
 /**
  * Cuerpo del aviso Info «Qué sigue» (04.1, 04.4). El de Figma promete un
@@ -39,8 +57,7 @@ export const startOf = ({ date, time }: Pick<Appointment, 'date' | 'time'>) => {
  * destino: espacio de no separación (diseño §8).
  */
 export function nextStepsText({ date, time, contact }: Pick<Appointment, 'date' | 'time'> & { contact: Contact }, now = NOW) {
-  const inWindow = startOf({ date, time }).compare(now.add({ hours: 24 })) >= 0
-  if (!inWindow) return 'Puedes gestionar tu cita desde Mis citas. Llega 10 minutos antes con una identificación.'
+  if (!inFreeWindow({ date, time }, now)) return LATE_POLICY
   if (!contact.reminder) return 'Puedes cancelar o reprogramar sin costo desde Mis citas hasta 24 horas antes. Llega 10 minutos antes con una identificación.'
   return 'Te enviaremos un recordatorio por correo 24 horas antes. Hasta entonces, puedes cancelar o reprogramar sin costo desde Mis citas. Llega 10 minutos antes con una identificación.'
 }

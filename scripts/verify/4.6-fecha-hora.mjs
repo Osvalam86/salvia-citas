@@ -3,7 +3,7 @@
 // son las de Figma: maestros y pantallas 02.1, 02.2, 02.5 y 02.7.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
-import { clientNavigation, pixelDiff, viewport } from './navegacion.mjs'
+import { clientNavigation, pixelDiff, viewport, viewRest } from './navegacion.mjs'
 import { lintLines, typeErrorLines } from './static.mjs'
 
 const PAGE = '/kit/fecha-hora'
@@ -586,22 +586,34 @@ export default async function run(b, expect) {
 
   // --- Navegación en cliente desde /kit ---------------------------------------------------------------
   // Clic real en «Ver fecha y hora», bajada con la rueda y comparación con la
-  // página recargada (navegacion.mjs). La medida se imprime, pero la línea es
-  // un ✗ declarado mientras el resto de pintado no esté explicado o mitigado
-  // con contraprueba (DESIGN.md, Pendientes, T0: no reproducido en 40
-  // pasadas). Un 0 aquí no lo explica: el defecto era intermitente.
+  // página recargada (navegacion.mjs), con el criterio del cierre de la fase 5
+  // (delta > 64). Antes del clic, /kit se baja con la rueda (4 pasos de 400,
+  // scrollY 1600), como un usuario: desde un origen desplazado, el resto (avatares
+  // de /kit bajo la última Booking Bar, delta 230) aparece al llegar; a los 4 s,
+  // 0 en pasadas aisladas y el mismo resto en la sesión de este script. Desde un
+  // origen arriba mide 0 (hasta el getKey de RootLayout, /kit cargaba con el
+  // scroll heredado de la página anterior). ✗ declarado sobre la llegada
+  // (DESIGN.md, Pendientes, fase 7).
+  const wheelDown = async (bb) => {
+    const x = Math.floor((await bb.ev('innerWidth')) / 2)
+    for (let i = 0; i < 4; i++) await bb.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y: 400, deltaX: 0, deltaY: 400 })
+    await sleep(600)
+  }
   const client = {}
   let counterNav = null
   for (const width of [1350, 375]) {
     await b.overlayScrollbars(false)
     await b.metrics(width, 900, 1)
+    let origin = null
     const { afterClient, afterReload, ...result } = await clientNavigation(b, {
       from: '/kit',
       link: 'Ver fecha y hora',
       to: PAGE,
       state: "({ avatares: document.querySelectorAll('.c-avatar').length, mains: document.querySelectorAll('main').length })",
+      prepare: async (bb) => { await wheelDown(bb); origin = await bb.ev('scrollY') },
     })
-    client[width] = result
+    const rest = viewRest(result)
+    client[width] = { ruta: rest.ruta, sinRecarga: rest.sinRecarga, estado: rest.estado, origenDesplazado: origin > 0, sobre64: rest.sobre64, cuatroSegundosSobre64: rest.cuatroSegundosSobre64 }
     // Si difieren, las dos capturas quedan en out/4.6 para mirarlas.
     if (result.pixelesDistintosDeLaRecarga !== 0) {
       await b.saveBase64(`navegacion-cliente-${width}.png`, afterClient)
@@ -615,12 +627,13 @@ export default async function run(b, expect) {
       counterNav = { avatares: await b.ev("document.querySelectorAll('.c-avatar').length"), pixelesDistintos: (await b.ev(pixelDiff(afterReload, await viewport(b)))) !== 0 }
     }
   }
-  const clientOk = { ruta: PAGE, sinRecarga: true, estado: { avatares: 0, mains: 1 }, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0 }
+  const clientOk = { ruta: PAGE, sinRecarga: true, estado: { avatares: 0, mains: 1 }, origenDesplazado: true, sobre64: 0, cuatroSegundosSobre64: 0 }
   expect(
-    'navegación en cliente /kit → /kit/fecha-hora (clic real, sin recarga): sin restos de /kit en el DOM ni en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, T0)',
+    'navegación en cliente /kit → /kit/fecha-hora (clic real, sin recarga) desde un origen desplazado (/kit, scrollY 1600): sin restos de /kit en el DOM ni píxeles con delta > 64 al llegar (✗ declarado: al llegar 12632 px > 64, delta 230; a los 4 s, 0 en pasadas aisladas, 2 de 2, y 12632 en esta sesión; DESIGN.md, Pendientes, fase 7)',
     { ...client, explicado: false },
     { 1350: clientOk, 375: clientOk, explicado: true },
   )
+  expect('contraprueba del criterio: con /kit desplazado, el resto al llegar (1350) supera el delta de 64', { sobre64: client[1350].sobre64 > 0 }, { sobre64: true })
   expect('contraprueba: un avatar detrás de la última barra se detecta en el DOM y en los píxeles', counterNav, { avatares: 1, pixelesDistintos: true })
   await b.metrics(1280, 900, 1)
 

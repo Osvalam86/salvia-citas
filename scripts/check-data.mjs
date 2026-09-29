@@ -9,7 +9,7 @@ import { CalendarDate, parseDate } from '@internationalized/date'
 import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFreeAfter, nextOpeningMonth, rescheduleStartDate, weekday } from '../src/data/availability.ts'
 import { NOW, TODAY } from '../src/data/clock.ts'
 import { cancelCopy, contactOf, createAppointmentStore, groupAppointments, rescheduleCopy, RUIZ_APPOINTMENT_ID, upcomingText } from '../src/data/appointments.ts'
-import { nextStepsText } from '../src/data/booking.ts'
+import { BOOKING_POLICY, LATE_POLICY, nextStepsText, policyText } from '../src/data/booking.ts'
 import { calendarFile } from '../src/data/calendar.ts'
 import { createNotifyStore } from '../src/data/notify.ts'
 import { createPatientStore, initialDraft, submitBooking, validatePatient } from '../src/data/patient.ts'
@@ -233,6 +233,25 @@ const ASSERTIONS = {
     const edge = ctx.nextSteps({ date: '2029-04-24', time: '09:00', contact }).split('.')[0]
     return (today === 'Puedes gestionar tu cita desde Mis\u00a0citas' && edge === 'Te enviaremos un recordatorio por correo 24 horas antes') || JSON.stringify({ today, edge })
   }],
+  // «Antes de continuar» (02.4, 02.5, 03.3) contra NOW, con el plazo de inFreeWindow (cierre de la fase 5).
+  policyFigma: ['«Antes de continuar» con 24 h o más, literal de Figma (02.4 I374:7444;371:7347, 02.5 I376:7505;371:7347, 03.3 I376:7543;371:7347; 02.6 I502:8952;371:7347)', (ctx) =>
+    ctx.bookingPolicy === 'Puedes cancelar o reprogramar sin costo hasta 24 horas antes. Llega 10 minutos antes con una identificación.' || ctx.bookingPolicy],
+  policyWindow: ['«Antes de continuar»: Mariana hoy a las 19:15 da la política sin la promesa; c1 (25,5 h) y 24 h justas de NOW, la general (≥ 24 h)', (ctx) => {
+    const found = [['2029-04-23', '19:15'], ['2029-04-24', '10:30'], ['2029-04-24', '09:00']].map(([date, time]) => ctx.policy({ date, time }))
+    return same(found, [LATE_POLICY, BOOKING_POLICY, BOOKING_POLICY]) || JSON.stringify(found)
+  }],
+  policyNoTime: ['«Antes de continuar» sin hora elegida: la política general, también con el día de hoy', (ctx) =>
+    ctx.policy({ date: '2029-04-23', time: null }) === BOOKING_POLICY || ctx.policy({ date: '2029-04-23', time: null })],
+  lateLiteral: ['La política a menos de 24 h es el literal aprobado en V4a (con espacio de no separación en «Mis citas»)', (ctx) =>
+    ctx.latePolicy === 'Puedes gestionar tu cita desde Mis\u00a0citas. Llega 10 minutos antes con una identificación.' || ctx.latePolicy],
+  nextStepsLate: ['«Qué sigue» de Mariana hoy a las 19:15 es la política a menos de 24 h', (ctx) => {
+    const found = ctx.nextSteps({ date: '2029-04-23', time: '19:15', contact: { email: '', reminder: true } })
+    return found === ctx.latePolicy || found
+  }],
+  policyLate: ['«Antes de continuar» de Mariana hoy a las 19:15 es la política a menos de 24 h', (ctx) => {
+    const found = ctx.policy({ date: '2029-04-23', time: '19:15' })
+    return found === ctx.latePolicy || found
+  }],
   rescheduleStart: ['Reprogramar sin parámetros (D2): c3 (16 de mayo) empieza el 15; c1 (24 de abril), el 24', (ctx) => {
     const found = [['2029-05-16', SLUGS.cortes], ['2029-04-24', SLUGS.ruiz]].map(([date, slug]) => rescheduleStartDate(slug, parseDate(date), ctx.availability).toString())
     return same(found, ['2029-05-15', '2029-04-24']) || found.join(' · ')
@@ -288,6 +307,9 @@ const base = () => ({
   upcomingText,
   cancelCopy,
   nextSteps: nextStepsText,
+  policy: policyText,
+  bookingPolicy: BOOKING_POLICY,
+  latePolicy: LATE_POLICY,
   rescheduleCopy,
   ics: calendarFile,
 })
@@ -349,6 +371,12 @@ const MUTATIONS = {
   cancelCopy: ['«el Dr.» también para una doctora', (c) => ({ ...c, cancelCopy: (a, s) => cancelCopy(a, { name: s.name.replace(/^Dra\./, 'Dr.') }) })],
   nextStepsReminder: ['el recordatorio se da por pedido', (c) => ({ ...c, nextSteps: (a) => nextStepsText({ ...a, contact: { ...a.contact, reminder: true } }) })],
   nextStepsWindow: ['el plazo contra NOW + 1 min (> en vez de ≥)', (c) => ({ ...c, nextSteps: (a) => nextStepsText(a, NOW.add({ minutes: 1 })) })],
+  policyFigma: ['«48 horas» en la constante', (c) => ({ ...c, bookingPolicy: BOOKING_POLICY.replace('24 horas', '48 horas') })],
+  policyWindow: ['el plazo contra NOW + 1 min (> en vez de ≥)', (c) => ({ ...c, policy: (slot) => policyText(slot, NOW.add({ minutes: 1 })) })],
+  policyNoTime: ['sin hora, como si fuera a las 19:15', (c) => ({ ...c, policy: (slot) => policyText({ ...slot, time: slot.time ?? '19:15' }) })],
+  lateLiteral: ['una palabra cambiada en la constante', (c) => ({ ...c, latePolicy: LATE_POLICY.replace('gestionar', 'consultar') })],
+  nextStepsLate: ['«Qué sigue» devuelve el texto con recordatorio', (c) => ({ ...c, nextSteps: (a) => nextStepsText(a, NOW.subtract({ days: 1 })) })],
+  policyLate: ['«Antes de continuar» devuelve la política general', (c) => ({ ...c, policy: () => BOOKING_POLICY })],
   rescheduleStart: ['ocupar todo Cortés 15 de mayo', (c) => { c.availability[SLUGS.cortes]['2029-05-15'].forEach((s) => (s.available = false)); return c }],
   // Una por literal: cada una cambia solo ese campo, con un error plausible.
   rescheduleCurrent: ['la placa nombra la cita nueva', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), current: rescheduleCopy(n, n).current }) })],

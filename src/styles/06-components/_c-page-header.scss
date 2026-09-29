@@ -13,7 +13,9 @@
 // - Título y subtítulo, a space-2 en las dos plataformas, en __title-group
 //   (Figma 04.1: Title Group; 01.1, 01.5: Page Title). Solo existe con
 //   subtítulo.
-// - Pasos y h1, a space-4 en __heading (Figma 02.4: Heading Group).
+// - Pasos y h1, a space-4 en __heading (Figma 02.4: Heading Group). Existe en
+//   toda vista sin perfil, también sin pasos: así el h1 no cambia de padre al
+//   cruzar lg (V3 y V4a solo llevan pasos bajo lg).
 // - Insignia de éxito y título en __headline (V4a): apilados a space-4 por
 //   debajo de lg (Figma 04.1) y en fila a space-5, centrados, desde lg (04.4:
 //   Heading Row).

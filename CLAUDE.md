@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b, V3, V4a y V4b hechos; queda su cierre).
+Estado actual: fases 1 a 5 cerradas (la 6, absorbida en la 5).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -35,9 +35,9 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `BookingBar`; textos de fecha en `src/components/dates.ts`; reloj simulado
   en `src/data/clock.ts` (`TODAY`, `NOW`, `MAX_DATE`) con lint contra el reloj
   real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
-  `/kit/fecha-hora`. Abierto: resto de pintado tras navegar en cliente
-  (DESIGN.md; T0 lo acotó sin aislar la condición: estable en
-  `pnpm verify 4.6`, 0 de 80 en pasadas aisladas; ✗ declarado).
+  `/kit/fecha-hora`. Resto de pintado tras navegar en cliente desde `/kit`
+  desplazado: ✗ declarado en `pnpm verify 4.6`, seguimiento en la fase 7
+  (DESIGN.md, Pendientes).
 - 4.7 Citas y diálogos: `AppointmentCard` (el `li` es el contenedor; Row
   desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
   el velo; umbrales `dialog-compact` y `dialog`). Una sola instancia del
@@ -108,11 +108,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `useFocusFallback` (antes el hook de cruzar lg); `pnpm verify 5.4` ampliado (y
   `--preview`), 5.0 con 56 contrapruebas.
 
-Siguiente: el cierre de la fase 5 (DESIGN.md, Pendientes «5 · cierre»: resto de pintado, `pnpm
-verify 4.4` con un servidor de larga duración, el h1 que se vuelve a montar en V3 y V4a y
-`BOOKING_POLICY` a menos de 24 horas), con su commit y la skill `vista`; después, la fase 7. La
-fase 6 está absorbida en la 5. Hecho: T0 (salida (c); el defecto sigue abierto), T1, T2, V1a,
-V1b, foco de «Siguiente» con `useLayoutEffect`, V2a, V2b, V3, V4a y V4b.
+- Fase 5 · cierre: `c-page-header__heading` en toda vista sin perfil (el h1 no se
+  vuelve a montar al cruzar lg); `policyText`, `inFreeWindow` y `LATE_POLICY` en
+  `src/data/booking.ts` (política a menos de 24 h, `policyFigma` contra Figma);
+  `getKey` de `ScrollRestoration` en `RootLayout` (cargas completas por URL);
+  criterio del resto de pintado con delta > 64 y `prepare` en
+  `scripts/verify/navegacion.mjs`; `check-data` con 62 contrapruebas.
+
+Siguiente: la fase 7 (auditoría con teclado, lector de pantalla y contraste en
+navegador, y despliegue), con los pendientes de la fase 7 de DESIGN.md.
 
 ## Comandos
 

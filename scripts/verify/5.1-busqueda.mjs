@@ -11,7 +11,7 @@
 // --preview.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
-import { clientNavigation } from './navegacion.mjs'
+import { clientNavigation, resampleNote, viewRest } from './navegacion.mjs'
 
 const Q011 = '/?q=Cardiolog%C3%ADa&especialidad=cardiologia'
 const Q013 = '/?q=Neurocirug%C3%ADa+pedi%C3%A1trica'
@@ -1011,8 +1011,9 @@ export default async function run(b, expect) {
   await notifyToggle(b, expect)
 
   // Navegación real hacia la vista: desde /kit/estados, «Resultados» (01.1).
-  // Regla de T0: la línea repite la comprobación del resto de pintado y sigue
-  // en ✗ declarado (explicado: false) aunque mida 0 (DESIGN.md, Pendientes).
+  // Resto de pintado con el criterio del cierre de la fase 5 (delta > 64,
+  // navegacion.mjs). El remuestreo de la foto de Ruiz (delta ≤ 39) solo sale en
+  // la sesión completa; aislada da 0, así que no tiene contraprueba propia.
   // park: el puntero dejaba en :hover la casilla que pasaba bajo él al bajar.
   await b.metrics(1350, 900, 1)
   const { afterClient, afterReload, ...nav } = await clientNavigation(b, { from: '/kit/estados', link: 'Resultados', to: Q011, park: true })
@@ -1021,9 +1022,9 @@ export default async function run(b, expect) {
     await b.saveBase64('navegacion-recarga-1350.png', afterReload)
   }
   expect(
-    'navegación en cliente /kit/estados → 01.1 (clic real): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: Q011, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente /kit/estados → 01.1 (clic real): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: Q011, sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
   await b.metrics(1280, 900, 1)
 }

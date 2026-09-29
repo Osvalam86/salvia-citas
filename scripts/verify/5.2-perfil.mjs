@@ -13,7 +13,7 @@
 // 5.2 --preview.
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
-import { clientNavigation } from './navegacion.mjs'
+import { clientNavigation, pixelDelta, resampleNote, viewport, viewRest } from './navegacion.mjs'
 
 const RUIZ = '/especialistas/elena-ruiz-arellano'
 const RODRIGO = '/especialistas/rodrigo-alcantara-vela'
@@ -1035,6 +1035,54 @@ export async function previewFlows(b, expect) {
   await confirmFocus(b, expect)
 }
 
+// «Antes de continuar» a menos de 24 h (cierre de la fase 5): cuerpo del aviso
+// según la hora elegida (policyText, src/data/booking.ts).
+const POLICY = `[...document.querySelectorAll('.c-notice')].find((n) => n.querySelector('.c-notice__title')?.textContent === 'Antes de continuar')?.querySelector('.c-notice__text p:not(.c-notice__title)').textContent ?? null`
+const MARIANA = '/especialistas/mariana-cifuentes-poza'
+const clickText = async (b, selector, text) => {
+  const { x, y } = await b.ev(`(() => { const e = [...document.querySelectorAll(${JSON.stringify(selector)})].find((n) => n.textContent.includes(${JSON.stringify(text)})); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
+  await b.click(x, y)
+  await sleep(300)
+}
+
+// 02.4 (375 y 1440) con Mariana hoy a las 19:15 y con la c1; 02.5 (1440) con
+// clics reales: sin hora → 19:15 de hoy → otro día sin hora → su primera hora
+// libre. El cambio en 02.5 no se anuncia (aviso Info sin role): se comprueba.
+async function latePolicy(b, expect) {
+  await b.overlayScrollbars(false)
+  const out = {}
+  for (const width of [375, 1440]) {
+    await b.metrics(width, 900, 1)
+    await b.go(`${MARIANA}/confirmar?fecha=2029-04-23&hora=19%3A15`)
+    out[`02.4 ${width} Mariana 19:15`] = await b.ev(POLICY)
+    await b.go(`${RUIZ}/confirmar?fecha=2029-04-24&hora=10%3A30`)
+    out[`02.4 ${width} Ruiz 24 10:30`] = await b.ev(POLICY)
+  }
+  await b.metrics(1440, 900, 1)
+  await b.go(`${MARIANA}?fecha=2029-04-23`)
+  out['02.5 sin hora (23)'] = await b.ev(POLICY)
+  await clickText(b, 'main .c-slot-list [role=option]', '19:15')
+  out['02.5 clic en 19:15 (23)'] = { politica: await b.ev(POLICY), url: await b.ev('location.search'), role: await b.ev(`[...document.querySelectorAll('.c-notice')].find((n) => n.querySelector('.c-notice__title')?.textContent === 'Antes de continuar').getAttribute('role')`) }
+  await clickText(b, 'main .c-calendar-day', '25')
+  out['02.5 clic en el 25 (sin hora)'] = await b.ev(POLICY)
+  const first = await b.ev(`document.querySelector('main .c-slot-list [role=option]:not([aria-disabled=true])')?.textContent.trim() ?? null`)
+  await clickText(b, 'main .c-slot-list [role=option]:not([aria-disabled=true])', first)
+  out['02.5 clic en la primera hora del 25'] = { hora: first, politica: await b.ev(POLICY) }
+  await b.metrics(1280, 900, 1)
+  const late = 'Puedes gestionar tu cita desde Mis citas. Llega 10 minutos antes con una identificación.'
+  const general = 'Puedes cancelar o reprogramar sin costo hasta 24 horas antes. Llega 10 minutos antes con una identificación.'
+  expect('«Antes de continuar» a menos de 24 h: 02.4 (375 y 1440) y 02.5 con clics reales, en los dos sentidos; sin hora, la general; el aviso sin role (el cambio no se anuncia)', out, {
+    '02.4 375 Mariana 19:15': late,
+    '02.4 375 Ruiz 24 10:30': general,
+    '02.4 1440 Mariana 19:15': late,
+    '02.4 1440 Ruiz 24 10:30': general,
+    '02.5 sin hora (23)': general,
+    '02.5 clic en 19:15 (23)': { politica: late, url: '?fecha=2029-04-23&hora=19%3A15', role: null },
+    '02.5 clic en el 25 (sin hora)': general,
+    '02.5 clic en la primera hora del 25': { hora: first, politica: general },
+  })
+}
+
 export default async function run(b, expect) {
   await b.forcedColors(false)
   await b.overlayScrollbars(false)
@@ -1060,10 +1108,12 @@ export default async function run(b, expect) {
   await confirmUrl(b, expect)
   await confirmFocus(b, expect)
 
+  // Cierre de la fase 5
+  await latePolicy(b, expect)
+
   // Navegación real hacia la vista: «Ver horarios» de la primera tarjeta de
-  // 01.1. Regla de T0: la línea repite la comprobación del resto de pintado y
-  // sigue en ✗ declarado (explicado: false) aunque mida 0 (DESIGN.md,
-  // Pendientes).
+  // 01.1. Resto de pintado con el criterio del cierre de la fase 5 (delta > 64,
+  // navegacion.mjs); el remuestreo de una foto se informa y no cuenta.
   await b.overlayScrollbars(false)
   await b.metrics(1350, 900, 1)
   const to = `/especialistas/mariana-cifuentes-poza?q=Cardiolog%C3%ADa&especialidad=cardiologia`
@@ -1073,13 +1123,14 @@ export default async function run(b, expect) {
     await b.saveBase64('navegacion-recarga-1350.png', afterReload)
   }
   expect(
-    'navegación en cliente 01.1 → perfil («Ver horarios», clic real): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: to, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente 01.1 → perfil («Ver horarios», clic real): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: to, sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
 
   // V2b: 02.1 → 02.4 con «Continuar» de la Booking Bar (un botón: solo existe
-  // bajo lg), a 375 con barra clásica. Misma regla de T0.
+  // bajo lg), a 375 con barra clásica. El mismo criterio; aquí el remuestreo de
+  // la foto de «Who» se probó con la foto bloqueada en el origen (0 de 5).
   await b.metrics(375, 900, 1)
   const toConfirm = `${RUIZ}/confirmar?fecha=2029-04-24&hora=10%3A30`
   const { afterClient: clientShot, afterReload: reloadShot, ...confirmArrival } = await clientNavigation(b, { from: P021, link: 'Continuar', selector: 'button', to: toConfirm, park: true })
@@ -1088,9 +1139,17 @@ export default async function run(b, expect) {
     await b.saveBase64('navegacion-confirmar-recarga-375.png', reloadShot)
   }
   expect(
-    'navegación en cliente 02.1 → 02.4 («Continuar», clic real, 375): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...confirmArrival, explicado: false },
-    { ruta: toConfirm, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente 02.1 → 02.4 («Continuar», clic real, 375): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(confirmArrival)})`,
+    viewRest(confirmArrival),
+    { ruta: toConfirm, sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
+  // Contraprueba del criterio: un resto sobre la foto (un avatar de /kit, «E»,
+  // encima de la de Ruiz en «Who») supera el delta de 64 aunque caiga dentro
+  // del img. La página es 02.4 recargada y al final, como reloadShot.
+  await b.ev(`(() => { const r = document.querySelector('.c-appointment-summary img').getBoundingClientRect(), a = document.createElement('span'); a.className = 'c-avatar c-avatar--small'; a.textContent = 'E'; a.dataset.verify = ''; a.style.cssText = 'position:fixed;z-index:1;left:' + r.left + 'px;top:' + r.top + 'px'; document.body.append(a); return true })()`)
+  await sleep(100)
+  const injected = await b.ev(pixelDelta(await viewport(b), reloadShot))
+  await b.ev(`document.querySelectorAll('[data-verify]').forEach((e) => e.remove()), true`)
+  expect('contraprueba: un resto inyectado sobre la foto de «Who» (02.4) supera el delta de 64', { hayResto: injected.sobre64 > 0, deltaMax: injected.deltaMax > 64 }, { hayResto: true, deltaMax: true })
   await b.metrics(1280, 900, 1)
 }

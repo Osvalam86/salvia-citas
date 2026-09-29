@@ -10,7 +10,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
-import { clientNavigation } from './navegacion.mjs'
+import { clientNavigation, resampleNote, toBottom, viewRest } from './navegacion.mjs'
 
 const RUIZ = '/especialistas/elena-ruiz-arellano'
 const AVATARS = 'src/assets/avatars'
@@ -163,12 +163,35 @@ async function confirmedGuard(b, expect) {
   })
 }
 
+// Scroll en cargas completas (cierre de la fase 5, getKey de RootLayout): otra
+// URL en la misma pestaña, tras dejar /kit al final, carga arriba (antes, 766 =
+// el máximo de /kit/navegacion, la causa de 4.4 a 61/62); una recarga de la
+// misma URL conserva su posición. Contraprueba manual sin getKey:
+// docs/verificacion.md.
+async function fullLoadScroll(b, expect) {
+  await b.metrics(1440, 900, 1)
+  await b.go('/kit')
+  await toBottom(b)
+  const kitY = await b.ev('scrollY')
+  await b.go('/kit/navegacion?sesion=iniciada&actual=especialistas')
+  const otra = await b.ev(`({ scrollY, foco: document.activeElement === document.body ? 'BODY' : document.activeElement.tagName })`)
+  await b.ev('window.scrollTo(0, 400), true')
+  await sleep(200)
+  await b.send('Page.reload')
+  await sleep(300)
+  for (let i = 0; i < 50 && !(await b.ev(`document.readyState === 'complete' && Boolean(document.querySelector('main h1'))`)); i++) await sleep(100)
+  await sleep(300)
+  expect('carga completa de otra URL en la misma pestaña tras /kit al final: arriba; recarga de la misma URL: conserva su scroll (400)', { kitAlFinal: kitY > 0, otra, recarga: await b.ev('scrollY') }, { kitAlFinal: true, otra: { scrollY: 0, foco: 'BODY' }, recarga: 400 })
+  await b.metrics(1280, 900, 1)
+}
+
 export async function previewFlows(b, expect) {
   await pushByClick(b, expect)
   await pop(b, expect)
   await focusState(b, expect)
   await titlesAfterClientNav(b, expect)
   await guardFocus(b, expect)
+  await fullLoadScroll(b, expect)
 }
 
 export default async function run(b, expect) {
@@ -395,8 +418,13 @@ export default async function run(b, expect) {
   // forma de los nombres; 33 desde V2b: el resumen de 02.4; 40 desde V3: la
   // sesión, la validación (03.2, 03.5 y el teléfono) y el borrador (D17); 48
   // desde V4a; 56 desde V4b: el día inicial de la reprogramación, los cinco
-  // literales de c3 (uno por literal), sin hora y a menos de 24 h.
-  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 56, siguenPasando: [] })
+  // literales de c3 (uno por literal), sin hora y a menos de 24 h; 61 en el
+  // cierre de la fase 5: la política de «Antes de continuar» (plazo, sin hora,
+  // literal de V4a y la misma frase en «Qué sigue» y en la política); 62
+  // con el literal de Figma de la política (policyFigma).
+  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 62, siguenPasando: [] })
+
+  await fullLoadScroll(b, expect)
 
   // --- Resto de pintado en una navegación real hacia una vista -----------------------------------------------
   await b.metrics(1350, 900, 1)
@@ -407,9 +435,9 @@ export default async function run(b, expect) {
     await b.saveBase64('navegacion-recarga-1350.png', afterReload)
   }
   expect(
-    'navegación en cliente /kit → / (clic real): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: '/', sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente /kit → / (clic real): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: '/', sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
   await b.metrics(1280, 900, 1)
 }

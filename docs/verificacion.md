@@ -27,14 +27,14 @@ no se versiona.
 | Archivo | Qué hace |
 |---|---|
 | `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
-| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2) |
+| `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2); scroll en cargas completas (`fullLoadScroll`, cierre de la fase 5, también en `--preview`) |
 | `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). V2b: 02.4 a ±1 px (375), anchos intermedios y escritorio (C1-A, con la contraprueba de los 38rem), 200 % a 320 con el umbral `appointment-summary-compact` y su contraprueba, padding al 100 %, letra del navegador, forced-colors, estructura, teclado, enlaces y escenario (con contraprueba), guardas, foco (llegada y cruce de lg, con contraprueba) y la regresión exacta de 02.5 y 02.6 frente a la línea base anterior al refactor; navegación en cliente 02.1 → 02.4. `previewFlows`: foco, Missing y el foco de 02.4 |
 | `5.3-datos.mjs` | Vista 3 (V3): pares de Figma 03.1, 03.2, 03.5 (375) y 03.3, 03.4, 03.6 (1440); padding de `--aside` (16 en «Tu cita», 24 en 02.4); resumen de errores (foco en el h2 con clic e Intro, enlaces → control con la etiqueta a la vista y sobre la barra, historial +0, contraprueba del ancla nativa); reserva fallida (foco en el título en el mismo commit, pie, valores, Intro sin envío) y la posición del título; envío válido (replace) y la sonda del form reiniciado (MutationObserver y un muestreo por frame); borrador (D17) al ir al aviso de privacidad y tras «Elegir otra hora»; anchos y paso de la rejilla a dos columnas; 200 % a 320; letra del navegador; forced-colors; estructura y el h2 en el árbol AX; `noValidate` y botón por defecto con sus contrapruebas; volver a enviar; cruce de lg; orden de Tab; navegación en cliente 02.4 → 03.1. `previewFlows`: resumen, reserva fallida, sonda del envío válido y cruce de lg |
 | `5.4-citas.mjs` | Vista 4 (V4a). Confirmación: pares 04.1 (375) y 04.4 (1440), la foto de Ruiz, el umbral `appointment-summary-wide` (689) con su contraprueba (a 688 parte el nombre de la clínica), la regresión exacta de 02.4 y 03.3 frente a la línea base de c5a813a, anchos y el tramo 1024–1104, 200 % a 320, letra del navegador, forced-colors, estructura, Tab, la descarga real del `.ics`, reservas reales (correo, recordatorio y plazo), cruce de lg y navegación 03.1 → 04.1. Mis citas: pares 04.2, 04.5, 04.8 y 04.9 con la foto de Ruiz, 04.7, el diálogo en la vista (04.3, 04.6), la sonda de cancelar, las tres próximas canceladas y el tramo de Appointment Card (1024/1039/1040 y 1054/1055). V4b: pares 02.7 (375) y 02.8 (1440), estructura y el envío en el árbol AX (las dos fechas), la sonda de «Confirmar hora» (MutationObserver y `requestAnimationFrame`, desde el `submit`), el POP entre las dos entradas de Mis citas con su contraprueba, la recarga y Atrás desde otra página, reprogramar y cancelar la misma cita, el contador de `takeNotice` (dev), Missing en escritorio con clic e Intro, C6 con c1 y c3, el barrido de la barra (C7: 368 / 383), la guarda en cliente, el cruce de lg con el mismo h1, la navegación en cliente Mis citas → «Reprogramar», anchos, 200 %, letra del navegador, forced-colors y Tab. `previewFlows`: cruces de lg, diálogo, sonda y cancelaciones; y en V4b, la sonda, el POP, la recarga y Atrás, reprogramar y cancelar, Missing y el cruce de lg |
-| `cruce-lg.mjs` | Foco en el h1 al cruzar lg (`h1AcrossLg`, V4a): llegada en cliente por `useRouteFocus`, cruce en los dos sentidos por CDP y un MutationObserver que apunta el foco al final de cada lote de mutaciones (ninguno en body). Lo usan 5.3 y 5.4, también en `--preview` |
-| `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). Con `selector`, el elemento pulsado puede ser un botón que navega (V2b: «Continuar» de la Booking Bar). La usan 4.6 y las vistas |
+| `cruce-lg.mjs` | Foco en el h1 al cruzar lg (`h1AcrossLg`, V4a): llegada en cliente por `useRouteFocus`, cruce en los dos sentidos por CDP y un MutationObserver que apunta el foco al final de cada lote de mutaciones (ninguno en body). Desde el cierre de la fase 5, el h1 es el mismo nodo (`nodoNuevo: false`). Lo usan 5.3 y 5.4, también en `--preview` |
+| `navegacion.mjs` | Navegación en cliente con clic real (`clientNavigation`): baja al final con la rueda y compara el viewport, píxel a píxel, con la página recargada, justo al llegar y 4 s después. El destino puede llevar `search`. Con `park`, el puntero va a la esquina antes de cada captura (5.0 y 5.1; 4.6 no). Con `selector`, el elemento pulsado puede ser un botón que navega (V2b: «Continuar» de la Booking Bar). La usan 4.6 y las vistas. Cierre de la fase 5: `prepare` actúa sobre el origen antes del clic (4.6 baja `/kit` con la rueda); `pixelDelta` y `REST_DELTA` (64) separan el resto (delta > 64 en cualquier punto) del remuestreo de una foto; `viewRest` es lo que comparan las vistas |
 | `checks.mjs` | Funciones que se ejecutan dentro de la página: palabras partidas, desborde horizontal, texto al 200 %, tamaños, foco |
 | `static.mjs` | Contrapruebas de ESLint y TypeScript sobre un archivo temporal (`src/views/VerifyTemp.tsx`), que se borra siempre |
 | `icon-hashes.mjs` | Formato y hash FNV-1a del `d` de cada icono, frente a los que dio Figma |
@@ -118,20 +118,20 @@ no se versiona.
 - **El arnés siempre navega con carga completa** (`Page.navigate`), así que
   nunca prueba la navegación en cliente de React Router. `navegacion.mjs` la
   prueba con un clic real, la rueda y la comparación con la recarga. Con
-  ella apareció un resto de pintado de `/kit` (DESIGN.md, Pendientes): sin
-  nodo en el DOM y reproducido también en Chrome real, sin CDP. **Ronda T0:**
-  estable en `pnpm verify 4.6` (3 de 3, 4932 px a 1350 con barra clásica) y
-  0 de 80 en pasadas aisladas, con Edge y perfil nuevos (anchos, barras,
-  ventana visible y cuatro preparaciones previas). La causa es un estado
-  que deja la sesión larga de 4.6, sin aislar. Lo que la lectura de 4.6
-  dejó escrito como «intermitente» y como «la primera navegación de la
-  sesión» era esa dependencia. Anterior a T0 y aún cierto: con `scrollTo` o
-  un clic por script no sale; desaparece con el árbol de capas de CDP
-  activo; hipótesis sin confirmar, el compositor reutiliza teselas de la
-  página anterior; no lo corrigen un fondo en `c-app-layout` ni en `html`,
-  ni quitar el desplazador del calendario; la prueba `/kit` →
-  `/kit/resultados` de 8087662 no llegó a hacerse. La línea es un ✗ declarado
-  (`explicado: false`): un 0 medido no la pasa a ✓ (T0).
+  ella apareció un resto de pintado de `/kit` (DESIGN.md, Pendientes, fase 7),
+  sin nodo en el DOM y reproducido también en Chrome real, sin CDP. **Medido en
+  el cierre de la fase 5 (corrige a T0):** origen arriba → 0; origen desplazado
+  (rueda o `scrollTo`) → resto al llegar; que persista depende de la sesión
+  (0 a los 4 s en pasadas aisladas, 12632 en la sesión de 4.6). Lo que T0 llamó
+  «la sesión larga» y el «teclado previo» solo bajaban `/kit/fecha-hora`, y la
+  carga completa de `/kit` heredaba ese scroll por la clave «default» de
+  `<ScrollRestoration>` (siguiente trampa). «Con `scrollTo` o un clic por
+  script no sale» era cierto con el origen arriba: con `/kit` en 1782 por
+  `scrollTo`, sale (2 de 2). En las vistas, lo que se medía era otra cosa: el
+  remuestreo de una foto ya decodificada en la página de origen (delta ≤ 39),
+  probado en V2b con la foto bloqueada en el origen (0 de 5). Criterio desde el
+  cierre: un píxel es resto si su delta pasa de 64 (`REST_DELTA`). El ruido de
+  recarga contra recarga es 0 px (medido en 4.6, 01.1 y 02.4).
 - **La rueda con el viewport emulado.** Con `setDeviceMetricsOverride` a
   375 en una ventana de 1280, un `mouseWheel` en x = 600 (fuera del viewport
   emulado) sí desplaza la página: medido, baja al final (2014 de 2014), igual
@@ -236,10 +236,12 @@ no se versiona.
 - **`Range` sobre un botón con `c-button__label`.** La etiqueta crece hasta llenar el
   interior, así que `selectNodeContents(boton)` mide su caja, no lo pintado. 4.5 suma
   icono + hueco + texto (V1b).
-- **Un `pnpm dev` de larga duración puede falsear una sección.** Contra un servidor arrancado
-  días antes, 4.4 cargaba `/kit/navegacion` desplazada al final (`scrollY` 766) y daba 61/62
-  en cualquier commit; con el servidor recién arrancado, 62/62. Antes de atribuir un fallo a un
-  commit, reiniciar `pnpm dev` y repetir (DESIGN.md, Pendientes, «5 · cierre») (V1b).
+- **La clave «default» de `<ScrollRestoration>`.** React Router guarda la posición por
+  `location.key`, y toda carga completa lleva «default»: una carga completa de otra URL en la
+  misma pestaña heredaba el scroll de la anterior. 4.4 cargaba `/kit/navegacion` en 766 (el
+  máximo) con el foco en body y daba 61/62. Corregido con `getKey` en `RootLayout` (DESIGN.md,
+  D12). Qué producía esa carga previa con un `pnpm dev` de días quedó sin medir; el perfil
+  persistente no transmite `sessionStorage` al reabrir (cierre de la fase 5).
 - **La página bloqueada cambia medidas con barra clásica.** Con un diálogo abierto, `html`
   no tiene barra: el velo gana 15 px. En 4.7, la contraprueba de la rueda retira también el
   bloqueo, y el texto grande a 320 y 375 con barra clásica mide como con la superpuesta
@@ -307,6 +309,13 @@ no se versiona.
 - **El ancho de un texto no es construcción (otra vez).** La ubicación de 02.8 mide 261,1 en el
   navegador y 260 en Figma; con ±1 px fallaba su ancho y la x de la modalidad que la sigue. Se
   comparan su y y su alto (V4b), como «Buscando…» en V1a.
+- **El título de un `Notice` sin encabezado es un `<p>`.** Con `headingLevel={null}`,
+  `.c-notice__text p` devuelve el título; el cuerpo se lee con `p:not(.c-notice__title)` (cierre
+  de la fase 5).
+- **Bloquear fotos con `setBlockedURLs('*.webp')` dejó el origen sin montar.** En 6 pasadas la
+  página de origen no tenía el enlace; causa probable, sin verificar: en dev la foto se importa como
+  módulo (`…webp?import`) y el patrón lo bloquea también. Con `Fetch.enable` limitado a
+  `resourceType: 'Image'` y `Fetch.failRequest`, la vista monta y la foto falla (cierre de la fase 5).
 
 ## Comprobaciones manuales
 
@@ -335,8 +344,11 @@ No se automatizan; se repiten a mano cuando cambia lo que prueban.
 | Foco de `Notice` en un `useEffect` | Cambiar `useLayoutEffect` por `useEffect` en `Notice.tsx`, `pnpm build` y `pnpm verify 5.3 --preview`: la sonda de la reserva fallida sigue viendo el título enfocado en el mismo commit (4/4). No discrimina (Trampas, efectos pasivos tras un evento discreto); el efecto de layout se conserva por la regla de V1b. Medido; revertir | V3 |
 | Guarda de la confirmación con `redirect` | Cambiar `replace` por `redirect` en `confirmedLoader` y `pnpm verify 5.0`: `/citas/c5`, `c4` y `c2/confirmada` llegan a `/mis-citas` con `idx` 1 en vez de 0, y en cliente, con c1 cancelada, la redirección deja 2 entradas y Atrás cae en la confirmación, que vuelve a redirigir a `/mis-citas` (25/28). Medido; revertir | V4a |
 | Cierre del diálogo en un efecto, en Mis citas | Quitar `dialog.current?.close()` de `confirm` en `Dialog.tsx`, `pnpm build` y `pnpm verify 5.4 --preview`: la sonda de cancelar da el foco en el botón del diálogo aún abierto en el commit del aviso y `BODY` al leer (3/6); con `close()`, el título del aviso (6/6). Medido; revertir | V4a |
-| Confirmación sin `useFocusFallback` | Quitar `useFocusFallback(isDesktop)` de `BookingConfirmed.tsx` (con ese nombre desde V4b) y cruzar lg (375 → 1100) por CDP: con el foco en el h1 (llegada por `useRouteFocus`) y con el foco en «Ver mis citas» de la barra, el foco acaba en `BODY`; con el hook, en `H1#contenido`. El h1 se vuelve a montar al cruzar (su padre cambia) y solo el respaldo lo recoge. La contraprueba de `pnpm verify 5.4` lo emula anulando `focus()` en el prototipo para `#contenido` (en el nodo no sirve: el nodo es nuevo); durante el cruce, la única llamada que bloquea es la del hook. Medido; revertir | V4a |
+| Confirmación sin `useFocusFallback` | Quitar `useFocusFallback(isDesktop)` de `BookingConfirmed.tsx` (con ese nombre desde V4b) y cruzar lg (375 → 1100) por CDP. Desde el cierre de la fase 5 (h1 estable): con el foco en el h1, se queda en `H1#contenido` (el mismo nodo); con el foco en «Ver mis citas» de la barra, `BODY`; con el hook, en `H1#contenido`. Hasta entonces el h1 se volvía a montar al cruzar y los dos casos daban `BODY`. La contraprueba de `pnpm verify 5.4` lo emula anulando `focus()` en el prototipo para `#contenido` (en el nodo no sirve: el nodo es nuevo); durante el cruce, la única llamada que bloquea es la del hook. Medido; revertir | V4a |
 | Key del aviso igual al id de la cita | Cambiar la key de los dos avisos de Mis citas por el id de la cita (`c3` en los dos) en `MyAppointments.tsx`, reprogramar c3 (clic real, 375) y cancelarla: el foco queda en `BODY` (al aparecer, al final del lote y al leer), porque React reutiliza el `Notice` y ni su efecto de foco ni `useFocusFallback` (su disparador es la key) vuelven a correr; con `${tipo}-${id}`, «H2#aviso Cita cancelada». Medido; revertir | V4b |
 | Reprogramación suscrita al almacén | Leer la cita con `useAppointments()` en `Reschedule.tsx` en vez de con el loader y repetir la sonda de «Confirmar hora» (375): 2 muestras de la reprogramación con la placa en la fecha nueva (`conFechaNueva` 2); con el loader, 0. Medido; revertir | V4b |
 | Aviso consumido en un `useEffect` | Quitar el loader de `/mis-citas` y consumir `takeNotice` en un `useEffect` de `MyAppointments.tsx`: la sonda sigue viendo el aviso y el foco en su título en el primer lote de Mis citas, en dev y en la preview (build `index-B7nyNHbf.js`). No discrimina: sin loader la navegación termina dentro del clic y React vacía el efecto pasivo en síncrono (Trampas, efectos pasivos tras un evento discreto). El loader se conserva porque saca el efecto del render y corre una vez por navegación. Medido; revertir | V4b |
 | Cierre del diálogo en un efecto, con `Notice` en layout | Repetida en V3 contra la preview, con el foco de `Notice` en `useLayoutEffect`: con `close()`, el foco llega a «Cita cancelada» y la sonda lo ve ya en el commit; sin él, `body`. Revertido | V3 |
+| Sin el envoltorio `__heading` | Volver a `steps ? <div className="c-page-header__heading">… : headline` en `PageHeader.tsx` y cruzar lg con `h1AcrossLg` en 03.1 y 04.1: `nodoNuevo: true` en los dos sentidos; con el envoltorio, `false`. Medido; revertir | 5 · cierre |
+| Sin `getKey` en `ScrollRestoration` | Quitar `getKey` en `RootLayout.tsx`: `/kit` al final y carga completa de `/kit/navegacion…` → `scrollY` 766 y foco en body (con `getKey`, 0); 12 Tab en `/kit/fecha-hora`, `/kit` y «Ver fecha y hora» a 1350 → 18632 px con delta 230, en 3 de 3 (con `getKey`, 0 en 3 de 3). Medido; revertir | 5 · cierre |
+| Foto bloqueada en el origen (V2b) | Cargar 02.1 con la petición Image de `elena-ruiz-arellano-96.webp` fallida (`Fetch`, solo el tipo Image), desbloquear y pulsar «Continuar» → 02.4 a 375: 0 píxeles distintos de la recarga en 5 de 5 (sin bloquear, 471 con delta 1 en 3 de 3). El remuestreo viene de la foto ya decodificada en el origen | 5 · cierre |

@@ -47,7 +47,7 @@ type PageHeaderProps = {
 // excepción declarada en D5. Su API crece vista por vista: en V1a, el
 // subtítulo; en V2a, el retroceso y el perfil; en V2b, los pasos; en V3, el
 // grupo de título y subtítulo (__title-group); en V4a, la insignia de éxito
-// (__headline).
+// (__headline); en el cierre de la fase 5, __heading en toda vista sin perfil.
 export default function PageHeader({ title, subtitle, back, profile, steps, success = false }: PageHeaderProps) {
   const h1 = (
     <h1 className={profile ? 'c-page-header__title c-page-header__title--profile' : 'c-page-header__title'} id={MAIN_TITLE_ID} tabIndex={-1}>
@@ -94,13 +94,14 @@ export default function PageHeader({ title, subtitle, back, profile, steps, succ
             <Tag className="c-page-header__tag">{profile.modality}</Tag>
           </div>
         </div>
-      ) : steps ? (
+      ) : (
+        // Siempre presente, con pasos o sin ellos: si los pasos cambian de
+        // plataforma (V3 y V4a solo los llevan bajo lg), el padre del h1 no
+        // cambia y el h1 es el mismo nodo al cruzar lg.
         <div className="c-page-header__heading">
           {steps}
           {headline}
         </div>
-      ) : (
-        headline
       )}
     </div>
   )

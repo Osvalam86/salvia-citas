@@ -14,7 +14,7 @@ import PageHeader from '../components/PageHeader.tsx'
 import SlotPicker from '../components/SlotPicker.tsx'
 import { dayTitle, shortDate } from '../components/dates.ts'
 import { bookableUntil } from '../data/availability.ts'
-import { BOOKING_DURATION, BOOKING_META, BOOKING_POLICY } from '../data/booking.ts'
+import { BOOKING_DURATION, BOOKING_META, policyText } from '../data/booking.ts'
 import { PHOTOS } from '../data/photos.ts'
 import { carriedParams } from '../data/search.ts'
 import { CITY, CLINICS, MODALITIES, shortName } from '../data/specialists.ts'
@@ -57,7 +57,7 @@ function BookingSummary({ date, time, clinic, missing, messageId }: BookingSumma
         </h2>
         <BookingDetails when={time ? `${dayTitle(date)}, ${time}` : 'Sin horario elegido'} duration={BOOKING_DURATION} clinic={clinic} />
       </div>
-      <Notice tone="info" headingLevel={null} title="Antes de continuar" body={BOOKING_POLICY} />
+      <Notice tone="info" headingLevel={null} title="Antes de continuar" body={policyText({ date: date.toString(), time })} />
       <div className="c-booking-summary__actions">
         <Button type="submit" aria-describedby={missing ? messageId : noteId}>
           Continuar con tus datos

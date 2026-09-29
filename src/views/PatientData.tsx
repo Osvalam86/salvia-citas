@@ -16,7 +16,7 @@ import Notice from '../components/Notice.tsx'
 import PageHeader from '../components/PageHeader.tsx'
 import { PATHS } from '../components/destinations.ts'
 import { dayTitle, weekdayDay } from '../components/dates.ts'
-import { BOOKING_DURATION, BOOKING_MODALITY, BOOKING_POLICY } from '../data/booking.ts'
+import { BOOKING_DURATION, BOOKING_MODALITY, policyText } from '../data/booking.ts'
 import { TODAY } from '../data/clock.ts'
 import { patientStore, submitBooking, validatePatient, type PatientDraft, type PatientError, type PatientField } from '../data/patient.ts'
 import { PHOTOS } from '../data/photos.ts'
@@ -279,7 +279,7 @@ export default function PatientData() {
               duration={BOOKING_DURATION}
               clinic={clinic}
             />
-            <Notice tone="info" headingLevel={null} title="Antes de continuar" body={BOOKING_POLICY} />
+            <Notice tone="info" headingLevel={null} title="Antes de continuar" body={policyText({ date: date.toString(), time })} />
             <div className="c-booking-summary__actions">
               {failed ? (
                 retryButton

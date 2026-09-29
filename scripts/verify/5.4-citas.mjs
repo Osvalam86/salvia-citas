@@ -8,7 +8,7 @@ import path from 'node:path'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { H1_ACROSS_LG, h1AcrossLg } from './cruce-lg.mjs'
-import { clientNavigation, pixelDiff, toBottom, viewport } from './navegacion.mjs'
+import { clientNavigation, pixelDelta, pixelDiff, resampleNote, toBottom, viewport, viewRest } from './navegacion.mjs'
 
 const C1 = '/citas/c1/confirmada'
 const RUIZ = '/especialistas/elena-ruiz-arellano'
@@ -444,8 +444,8 @@ async function confirmFocus(b, expect) {
   await settle(400)
   out.migasAMovil = await b.ev(focused)
   await b.go(C1)
-  // El h1 se vuelve a montar al cruzar (cambia su padre: sin pasos desde lg),
-  // así que el respaldo se anula en el prototipo, no en el nodo.
+  // El respaldo se anula en el prototipo para #contenido: sirve igual para un
+  // h1 que se vuelva a montar (antes del cierre de la fase 5, al cruzar lg).
   await b.ev(`(() => { const f = HTMLElement.prototype.focus; HTMLElement.prototype.focus = function (o) { if (this.id !== 'contenido') f.call(this, o) }; document.querySelector('.c-action-bar .c-button').focus(); return true })()`)
   await b.metrics(1100, 900)
   await settle(400)
@@ -483,24 +483,24 @@ async function confirmNavigation(b, expect) {
   await b.mouse('mouseMoved', 1, 1)
   await sleep(100)
   const afterReload = await viewport(b)
-  const nav = { ...arrival, pixelesDistintosDeLaRecarga: await b.ev(pixelDiff(afterClient, afterReload)), cuatroSegundosDespues: await b.ev(pixelDiff(later, afterReload)) }
+  const nav = { ...arrival, estado: null, pixelesDistintosDeLaRecarga: await b.ev(pixelDiff(afterClient, afterReload)), delta: await b.ev(pixelDelta(afterClient, afterReload)), deltaCuatroSegundos: await b.ev(pixelDelta(later, afterReload)) }
   if (nav.pixelesDistintosDeLaRecarga !== 0) {
     await b.saveBase64('navegacion-confirmada-cliente-375.png', afterClient)
     await b.saveBase64('navegacion-confirmada-recarga-375.png', afterReload)
   }
   expect(
-    'navegación en cliente 03.1 → 04.1 (envío real, 375, barra clásica): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: C1, sinRecarga: true, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente 03.1 → 04.1 (envío real, 375, barra clásica): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: C1, sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
   await b.metrics(1280, 900, 1)
 }
 
-// El h1 se vuelve a montar al cruzar lg (los pasos solo existen en móvil): el
-// foco llega al nuevo sin pasar por body (DESIGN.md, Pendientes).
+// Los pasos solo existen en móvil, pero __heading existe siempre: el h1 es el
+// mismo nodo al cruzar lg y el foco no pasa por body (cierre de la fase 5).
 async function h1Cross(b, expect) {
   await b.overlayScrollbars(true)
-  expect('foco en el h1 de la confirmación al cruzar lg (llegada por useRouteFocus, los dos sentidos): el h1 nuevo, sin ningún lote de mutaciones en body', await h1AcrossLg(b, C1), H1_ACROSS_LG)
+  expect('foco en el h1 de la confirmación al cruzar lg (llegada por useRouteFocus, los dos sentidos): el mismo h1, sin ningún lote de mutaciones en body', await h1AcrossLg(b, C1), H1_ACROSS_LG)
 }
 
 // --- Mis citas (04.2, 04.5, 04.7, 04.8, 04.9) --------------------------------------------------------
@@ -1255,9 +1255,9 @@ async function rescheduleNavigation(b, expect) {
   delete nav.afterClient
   delete nav.afterReload
   expect(
-    'navegación en cliente Mis citas → «Reprogramar» de la Dra. Ruiz (clic real, 375, barra clásica): foco en el h1 y título de D15; sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: '/mis-citas/c1/reprogramar', sinRecarga: true, estado: { h1: 'Dra. Elena Ruiz Arellano', foco: 'H1#contenido Dra. Elena Ruiz Arellano', titulo: 'Reprogramar cita · Dra. Elena Ruiz Arellano · Salvia' }, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente Mis citas → «Reprogramar» de la Dra. Ruiz (clic real, 375, barra clásica): foco en el h1 y título de D15; sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: '/mis-citas/c1/reprogramar', sinRecarga: true, estado: { h1: 'Dra. Elena Ruiz Arellano', foco: 'H1#contenido Dra. Elena Ruiz Arellano', titulo: 'Reprogramar cita · Dra. Elena Ruiz Arellano · Salvia' }, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
   await b.metrics(1280, 900, 1)
 }

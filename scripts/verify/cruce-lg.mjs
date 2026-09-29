@@ -1,7 +1,7 @@
-// Foco en el h1 al cruzar lg (V4a). En la confirmación y en la vista 3 el h1 se
-// vuelve a montar al cruzar, porque su padre cambia (los pasos solo existen
-// por debajo de lg); el foco lo salva useFocusFallback en el mismo commit
-// (DESIGN.md, Pendientes, «5 · cierre»). Llega a `url` en cliente (POP desde
+// Foco en el h1 al cruzar lg (V4a). En la confirmación y en la vista 3 los pasos
+// solo existen por debajo de lg; desde el cierre de la fase 5, __heading existe
+// siempre y el h1 es el mismo nodo al cruzar (antes se volvía a montar y lo
+// salvaba useFocusFallback; nodoNuevo: true). Llega a `url` en cliente (POP desde
 // /kit/estados: useRouteFocus lleva el foco al h1), cruza lg en los dos
 // sentidos por CDP y registra con un MutationObserver el foco al final de cada
 // lote de mutaciones: ninguno puede dejarlo en body.
@@ -35,8 +35,8 @@ export async function h1AcrossLg(b, url) {
   return out
 }
 
-/** Lo esperado: llegada al h1 y, tras cruzar, el h1 nuevo sin pasar por body. */
+/** Lo esperado: llegada al h1 y, tras cruzar, el mismo h1 sin pasar por body. */
 export const H1_ACROSS_LG = {
-  '375→1100': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: true, pasoPorBody: false },
-  '1100→375': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: true, pasoPorBody: false },
+  '375→1100': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: false, pasoPorBody: false },
+  '1100→375': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: false, pasoPorBody: false },
 }

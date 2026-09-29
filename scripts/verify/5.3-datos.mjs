@@ -9,7 +9,7 @@
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { H1_ACROSS_LG, h1AcrossLg } from './cruce-lg.mjs'
-import { clientNavigation } from './navegacion.mjs'
+import { clientNavigation, resampleNote, viewRest } from './navegacion.mjs'
 
 const DATOS = '/especialistas/elena-ruiz-arellano/datos'
 const P031 = `${DATOS}?fecha=2029-04-24&hora=10:30`
@@ -794,18 +794,36 @@ async function navigation(b, expect) {
     await b.saveBase64('navegacion-datos-recarga-375.png', afterReload)
   }
   expect(
-    'navegación en cliente 02.4 → 03.1 («Continuar con tus datos», clic real, 375): sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
-    { ...nav, explicado: false },
-    { ruta: to, sinRecarga: true, estado: null, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+    `navegación en cliente 02.4 → 03.1 («Continuar con tus datos», clic real, 375): sin resto de pintado, ningún píxel con delta > 64 al llegar ni 4 s después (${resampleNote(nav)})`,
+    viewRest(nav),
+    { ruta: to, sinRecarga: true, estado: null, sobre64: 0, cuatroSegundosSobre64: 0 },
   )
   await b.metrics(1280, 900, 1)
 }
 
-// El h1 se vuelve a montar al cruzar lg (los pasos solo existen en móvil): el
-// foco llega al nuevo sin pasar por body (V4a; DESIGN.md, Pendientes).
+// Los pasos solo existen en móvil, pero __heading existe siempre: el h1 es el
+// mismo nodo al cruzar lg y el foco no pasa por body (cierre de la fase 5).
 async function h1Cross(b, expect) {
   await b.overlayScrollbars(true)
-  expect('foco en el h1 al cruzar lg (llegada por useRouteFocus, los dos sentidos): el h1 nuevo, sin ningún lote de mutaciones en body', await h1AcrossLg(b, P031), H1_ACROSS_LG)
+  expect('foco en el h1 al cruzar lg (llegada por useRouteFocus, los dos sentidos): el mismo h1, sin ningún lote de mutaciones en body', await h1AcrossLg(b, P031), H1_ACROSS_LG)
+}
+
+// «Antes de continuar» de «Tu cita» (03.3, 1440) a menos de 24 h (cierre de la
+// fase 5): Mariana hoy a las 19:15 sin la promesa; la c1 (25,5 h), la general.
+async function latePolicy(b, expect) {
+  await b.overlayScrollbars(false)
+  await b.metrics(1440, 900, 1)
+  const policy = `[...document.querySelectorAll('.c-notice')].find((n) => n.querySelector('.c-notice__title')?.textContent === 'Antes de continuar')?.querySelector('.c-notice__text p:not(.c-notice__title)').textContent ?? null`
+  const out = {}
+  await b.go('/especialistas/mariana-cifuentes-poza/datos?fecha=2029-04-23&hora=19%3A15')
+  out['03.3 Mariana 19:15'] = await b.ev(policy)
+  await b.go(`${DATOS}?fecha=2029-04-24&hora=10%3A30`)
+  out['03.3 Ruiz 24 10:30'] = await b.ev(policy)
+  await b.metrics(1280, 900, 1)
+  expect('«Antes de continuar» de «Tu cita» (03.3) a menos de 24 h: Mariana hoy a las 19:15 sin la promesa; la c1, la general', out, {
+    '03.3 Mariana 19:15': 'Puedes gestionar tu cita desde Mis citas. Llega 10 minutos antes con una identificación.',
+    '03.3 Ruiz 24 10:30': 'Puedes cancelar o reprogramar sin costo hasta 24 horas antes. Llega 10 minutos antes con una identificación.',
+  })
 }
 
 export default async function run(b, expect) {
@@ -838,6 +856,7 @@ export default async function run(b, expect) {
   await crossLg(b, expect)
   await tabOrder(b, expect)
   await h1Cross(b, expect)
+  await latePolicy(b, expect)
   await navigation(b, expect)
 }
 
