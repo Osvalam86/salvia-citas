@@ -5,6 +5,7 @@ import HeaderDesktop from '../components/HeaderDesktop.tsx'
 import HeaderMobile from '../components/HeaderMobile.tsx'
 import type { HeaderDestination } from '../components/destinations.ts'
 import { SESSION } from '../data/session.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 
 type ViewLayoutProps = {
@@ -31,6 +32,7 @@ type ViewLayoutProps = {
 // Chrome de cada vista (D7): el de escritorio desde lg y el móvil por debajo,
 // uno solo en el DOM.
 export default function ViewLayout({ title, current, currentKind = 'page', bottomNav = false, bar: taskBar, children }: ViewLayoutProps) {
+  useDocumentTitle(`${title} · Salvia`)
   const isDesktop = useMediaQuery('lg')
   const header = isDesktop ? (
     <HeaderDesktop session="signed-in" userName={SESSION.shortName} current={current} currentKind={currentKind} />
@@ -41,7 +43,6 @@ export default function ViewLayout({ title, current, currentKind = 'page', botto
 
   return (
     <AppLayout header={header} bar={bar}>
-      <title>{`${title} · Salvia`}</title>
       {children}
     </AppLayout>
   )

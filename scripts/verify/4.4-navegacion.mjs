@@ -231,6 +231,12 @@ export default async function run(b, expect) {
   await b.style(".c-breadcrumb__separator { display: none } .c-breadcrumb__item:not(:last-child)::after { content: '/' }")
   expect('contraprueba: el separador como ::after entra en el árbol', (await crumbs()).filter((s) => s === 'StaticText «/»').length, 2)
   await b.unstyle()
+  // Desplazamiento del subrayado (7.1, DESIGN.md § Constantes): 0.2em a 14 = 2,8 px.
+  const underline = "[...document.querySelector('.c-breadcrumb').querySelectorAll('.c-breadcrumb__link')].map((a) => getComputedStyle(a).fontSize + ' ' + getComputedStyle(a).textUnderlineOffset)"
+  expect('subrayado del Breadcrumb (link/sm, 14): text-underline-offset 0.2em = 2.8px', await b.ev(underline), ['14px 2.8px', '14px 2.8px'])
+  await b.style('a { text-underline-offset: auto }')
+  expect('contraprueba: con auto inyectado, auto', await b.ev(underline), ['14px auto', '14px auto'])
+  await b.unstyle()
 
   // --- Chrome real a 320: al 100 % y con la letra del navegador (texto grande) --------------------------------------
   // La letra del navegador va por Page.setFontSizes: la inyección en html no

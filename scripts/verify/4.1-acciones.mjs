@@ -46,6 +46,13 @@ export default async function run(b, expect) {
   await b.unstyle()
   expect('contraprueba: Link sin c-link → 24 de alto', await b.ev(`(() => { const a = ${T.link}; a.classList.remove('c-link'); const h = Math.round(a.getBoundingClientRect().height); a.classList.add('c-link'); return h })()`), 24)
 
+  // Desplazamiento del subrayado (7.1, DESIGN.md § Constantes): 0.2em a 16 = 3,2 px.
+  const underline = `[${T.link}, ${T.backLink}].map((a) => getComputedStyle(a).textUnderlineOffset)`
+  expect('subrayado de Link y Back Link (link/md, 16): text-underline-offset 0.2em = 3.2px', await b.ev(underline), ['3.2px', '3.2px'])
+  await b.style('a { text-underline-offset: auto }')
+  expect('contraprueba: con auto inyectado, auto', await b.ev(underline), ['auto', 'auto'])
+  await b.unstyle()
+
   for (const k of ['primary', 'secondary', 'destructive', 'asLink', 'download', 'iconButton', 'link', 'backLink']) {
     await b.tabTo(T[k])
     const f = await b.run(focusInfo)

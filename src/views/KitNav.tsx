@@ -8,6 +8,7 @@ import HeaderMobile from '../components/HeaderMobile.tsx'
 import Link from '../components/Link.tsx'
 import type { BottomNavDestination } from '../components/destinations.ts'
 import { SESSION } from '../data/session.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 
 // Demo del chrome real en el catálogo (D9): D7 renderiza un solo chrome, el
@@ -27,6 +28,7 @@ export default function KitNav() {
   const guest = params.get('sesion') === 'invitado'
   const actual = DESTINATIONS.find((d) => d === params.get('actual')) ?? 'especialistas'
   const headerCurrent = actual === 'cuenta' ? undefined : actual
+  useDocumentTitle(`Navegación · ${isDesktop ? 'escritorio' : 'móvil'} · Kit · Salvia`)
 
   let header
   if (!isDesktop) header = <HeaderMobile />
@@ -46,7 +48,6 @@ export default function KitNav() {
               current="Chrome real"
             />
           )}
-          <title>{`Navegación · ${isDesktop ? 'escritorio' : 'móvil'} · Kit · Salvia`}</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Navegación · {isDesktop ? 'escritorio' : 'móvil'}
           </h1>

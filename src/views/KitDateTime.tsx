@@ -9,6 +9,7 @@ import Legend from '../components/Legend.tsx'
 import SlotList, { type SlotGroup, type SlotListHandle } from '../components/SlotList.tsx'
 import { shortDate } from '../components/dates.ts'
 import { MAX_DATE, TODAY } from '../data/clock.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 
 // Catálogo de 4.6 Fecha y hora (D9). Página propia, como /kit/resultados: sus
@@ -159,12 +160,12 @@ export default function KitDateTime() {
   const [bar, setBar] = useState<BookingBarProps | null>(null)
   const [mayDate, setMayDate] = useState<CalendarDate>(MAY_17_DATE)
   const [mayTime, setMayTime] = useState<string | null>('17:00')
+  useDocumentTitle('Fecha y hora · Kit · Salvia')
 
   return (
     <AppLayout bar={!isDesktop && bar ? <BookingBar {...bar} /> : undefined}>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
-          <title>Fecha y hora · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Fecha y hora
           </h1>

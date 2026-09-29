@@ -422,6 +422,31 @@ Medidas en los maestros, no son tokens del archivo:
 - **Destino del resumen de errores:** `c-field__label` y `c-legend` llevan
   `scroll-margin-block-start: var(--space-4)`: al desplazarse al inicio de la
   vista quedan a 16 del borde. Regla del kit (V3); no cambia nada visible.
+- **Desplazamiento del subrayado: `text-underline-offset: 0.2em`** en la regla
+  base de `a` (`04-elements/_links.scss`, 7.1). Valor fuera de Figma:
+  `link/md` no lo declara. La regla base alcanza a todo `<a>`, también a
+  `c-page-link` y `c-breadcrumb__link`.
+  Elegido entre `auto`, `0.125em` y `0.2em` con capturas de enlaces
+  subrayados reales (link/md a 16 y link/sm a 14, al 100 % y al 200 %,
+  partidos en dos líneas a 320 y con foco de teclado). Es el único de los
+  tres que deja de atravesar los descendentes a 16, a 14 y al 200 %: con
+  `auto` el subrayado cae 1 fila por encima del fondo de la «p» y la «g», y
+  con `0.125em` en la misma fila, y el navegador lo interrumpe alrededor del
+  trazo. Con `0.2em` queda justo debajo. No toca la línea siguiente al partir
+  y queda a ≥ 16 px del anillo de foco (16 a 17 al 100 %, 28 a 31 al 200 %).
+  El grosor es el del navegador.
+- **Favicon, icono de Apple e imagen OG** (7.1). No son tokens: vienen de
+  Figma, Foundations, frame F.8 (`534:6514`), y de Cover, frame `534:6532`.
+  «S» del wordmark (`heading/md`, Fraunces SemiBold dibujada a 25) en
+  contornos, `color-on-action` sobre `color-action` (8,01:1, par de F.3). La
+  letra ocupa el 62,5 % del lado en 16 y 32 y el 50 % en 180. Radios: 6 en 32
+  (`radius/sm`) y 3 en 16 (la mitad, el SVG de 32 reducido). El de 180 va sin
+  radio y opaco. Valor derivado de los tokens, sin variable propia. En
+  `public/`: `favicon.svg` tal cual lo exporta Figma (fondo `#3B5740`, letra
+  `fill="white"`, que es `#ffffff`), `apple-touch-icon.png` (180),
+  `og-image.png` (1200 × 630) y `favicon.ico`, generado con
+  `scripts/favicon-ico.mjs` a partir de los PNG de 16 y 32 de la carpeta de
+  exportación de Figma (esos PNG no se versionan). Sin manifest.
 
 ---
 
@@ -1499,17 +1524,21 @@ en la fase 5 por el panel 03.0: sin ella, sus secciones quedaban fuera de la
 navegación por encabezados, mientras que el resumen y «Tu cita» sí estaban).
 Sin cambio visual; se verifica con el esquema de encabezados.
 
-**D15 · Títulos de página** (2.4.2), con `<title>` de React 19 en cada vista:
-«Especialistas · Salvia», «{Nombre del médico} · Salvia», «Confirma tu cita ·
+**D15 · Títulos de página** (2.4.2), con `useDocumentTitle` (`src/hooks/`)
+en cada vista: «Especialistas · Salvia», «{Nombre del médico} · Salvia», «Confirma tu cita ·
 Salvia», «Tus datos · Salvia», «Cita reservada · Salvia» (Figma, panel
 04.0), «Mis citas · Salvia», «Reprogramar cita · {Nombre del médico} ·
 Salvia», «Fuera del caso de estudio · Salvia» y «No encontramos esta página ·
 Salvia».
 El catálogo también lleva título (2.4.2, va a producción): «Kit del sistema ·
-Salvia» y «{h1} · Kit · Salvia». Medido en T1: React 19 coloca su `<title>`
-antes del estático de `index.html` y lo retira al desmontar, así que
-`document.title` es el de la vista; `<title>Salvia</title>` se queda en
-`index.html` como respaldo sin JS.
+Salvia» y «{h1} · Kit · Salvia». **Un solo `<title>` (7.1):** el hook
+escribe `document.title` en un efecto de layout, así que reutiliza el
+estático de `index.html` («Salvia», el respaldo sin JS) y el título cambia en
+el mismo commit que el `h1`, antes del foco de ruta. Hasta 7.1 cada vista
+ponía un `<title>` de React 19, que se colocaba antes del estático sin
+sustituirlo: dos en el head (medido en T1 y en la línea base de 7.1, las 16
+rutas), y el HTML solo admite uno. `pnpm verify 5.0` cuenta uno por ruta, en
+D1 y en `/kit/*`, con contraprueba.
 
 **D16 · Avisos en memoria.** El conmutador «Avisarme» → «Te avisaremos» (diseño
 §7.3) guarda su estado en `src/data/notify.ts`: almacén en memoria con clave por
@@ -1602,3 +1631,4 @@ contraprueba; la validación, con los escenarios de 03.2 y 03.5 y el teléfono.
 | 7 | **Hoja de filtros con lector.** Foco en el título al abrir, la región oculta del borrador («N resultados») y los dos mensajes al aplicar (el nombre del disparador con «N filtros aplicados» y la región del recuento) |
 | 7 | **Foco devuelto por la hoja en Safari y Firefox.** En Chromium lo devuelve el propio `<dialog>` al cerrar (la contraprueba de orden no discrimina); `Sheet` lo devuelve también de forma explícita |
 | 5 · tras V1b ✓ | **Foco en `body` un instante al cambiar de página con `lenta`. Cerrado:** «Siguiente» 8 → 9 y «Anterior» 2 → 1 se desmontan en el commit que trae los datos, y el `useEffect` de foco corría en otra tarea, 0,4–1,7 ms después. Sonda con MutationObserver (dev y preview, 40 pasadas): al terminar el commit, el foco estaba en `body` en 40 de 40, con un frame pintado entre medias en 7. El muestreo de 100 ms de 5.1 lo veía en 3 de 10 pasadas (V1b). Con `useLayoutEffect`, el foco llega a la tarjeta en el mismo commit: sonda, `H3` en 40 de 40 y ningún frame con `body`. 5.1 lo mide ahora en el desmontaje (`focoAlDesmontar`): 10 de 10 en `pnpm verify 5.1` (el único ✗ es el declarado del resto de pintado) y 10 de 10 en `--preview` (16/16). Contraprueba con `useEffect`: `focoAlDesmontar` `BODY` en 10 de 10 pasadas, en las dos líneas (49/52) |
+| 7 · 7.3 | **Anillo de foco sobre la barra inferior en el flujo (hallazgo de 7.1).** En `/fuera-de-alcance` a 375 con el texto al 200 % (`html` a 32), la barra inferior está en el flujo (`c-bottom-nav`, `position: static`) y empieza en y 732, justo donde acaba «Ir a Especialistas» con el foco (Tab real): el anillo (2 px, desfase 2) acaba en 736 y su franja inferior (733–736) cae sobre la barra (`elementFromPoint` = `A.c-nav-item`), junto a su `border-top` de 1 px (`color-border`), que recorre todo el ancho. Al 100 %, la barra empieza en 836 y no pasa. Medido con inyección en `html`; repetir con `Page.setFontSizes` (letra real del navegador). Comprobar en 7.3 si el anillo se ve entero (2.4.11, 2.4.13 no es AA) y en otras vistas cuyo último elemento enfocable queda pegado a la barra en el flujo; no se corrige en 7.1 |

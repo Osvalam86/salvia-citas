@@ -6,6 +6,7 @@ import FilterTrigger from '../components/FilterTrigger.tsx'
 import LoadMore from '../components/LoadMore.tsx'
 import Pagination from '../components/Pagination.tsx'
 import ResultCard, { type ResultCardProps } from '../components/ResultCard.tsx'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 
 // Catálogo de 4.5 Búsqueda y resultados (D9). Página propia: sus botones,
 // etiquetas y avatares no entran en las medidas de /kit de 4.1 y 4.2.
@@ -109,12 +110,12 @@ function LoadMoreDemo() {
 export default function KitResults() {
   const [params] = useSearchParams()
   const page = Math.min(Math.max(Number(params.get('pagina')) || 1, 1), 9)
+  useDocumentTitle('Búsqueda y resultados · Kit · Salvia')
 
   return (
     <AppLayout>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
-          <title>Búsqueda y resultados · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Búsqueda y resultados
           </h1>

@@ -23,6 +23,7 @@ import Step from '../components/Step.tsx'
 import Tag from '../components/Tag.tsx'
 import { PATHS } from '../components/destinations.ts'
 import { ICON_NAMES } from '../components/iconNames.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 
 // Catálogo del sistema (D9): va también en producción. Crece con cada fase;
 // en la 2 muestra los pasos tipográficos, los enlaces base y el anillo de foco;
@@ -290,10 +291,10 @@ function NavDemos() {
 }
 
 export default function Kit() {
+  useDocumentTitle('Kit del sistema · Salvia')
   return (
     <AppLayout>
       <div className="c-kit">
-        <title>Kit del sistema · Salvia</title>
         <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
           Kit del sistema
         </h1>

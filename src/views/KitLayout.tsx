@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router'
 import AppLayout, { MAIN_TITLE_ID } from '../components/AppLayout.tsx'
 import BackLink from '../components/BackLink.tsx'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 
 // Demo del shell y de o-layout en el catálogo (D9). Parámetros:
 // - aside=inicio|fin: el aside va antes o después en el DOM, que es también el
@@ -20,6 +21,7 @@ export default function KitLayout() {
   const [params] = useSearchParams()
   const side = params.get('aside') === 'fin' ? 'end' : 'start'
   const lines = Math.min(Math.max(Number(params.get('lineas')) || 1, 1), barLines.length)
+  useDocumentTitle(`Layout · aside al ${side === 'start' ? 'inicio' : 'final'} · Kit · Salvia`)
 
   const aside = (
     <aside className="c-kit__panel" aria-labelledby="kit-layout-aside">
@@ -62,7 +64,6 @@ export default function KitLayout() {
   return (
     <AppLayout bar={bar}>
       <div className="c-kit">
-        <title>{`Layout · aside al ${side === 'start' ? 'inicio' : 'final'} · Kit · Salvia`}</title>
         <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
           Layout · aside al {side === 'start' ? 'inicio' : 'final'}
         </h1>

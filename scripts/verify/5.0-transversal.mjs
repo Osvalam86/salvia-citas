@@ -85,18 +85,19 @@ async function focusState(b, expect) {
   expect('location.state.focus sin destino (el aviso ya no existe): respaldo al h1 (D12)', await run('no-existe'), 'H1#contenido')
 }
 
-// Títulos tras navegar en cliente vista → catálogo → vista: React 19 pone su
-// <title> antes del estático de index.html y lo retira al desmontar.
+// Títulos tras navegar en cliente vista → vista → Atrás: useDocumentTitle
+// reescribe el único <title>, el estático de index.html (7.1).
 async function titlesAfterClientNav(b, expect) {
   await b.metrics(1280, 900, 1)
   await b.go('/mis-citas')
-  const seen = [await b.ev('document.title')]
+  const read = "[document.title, document.querySelectorAll('title').length]"
+  const seen = [await b.ev(read)]
   await clickLink(b, 'Especialistas', "document.querySelector('.c-header-desktop')")
   await waitFor(b, '/')
-  seen.push(await b.ev('document.title'))
+  seen.push(await b.ev(read))
   await back(b, '/mis-citas')
-  seen.push(await b.ev('document.title'))
-  expect('document.title tras navegar en cliente (/mis-citas → / → Atrás)', seen, ['Mis citas · Salvia', 'Especialistas · Salvia', 'Mis citas · Salvia'])
+  seen.push(await b.ev(read))
+  expect('document.title tras navegar en cliente (/mis-citas → / → Atrás), siempre en un único <title>', seen, [['Mis citas · Salvia', 1], ['Especialistas · Salvia', 1], ['Mis citas · Salvia', 1]])
 }
 
 // Carga completa que acepta una redirección de la guarda: espera a que el
@@ -201,15 +202,15 @@ export default async function run(b, expect) {
   for (const [path] of ROUTES) {
     await b.metrics(1280, 900, 1)
     await b.go(path)
-    desktop[path] = await b.ev(`(() => { const h = document.querySelector('h1'), a = document.querySelector('.c-header-desktop [aria-current]'); return { h1: h.textContent, id: h.id, tabIndex: h.tabIndex, h1s: document.querySelectorAll('h1').length, title: document.title, actual: a ? [a.textContent, a.getAttribute('aria-current')] : null } })()`)
+    desktop[path] = await b.ev(`(() => { const h = document.querySelector('h1'), a = document.querySelector('.c-header-desktop [aria-current]'); return { h1: h.textContent, id: h.id, tabIndex: h.tabIndex, h1s: document.querySelectorAll('h1').length, title: document.title, titles: document.querySelectorAll('title').length, actual: a ? [a.textContent, a.getAttribute('aria-current')] : null } })()`)
     await b.metrics(375, 800, 1)
     await b.go(path)
     mobile[path] = await b.ev("(() => { const n = document.querySelector('.c-bottom-nav'); return n ? (n.querySelector('[aria-current]')?.textContent ?? '') : null })()")
   }
   expect(
-    'rutas de D1 a 1280: h1 único (#contenido, tabIndex -1), título de D15 y pestaña actual con su aria-current (Figma; «true» en las subpáginas)',
+    'rutas de D1 a 1280: h1 único (#contenido, tabIndex -1), título de D15 en un único <title> y pestaña actual con su aria-current (Figma; «true» en las subpáginas)',
     desktop,
-    Object.fromEntries(ROUTES.map(([path, h1, title, actual]) => [path, { h1, id: 'contenido', tabIndex: -1, h1s: 1, title, actual }])),
+    Object.fromEntries(ROUTES.map(([path, h1, title, actual]) => [path, { h1, id: 'contenido', tabIndex: -1, h1s: 1, title, titles: 1, actual }])),
   )
   expect(
     'rutas de D1 a 375: barra inferior solo en los destinos de primer nivel (con su actual) y en la genérica y el 404 (sin actual); ninguna en las tareas',
@@ -218,20 +219,35 @@ export default async function run(b, expect) {
   )
 
   const kitTitles = {}
-  for (const path of ['/kit', '/kit/layout', '/kit/navegacion', '/kit/resultados', '/kit/fecha-hora', '/kit/citas']) {
+  for (const path of ['/kit', '/kit/layout', '/kit/navegacion', '/kit/resultados', '/kit/fecha-hora', '/kit/citas', '/kit/estados']) {
     await b.metrics(1280, 900, 1)
     await b.go(path)
-    kitTitles[path] = await b.ev('document.title')
+    kitTitles[path] = await b.ev("[...document.querySelectorAll('title')].map((t) => t.textContent)")
   }
-  expect('títulos del catálogo (2.4.2: /kit va a producción)', kitTitles, {
-    '/kit': 'Kit del sistema · Salvia',
-    '/kit/layout': 'Layout · aside al inicio · Kit · Salvia',
-    '/kit/navegacion': 'Navegación · escritorio · Kit · Salvia',
-    '/kit/resultados': 'Búsqueda y resultados · Kit · Salvia',
-    '/kit/fecha-hora': 'Fecha y hora · Kit · Salvia',
-    '/kit/citas': 'Citas y diálogos · Kit · Salvia',
+  expect('títulos del catálogo (2.4.2: /kit va a producción), cada uno en un único <title>', kitTitles, {
+    '/kit': ['Kit del sistema · Salvia'],
+    '/kit/layout': ['Layout · aside al inicio · Kit · Salvia'],
+    '/kit/navegacion': ['Navegación · escritorio · Kit · Salvia'],
+    '/kit/resultados': ['Búsqueda y resultados · Kit · Salvia'],
+    '/kit/fecha-hora': ['Fecha y hora · Kit · Salvia'],
+    '/kit/citas': ['Citas y diálogos · Kit · Salvia'],
+    '/kit/estados': ['Estados de demo · Kit · Salvia'],
   })
-  expect('<title> estático de index.html: se conserva detrás del de React (document.title devuelve el primero)', await b.ev("[...document.head.querySelectorAll('title')].map((t) => t.textContent)"), ['Citas y diálogos · Kit · Salvia', 'Salvia'])
+  // El <title> que queda es el estático de index.html, reescrito: el mismo nodo
+  // que el HTML servido, en el head. Contraprueba: un segundo <title> antes de él
+  // (lo que hacía el <title> de React 19 hasta 7.1) da 2 y document.title pasa
+  // a ser el primero, que es lo que la cuenta tiene que detectar.
+  expect(
+    'un único <title>, el estático de index.html reescrito por useDocumentTitle; contraprueba: con un <title> de React delante, 2 y document.title es el suyo',
+    await b.ev(`(() => {
+      const unico = [...document.querySelectorAll('title')].map((t) => t.parentElement.tagName)
+      const extra = document.createElement('title'); extra.textContent = 'Título de React'; document.head.prepend(extra)
+      const con = { n: document.querySelectorAll('title').length, documentTitle: document.title }
+      extra.remove()
+      return { unico, contraprueba: con, trasRetirarla: document.title }
+    })()`),
+    { unico: ['HEAD'], contraprueba: { n: 2, documentTitle: 'Título de React' }, trasRetirarla: 'Estados de demo · Kit · Salvia' },
+  )
 
   // --- Foco de ruta -------------------------------------------------------------------------------------------
   await pushByClick(b, expect)

@@ -4,6 +4,7 @@ import Avatar from '../components/Avatar.tsx'
 import Link from '../components/Link.tsx'
 import { PHOTOS } from '../data/photos.ts'
 import { SLUGS, findSpecialist } from '../data/specialists.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 
 // Estados de demo (D8, /kit/estados): un enlace a cada estado de las 32
 // pantallas de Figma, con su frame móvil y el de escritorio. Los que no tienen
@@ -80,11 +81,11 @@ const GROUPS: { id: string; title: string; states: State[] }[] = [
 ]
 
 export default function KitStates() {
+  useDocumentTitle('Estados de demo · Kit · Salvia')
   return (
     <AppLayout>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
-          <title>Estados de demo · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Estados de demo
           </h1>

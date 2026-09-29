@@ -5,6 +5,7 @@ import BackLink from '../components/BackLink.tsx'
 import Dialog from '../components/Dialog.tsx'
 import Notice from '../components/Notice.tsx'
 import { cancelCopy, PENDING_NOTE } from '../data/appointments.ts'
+import useDocumentTitle from '../hooks/useDocumentTitle.ts'
 
 // Catálogo de 4.7 Citas y diálogos (D9). Página propia, como /kit/resultados:
 // sus botones, etiquetas y avatares no entran en las medidas de /kit.
@@ -111,6 +112,7 @@ export default function KitAppointments() {
   const [appointments, setAppointments] = useState(APPOINTMENTS)
   const [target, setTarget] = useState<Target | null>(null)
   const [notice, setNotice] = useState<{ id: string; body: string } | null>(null)
+  useDocumentTitle('Citas y diálogos · Kit · Salvia')
 
   // Próximas en orden ascendente; Pasadas, descendente, con las canceladas.
   const upcoming = appointments.filter(isUpcoming).sort((a, b) => a.dateTime.localeCompare(b.dateTime))
@@ -137,7 +139,6 @@ export default function KitAppointments() {
     <AppLayout>
       <div className="c-kit">
         <div className="o-stack o-stack--gap-4">
-          <title>Citas y diálogos · Kit · Salvia</title>
           <h1 className="c-kit__title" id={MAIN_TITLE_ID} tabIndex={-1}>
             Citas y diálogos
           </h1>
