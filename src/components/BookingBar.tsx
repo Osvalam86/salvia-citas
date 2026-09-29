@@ -11,6 +11,12 @@ type Base = {
    * baja de 160 y parte (techo de §4.5).
    */
   submitLabel: 'Continuar' | 'Confirmar hora'
+  /**
+   * id de lo que el envío describe además del resumen: en la reprogramación,
+   * la placa «Tu cita actual», para que el botón nombre las dos fechas (panel
+   * 02.0).
+   */
+  describedBy?: string
 }
 
 type Chosen = Base & {
@@ -54,7 +60,7 @@ export type BookingBarProps = Chosen | None | Missing
 // El envío nunca se deshabilita y lleva aria-describedby hacia el resumen.
 export default function BookingBar(props: BookingBarProps) {
   const summaryId = useId()
-  const { selection, formId, submitLabel } = props
+  const { selection, formId, submitLabel, describedBy } = props
 
   let title = 'Sin horario elegido'
   let meta = 'Elige un horario'
@@ -80,7 +86,7 @@ export default function BookingBar(props: BookingBarProps) {
             </span>
           </p>
         </div>
-        <Button type="submit" form={formId} aria-describedby={summaryId} className="c-booking-bar__submit">
+        <Button type="submit" form={formId} aria-describedby={describedBy ? `${summaryId} ${describedBy}` : summaryId} className="c-booking-bar__submit">
           {submitLabel}
         </Button>
       </div>

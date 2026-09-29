@@ -5,10 +5,10 @@
 // node scripts/check-data.mjs --contrapruebas: aplica a una copia de los datos
 // una mutación por aserción y exige que esa aserción falle. La ejecuta
 // pnpm verify 5.0.
-import { CalendarDate } from '@internationalized/date'
-import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFreeAfter, nextOpeningMonth, weekday } from '../src/data/availability.ts'
+import { CalendarDate, parseDate } from '@internationalized/date'
+import { AVAILABILITY, CORTES_FULL_MAY, firstFree, initialDate, isFull, nextFreeAfter, nextOpeningMonth, rescheduleStartDate, weekday } from '../src/data/availability.ts'
 import { NOW, TODAY } from '../src/data/clock.ts'
-import { cancelCopy, contactOf, createAppointmentStore, groupAppointments, RUIZ_APPOINTMENT_ID, upcomingText } from '../src/data/appointments.ts'
+import { cancelCopy, contactOf, createAppointmentStore, groupAppointments, rescheduleCopy, RUIZ_APPOINTMENT_ID, upcomingText } from '../src/data/appointments.ts'
 import { nextStepsText } from '../src/data/booking.ts'
 import { calendarFile } from '../src/data/calendar.ts'
 import { createNotifyStore } from '../src/data/notify.ts'
@@ -27,6 +27,10 @@ const weeks = (year, month) => {
   return Math.ceil(((weekday(first) + 6) % 7 + first.calendar.getDaysInMonth(first)) / 7)
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+// La reprogramación de Figma (02.7, 02.8): c3 del 16 de mayo a las 09:30 al 17 a las 17:00.
+const C3_NOW = { date: '2029-05-16', time: '09:30' }
+const C3_NEXT = { date: '2029-05-17', time: '17:00' }
+const c3Copy = (ctx) => ctx.rescheduleCopy(C3_NOW, C3_NEXT)
 // Un ejemplo de vacío de /kit/estados: 0 resultados y la causa que su copy nombra.
 const emptyExample = (ctx, query, cause) => {
   const params = parseSearch(new URLSearchParams(query))
@@ -229,6 +233,36 @@ const ASSERTIONS = {
     const edge = ctx.nextSteps({ date: '2029-04-24', time: '09:00', contact }).split('.')[0]
     return (today === 'Puedes gestionar tu cita desde Mis\u00a0citas' && edge === 'Te enviaremos un recordatorio por correo 24 horas antes') || JSON.stringify({ today, edge })
   }],
+  rescheduleStart: ['Reprogramar sin parámetros (D2): c3 (16 de mayo) empieza el 15; c1 (24 de abril), el 24', (ctx) => {
+    const found = [['2029-05-16', SLUGS.cortes], ['2029-04-24', SLUGS.ruiz]].map(([date, slug]) => rescheduleStartDate(slug, parseDate(date), ctx.availability).toString())
+    return same(found, ['2029-05-15', '2029-04-24']) || found.join(' · ')
+  }],
+  // Copy de reprogramar c3 (16 de mayo, 09:30 → 17 de mayo, 17:00): los cinco literales leídos
+  // por MCP en Figma (V4b), una aserción por literal para que cada uno falle por separado.
+  rescheduleCurrent: ['Placa «Tu cita actual» de c3, literal de Figma (02.7, I374:7459;371:7347)', (ctx) =>
+    c3Copy(ctx).current === 'Miércoles 16 de mayo · 09:30. Al confirmar, esa hora se libera.' || c3Copy(ctx).current],
+  rescheduleWhen: ['«Nueva cita» de c3, literal de Figma (02.8, 357:6871)', (ctx) =>
+    c3Copy(ctx).when === 'Jueves 17 de mayo, 17:00' || c3Copy(ctx).when],
+  reschedulePrevious: ['«Antes:» de c3, literal de Figma (02.8, 357:7295)', (ctx) =>
+    c3Copy(ctx).previous === 'Antes: miércoles 16 de mayo, 09:30' || c3Copy(ctx).previous],
+  reschedulePolicy: ['«Al confirmar» de c3, literal de Figma (02.8, I376:7520;371:7347)', (ctx) =>
+    c3Copy(ctx).policy === 'Se libera el miércoles 16 de mayo a las 09:30 y tu cita pasa al jueves 17. Puedes volver a cambiarla hasta 24 horas antes.' || c3Copy(ctx).policy],
+  rescheduleNotice: ['Aviso «Cita reprogramada» de c3, literal de Figma (descripción de UI/Notice 334:8516; diseño §7.2)', (ctx) =>
+    c3Copy(ctx).notice === 'Tu cita pasó al jueves 17 de mayo, 17:00.' || c3Copy(ctx).notice],
+  rescheduleNoTime: ['Reprogramar sin hora: «Al confirmar» no nombra el día nuevo, «Nueva cita» dice «Sin horario elegido» y no hay aviso', (ctx) => {
+    const found = ctx.rescheduleCopy({ date: '2029-05-16', time: '09:30' }, { date: '2029-05-20', time: null })
+    return same([found.policy, found.when, found.notice], [
+      'Al confirmar la nueva hora, se libera la del miércoles 16 de mayo a las 09:30. Puedes volver a cambiarla hasta 24 horas antes.',
+      'Sin horario elegido',
+      null,
+    ]) || JSON.stringify(found)
+  }],
+  rescheduleWindow: ['Reprogramar a menos de 24 h (hoy a las 16:30) omite «Puedes volver a cambiarla…»; a 24 h justas de NOW la conserva (≥ 24 h)', (ctx) => {
+    const current = { date: '2029-05-16', time: '09:30' }
+    const today = ctx.rescheduleCopy(current, { date: '2029-04-23', time: '16:30' }).policy
+    const edge = ctx.rescheduleCopy(current, { date: '2029-04-24', time: '09:00' }).policy
+    return (today === 'Se libera el miércoles 16 de mayo a las 09:30 y tu cita pasa al lunes 23 de abril.' && edge.endsWith('Puedes volver a cambiarla hasta 24 horas antes.')) || JSON.stringify({ today, edge })
+  }],
   ics: ['.ics de c1: 10:30 de Ciudad de México = 16:30Z, 30 min, CRLF y líneas de 75 octetos como mucho', (ctx) => {
     const file = ctx.ics({ id: 'c1', date: '2029-04-24', time: '10:30' }, ctx.specialists.find((s) => s.slug === SLUGS.ruiz))
     const lines = file.split('\r\n')
@@ -254,6 +288,7 @@ const base = () => ({
   upcomingText,
   cancelCopy,
   nextSteps: nextStepsText,
+  rescheduleCopy,
   ics: calendarFile,
 })
 
@@ -314,6 +349,15 @@ const MUTATIONS = {
   cancelCopy: ['«el Dr.» también para una doctora', (c) => ({ ...c, cancelCopy: (a, s) => cancelCopy(a, { name: s.name.replace(/^Dra\./, 'Dr.') }) })],
   nextStepsReminder: ['el recordatorio se da por pedido', (c) => ({ ...c, nextSteps: (a) => nextStepsText({ ...a, contact: { ...a.contact, reminder: true } }) })],
   nextStepsWindow: ['el plazo contra NOW + 1 min (> en vez de ≥)', (c) => ({ ...c, nextSteps: (a) => nextStepsText(a, NOW.add({ minutes: 1 })) })],
+  rescheduleStart: ['ocupar todo Cortés 15 de mayo', (c) => { c.availability[SLUGS.cortes]['2029-05-15'].forEach((s) => (s.available = false)); return c }],
+  // Una por literal: cada una cambia solo ese campo, con un error plausible.
+  rescheduleCurrent: ['la placa nombra la cita nueva', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), current: rescheduleCopy(n, n).current }) })],
+  rescheduleWhen: ['«Nueva cita» con la cita actual', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), when: rescheduleCopy(a, a).when }) })],
+  reschedulePrevious: ['«Antes:» con la cita nueva', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), previous: rescheduleCopy(n, n).previous }) })],
+  reschedulePolicy: ['«pasa al» día de la cita actual', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), policy: rescheduleCopy(a, { ...n, date: a.date }).policy }) })],
+  rescheduleNotice: ['el aviso con la cita de antes', (c) => ({ ...c, rescheduleCopy: (a, n) => ({ ...rescheduleCopy(a, n), notice: rescheduleCopy(a, a).notice }) })],
+  rescheduleNoTime: ['sin hora, la política de la hora elegida', (c) => ({ ...c, rescheduleCopy: (a, n) => rescheduleCopy(a, { ...n, time: n.time ?? '09:00' }) })],
+  rescheduleWindow: ['el plazo contra NOW + 1 min (> en vez de ≥)', (c) => ({ ...c, rescheduleCopy: (a, n) => rescheduleCopy(a, n, NOW.add({ minutes: 1 })) })],
   ics: ['la hora local sin pasar a UTC', (c) => ({ ...c, ics: (a, s) => calendarFile(a, s, 0) })],
   draftKeptWhenBusy: ['submitBooking reinicia siempre', (c) => ({ ...c, submit: (booking, scenario, stores) => { stores.patient.reset(); return stores.appointments.book(booking, scenario) } })],
 }

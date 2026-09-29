@@ -240,7 +240,8 @@ export default async function run(b, expect) {
   // docs/verificacion.md: sin el hook, el foco queda en body.
   const focused = "(() => { const a = document.activeElement; return a.tagName + (a.id ? '#' + a.id : '') })()"
   expect('foco tras la navegación en cliente: el h1 de la vista', await b.ev(focused), 'H1#contenido')
-  // «Reprogramar» llega a la ruta de la fase 5 (provisional desde T1).
+  // «Reprogramar» llega a la reprogramación (V4b), con el foco en su h1 y sin
+  // errores de consola (el filtro de los 2 errores del 404 se retiró en T1).
   await clickOn(action(2, 0))
   await waitFor('/mis-citas/c3/reprogramar')
   expect('clic real: /kit → /kit/citas y «Reprogramar» de Cortés, sin carga completa; el foco va al h1 de la reprogramación', {

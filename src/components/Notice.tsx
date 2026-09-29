@@ -26,6 +26,7 @@ type InfoProps = Omit<Common, 'headingLevel'> & {
   tone: 'info'
   headingLevel: Common['headingLevel'] | null
   icon?: IconName
+  titleId?: never
   delivery?: never
   open?: never
   action?: never
@@ -36,6 +37,11 @@ type InfoProps = Omit<Common, 'headingLevel'> & {
 type ResultProps = Common & {
   tone: 'success' | 'error'
   icon?: never
+  /**
+   * id del título. Hace falta cuando una navegación nombra el título como
+   * destino del foco (location.state.focus, D12): volver de reprogramar.
+   */
+  titleId?: string
   action?: { href: string; label: string }
   /** Muestra el cierre. Al cerrar, el foco va al primer encabezado de la sección. */
   onDismiss?: () => void
@@ -99,7 +105,7 @@ export default function Notice(props: NoticeProps) {
       </span>
       <div className="c-notice__content">
         <div className="c-notice__text">
-          <Heading className="c-notice__title" ref={titleRef} tabIndex={isFocus ? -1 : undefined}>
+          <Heading className="c-notice__title" id={props.tone === 'info' ? undefined : props.titleId} ref={titleRef} tabIndex={isFocus ? -1 : undefined}>
             {title}
           </Heading>
           <p>{body}</p>

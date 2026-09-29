@@ -1,6 +1,8 @@
 import { parseDate } from '@internationalized/date'
 import { useSyncExternalStore } from 'react'
-import { dayTitle } from '../components/dates.ts'
+import { dayTitle, weekdayDay } from '../components/dates.ts'
+import { startOf } from './booking.ts'
+import { NOW } from './clock.ts'
 import type { Scenario } from './scenario.ts'
 import { SESSION } from './session.ts'
 import { shortName, SLUGS, type Specialist } from './specialists.ts'
@@ -141,6 +143,50 @@ export function cancelCopy({ date, time }: Pick<Appointment, 'date' | 'time'>, s
     notice: `Ya no tienes la cita del ${day[0].toLowerCase()}${day.slice(1)} a las ${time} con ${article} ${shortName(specialist)}.`,
   }
 }
+
+const lowerFirst = (text: string) => `${text[0].toLowerCase()}${text.slice(1)}`
+
+/**
+ * Copy de la reprogramación (02.7, 02.8 y el aviso de diseño §7.2). Con la c3
+ * del 16 de mayo a las 09:30 hacia el 17 a las 17:00, los literales de Figma
+ * (check-data anota sus nodos); para el resto de citas, el mismo patrón.
+ * - current: la placa «Tu cita actual» (móvil).
+ * - when: el valor de la fila «Nueva cita» (escritorio); sin hora, «Sin
+ *   horario elegido», como «Cuándo» en «Tu cita».
+ * - previous: la línea «Antes:» de esa fila.
+ * - policy: el cuerpo de «Al confirmar». Sin hora elegida no nombra el día
+ *   nuevo (en un día lleno mentiría); con una cita nueva a menos de 24 horas
+ *   de NOW omite la segunda frase, como «Qué sigue» (V4a).
+ * - notice: el cuerpo del aviso «Cita reprogramada»; sin hora, null.
+ */
+export function rescheduleCopy(
+  current: Pick<Appointment, 'date' | 'time'>,
+  next: { date: string; time: string | null },
+  now = NOW,
+) {
+  const currentDate = parseDate(current.date)
+  const nextDate = parseDate(next.date)
+  const currentDay = dayTitle(currentDate)
+  const again = 'Puedes volver a cambiarla hasta 24 horas antes.'
+
+  let policy = `Al confirmar la nueva hora, se libera la del ${lowerFirst(currentDay)} a las ${current.time}. ${again}`
+  if (next.time) {
+    const inWindow = startOf({ date: next.date, time: next.time }).compare(now.add({ hours: 24 })) >= 0
+    policy = `Se libera el ${lowerFirst(currentDay)} a las ${current.time} y tu cita pasa al ${weekdayDay(nextDate, currentDate)}.${inWindow ? ` ${again}` : ''}`
+  }
+
+  return {
+    current: `${currentDay} · ${current.time}. Al confirmar, esa hora se libera.`,
+    when: next.time ? `${dayTitle(nextDate)}, ${next.time}` : 'Sin horario elegido',
+    previous: `Antes: ${lowerFirst(currentDay)}, ${current.time}`,
+    policy,
+    notice: next.time ? rescheduledText({ date: next.date, time: next.time }) : null,
+  }
+}
+
+/** Cuerpo del aviso «Cita reprogramada» (diseño §7.2): la cita ya reprogramada. */
+export const rescheduledText = ({ date, time }: Pick<Appointment, 'date' | 'time'>) =>
+  `Tu cita pasó al ${lowerFirst(dayTitle(parseDate(date)))}, ${time}.`
 
 export const appointmentStore = createAppointmentStore()
 

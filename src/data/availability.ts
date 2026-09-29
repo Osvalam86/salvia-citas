@@ -1,4 +1,4 @@
-import { CalendarDate, parseDate } from '@internationalized/date'
+import { CalendarDate, parseDate, startOfWeek } from '@internationalized/date'
 import { MAX_DATE, NOW, TODAY } from './clock.ts'
 import { GENERATED_CARDIOLOGY, SLUGS, SPECIALISTS, type Specialist } from './specialists.ts'
 
@@ -153,6 +153,22 @@ export const nextOpeningMonth = (specialist: Specialist) => specialist.published
 export function initialDate(slug: string, availability: Availability = AVAILABILITY) {
   const first = firstFree(slug, availability)
   return first ? parseDate(first.date) : TODAY
+}
+
+/**
+ * Día inicial del selector de la reprogramación sin parámetros (D2): el
+ * primer día con horas libres desde el lunes de la semana de la cita actual
+ * (nunca antes de hoy). Si esa semana no tiene ninguno, el siguiente con horas
+ * libres; sin ninguno, la regla de la reserva (initialDate).
+ */
+export function rescheduleStartDate(slug: string, current: CalendarDate, availability: Availability = AVAILABILITY) {
+  const monday = startOfWeek(current, 'es-MX', 'mon')
+  const from = (monday.compare(TODAY) < 0 ? TODAY : monday).toString()
+  const days = availability[slug] ?? {}
+  const iso = Object.keys(days)
+    .sort()
+    .find((day) => day >= from && days[day].some((slot) => slot.available))
+  return iso ? parseDate(iso) : initialDate(slug, availability)
 }
 
 /** Hueco libre más cercano después de un día (bloque sin horarios, §5.2), o null. */

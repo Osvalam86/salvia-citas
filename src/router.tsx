@@ -8,7 +8,7 @@ import KitLayout from './views/KitLayout.tsx'
 import KitNav from './views/KitNav.tsx'
 import KitResults from './views/KitResults.tsx'
 import KitStates from './views/KitStates.tsx'
-import { bookingStepLoader, confirmedLoader, rescheduleLoader, specialistLoader } from './views/loaders.ts'
+import { bookingStepLoader, confirmedLoader, myAppointmentsLoader, rescheduleLoader, specialistLoader } from './views/loaders.ts'
 import MyAppointments from './views/MyAppointments.tsx'
 import NotFound from './views/NotFound.tsx'
 import OutOfScope from './views/OutOfScope.tsx'
@@ -32,7 +32,7 @@ export const router = createBrowserRouter([
       { path: '/especialistas/:slug/confirmar', element: <ConfirmBooking />, loader: bookingStepLoader, ...guarded },
       { path: '/especialistas/:slug/datos', element: <PatientData />, loader: bookingStepLoader, ...guarded },
       { path: '/citas/:id/confirmada', element: <BookingConfirmed />, loader: confirmedLoader, ...guarded },
-      { path: '/mis-citas', element: <MyAppointments /> },
+      { path: '/mis-citas', element: <MyAppointments />, loader: myAppointmentsLoader },
       { path: '/mis-citas/:id/reprogramar', element: <Reschedule />, loader: rescheduleLoader, ...guarded },
       { path: '/fuera-de-alcance', element: <OutOfScope /> },
       { path: '/kit', element: <Kit /> },

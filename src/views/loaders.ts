@@ -45,6 +45,18 @@ export function confirmedLoader({ params }: LoaderFunctionArgs) {
   return { appointment, specialist: findSpecialist(appointment.slug)! }
 }
 
+/**
+ * Mis citas: consume el aviso de un solo uso del almacén (D13, «Cita
+ * reprogramada»). En el loader y no en el render: corre una vez por
+ * navegación, fuera de React, y el primer commit de la vista ya trae el aviso.
+ * Cada navegación a /mis-citas lo vuelve a ejecutar (también un POP o un PUSH
+ * a la misma URL) y entonces el aviso ya no está: así no vuelve con Atrás ni
+ * al recargar.
+ */
+export function myAppointmentsLoader() {
+  return { notice: appointmentStore.takeNotice() }
+}
+
 /** Solo una cita Confirmada se reprograma (UI/Appointment Card solo ofrece ahí «Reprogramar»). */
 export function rescheduleLoader({ params }: LoaderFunctionArgs) {
   const appointment = appointmentStore.get(params.id)

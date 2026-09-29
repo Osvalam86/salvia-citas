@@ -8,7 +8,7 @@ import path from 'node:path'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { H1_ACROSS_LG, h1AcrossLg } from './cruce-lg.mjs'
-import { pixelDiff, toBottom, viewport } from './navegacion.mjs'
+import { clientNavigation, pixelDiff, toBottom, viewport } from './navegacion.mjs'
 
 const C1 = '/citas/c1/confirmada'
 const RUIZ = '/especialistas/elena-ruiz-arellano'
@@ -703,7 +703,7 @@ async function cancelFlow(b, expect) {
     proximas: [...document.querySelectorAll('${section(1)} h3')].map((h) => h.textContent),
     pasadas: [...document.querySelectorAll('${section(2)} h3')].map((h) => h.textContent),
     aviso: (() => { const n = document.querySelector('main .c-notice--success'); return { role: n.getAttribute('role'), titulo: n.querySelector('.c-notice__title').tagName, cuerpo: n.querySelector('.c-notice__text p').textContent } })(),
-    foco: ${focused},
+    foco: ${label},
   })`)
   await clickSel(b, 'main .c-notice--success .c-icon-button')
   const dismissed = { foco: await b.ev(focused), aviso: await b.ev(`Boolean(document.querySelector('main .c-notice--success'))`) }
@@ -713,7 +713,10 @@ async function cancelFlow(b, expect) {
       proximas: ['Martes 24 de abril · 10:30', 'Miércoles 16 de mayo · 09:30'],
       pasadas: ['Martes 8 de mayo · 17:00', 'Lunes 12 de marzo · 09:00', 'Jueves 22 de febrero · 12:30'],
       aviso: { role: null, titulo: 'H2', cuerpo: 'Ya no tienes la cita del martes 8 de mayo a las 17:00 con el Dr. Molina.' },
-      foco: 'H2 Cita cancelada',
+      // Desde V4b el título del aviso lleva id="aviso" (titleId, destino de
+      // location.state.focus) y los dos avisos lo comparten: la etiqueta lleva
+      // id y texto para distinguir cuál tiene el foco. Antes, «H2 Cita cancelada».
+      foco: 'H2#aviso Cita cancelada',
     },
     dismissed: { foco: 'H1 #contenido', aviso: false },
   })
@@ -722,7 +725,7 @@ async function cancelFlow(b, expect) {
   const focos = []
   for (let i = 0; i < 3; i++) {
     await cancelAt(b, 1)
-    focos.push(await b.ev(focused))
+    focos.push(await b.ev(label))
   }
   const all = await b.ev(`({
     subtitulo: document.querySelector('.c-page-header__subtitle').textContent,
@@ -733,7 +736,7 @@ async function cancelFlow(b, expect) {
   })`)
   await b.shot('04.8-sin-proximas.png', { x: 0, y: 0, width: 375, height: 900 })
   expect('cancelar las tres próximas: «No tienes citas próximas», sin sección Próximas (sin h2 vacío), las cinco en Pasadas y el foco en el título de cada aviso', { focos, ...all }, {
-    focos: ['H2 Cita cancelada', 'H2 Cita cancelada', 'H2 Cita cancelada'],
+    focos: ['H2#aviso Cita cancelada', 'H2#aviso Cita cancelada', 'H2#aviso Cita cancelada'],
     subtitulo: 'No tienes citas próximas',
     secciones: 1,
     encabezados: ['H1 Mis citas', 'H2 Cita cancelada', 'H2 Pasadas'],
@@ -767,6 +770,592 @@ async function cardStretch(b, expect) {
   await b.metrics(1280, 900)
 }
 
+// === V4b · Reprogramación (02.7, 02.8) ================================================================
+const RESCHEDULE = '/mis-citas/c3/reprogramar'
+const R027 = `${RESCHEDULE}?fecha=2029-05-17&hora=17:00`
+
+const RESCHEDULE_PARTS = {
+  header: '.c-header-mobile, .c-header-desktop',
+  retroceso: '.c-back-link',
+  breadcrumb: '.c-breadcrumb',
+  avatar: '.c-page-header__avatar',
+  h1: 'main h1',
+  especialidad: '.c-page-header__specialty',
+  ubicacion: '.c-page-header__location',
+  modalidad: '.c-page-header__tag',
+  placa: 'main .c-notice--info:not(.c-booking-summary *)',
+  fieldset: '.c-slot-picker__dates',
+  legend: '.c-slot-picker__legend',
+  mes: '.c-slot-picker__month',
+  semana: '.c-slot-picker__week-nav',
+  etiquetaSemana: '.c-slot-picker__week-label',
+  semanaAnterior: '.c-slot-picker__week-previous',
+  semanaSiguiente: '.c-slot-picker__week-next',
+  tira: '.c-day-strip',
+  chip2: '.c-day-chip:nth-child(2)',
+  tituloHoras: '.c-slot-picker__times .c-slot-picker__heading',
+  estado: '.c-slot-picker__status',
+  lista: '.c-slot-list',
+  hora1: '.c-time-slot',
+  tarde: '.c-slot-list__group:nth-child(2)',
+  barra: '.c-app-layout__bar',
+  tarjeta: '.c-slot-picker__card',
+  columnaFecha: '.c-slot-picker__calendar',
+  eligeFecha: '.c-slot-picker__calendar .c-slot-picker__heading',
+  calendario: '.c-slot-picker__calendar .c-calendar',
+  horas: '.c-slot-picker__times',
+  pasos: '.c-booking-summary ol',
+  resumen: '.c-booking-summary__card',
+  tituloResumen: '.c-booking-summary__title',
+  nuevaCita: '.c-booking-details > div:nth-child(1)',
+  antes: '.c-booking-details__previous',
+  aviso: '.c-booking-summary .c-notice',
+  acciones: '.c-booking-summary__actions',
+  envio: '.c-booking-summary__actions .c-button',
+  main: 'main',
+}
+// Figma 02.7 (357:6603, 375 × 1206) y 02.8 (357:6811, 1440 × 910), en
+// coordenadas del frame. Los textos en HUG (retroceso, legend, etiqueta de
+// semana, modalidad, breadcrumb y envío) sin su ancho: métrica de Inter. En
+// 02.8 la ubicación mide 261,1 (Figma 260), así que la x de la modalidad
+// tampoco se compara: y y alto.
+const FIGMA_027 = {
+  header: [0, 0, 375, 64], retroceso: [16, 88, null, 48], avatar: [16, 148, 64, 64], h1: [96, 144, 263, 72], especialidad: [16, 228, 343, 24],
+  ubicacion: [16, 264, null, 20], modalidad: [16, 292, null, 30], placa: [16, 354, 343, 110], fieldset: [16, 496, 343, 184], legend: [16, 507, null, 28],
+  mes: [141, 496, 218, 50], semana: [16, 562, 343, 48], etiquetaSemana: [16, 574, null, 24], semanaAnterior: [259, 562, 48, 48], semanaSiguiente: [311, 562, 48, 48],
+  tira: [16, 618, 343, 62], chip2: [65.6, 618, 45.6, 62], tituloHoras: [16, 712, 343, 28], estado: [16, 748, 343, 24], lista: [16, 788, 343, 312],
+  hora1: [16, 820, 106.3, 50], tarde: [16, 956, 343, 144], barra: [0, 1132, 375, 74],
+}
+const FIGMA_028 = {
+  header: [0, 0, 1440, 82], breadcrumb: [120, 114, null, 28], avatar: [120, 167, 96, 96], h1: [240, 158, 1080, 44], especialidad: [240, 210, 1080, 24],
+  ubicacion: [240, 247, null, 20], modalidad: [null, 242, null, 30], placa: null, tarjeta: [120, 304, 848, 558], columnaFecha: [153, 337, 360, 492],
+  eligeFecha: [153, 337, 360, 28], calendario: [153, 381, 360, 448], horas: [545, 337, 390, null], lista: [545, 413, 390, 312], hora1: [545, 445, 122, 50],
+  pasos: null, resumen: [1000, 304, 320, 274], tituloResumen: [1017, 321, 286, 28], nuevaCita: [1017, 365, 286, 64], antes: [1049, 409, 254, 20],
+  aviso: [1000, 594, 320, 158], acciones: [1000, 768, 320, 50], envio: [1000, 768, null, 50], main: [0, 82, 1440, 828],
+}
+
+async function reschedulePairs(b, expect) {
+  await b.overlayScrollbars(true)
+  const initial = `(() => { const a = document.querySelector('.c-page-header__avatar'); return { img: a.querySelector('img') !== null, inicial: a.textContent.trim() } })()`
+  for (const [name, width, figma, alto] of [['02.7', 375, FIGMA_027, 1206], ['02.8', 1440, FIGMA_028, 910]]) {
+    await b.metrics(width, 900)
+    await b.go(R027)
+    const h = await fitPage(b, width)
+    const actual = await measure(b, Object.fromEntries(Object.keys(figma).map((k) => [k, RESCHEDULE_PARTS[k]])))
+    await b.shot(`${name}.png`, { x: 0, y: 0, width, height: h })
+    expect(`${name} (${width}, barra superpuesta) a ±1 px de Figma, y el alto de página; Cortés con la inicial, sin foto`, { fuera: outside(actual, figma), alto: h, avatar: await b.ev(initial) }, { fuera: [], alto, avatar: { img: false, inicial: 'I' } })
+  }
+  await b.metrics(1280, 900)
+}
+
+// --- V4b: envío, vuelta a Mis citas y la pantalla medida con teclado y ratón reales ----------------
+
+const R_NOW = 'Miércoles 16 de mayo · 09:30. Al confirmar, esa hora se libera.'
+const R_BEFORE = 'Antes: miércoles 16 de mayo, 09:30'
+const label = `(() => { const a = document.activeElement; if (!a || a === document.body) return 'BODY'; return a.tagName + (a.id && !a.id.startsWith('react-aria') && !a.id.startsWith('_r') ? '#' + a.id : '') + ' ' + (a.getAttribute('aria-label') || a.textContent.trim().slice(0, 30)) })()`
+const cortesCard = `[...document.querySelectorAll('.c-appointment-card')].find((c) => c.querySelector('.c-appointment-card__name')?.textContent === 'Dr. Iván Cortés Naranjo')`
+const clickExpr = async (b, expr) => {
+  const { x, y } = await b.ev(`(() => { const e = ${expr}; e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
+  await b.click(x, y)
+  await settle()
+}
+const waitPath = async (b, path) => {
+  for (let i = 0; i < 50 && (await b.ev('location.pathname')) !== path; i++) await sleep(100)
+  await settle(300)
+}
+const isDesktop = (b) => b.ev(`matchMedia('(min-width: 64rem)').matches`)
+const submitSel = async (b) => ((await isDesktop(b)) ? '.c-booking-summary__actions .c-button' : '.c-booking-bar__submit')
+// Día y hora con clic real: la celda del calendario en escritorio, el chip en móvil, y la hora.
+const pick = async (b, day, time) => {
+  if (await isDesktop(b)) await clickExpr(b, `[...document.querySelectorAll('.c-slot-picker__calendar td')].find((td) => td.textContent.trim() === '${day}')`)
+  else await clickExpr(b, `[...document.querySelectorAll('.c-day-chip')].find((c) => c.querySelector('.c-day-chip__day')?.textContent === '${day}')`)
+  await clickExpr(b, `[...document.querySelectorAll('.c-time-slot')].find((s) => s.textContent.includes('${time}'))`)
+}
+// Desde Mis citas, «Reprogramar» de Cortés (clic real) y el 17 a las 17:00.
+const toReschedule = async (b, width) => {
+  await b.metrics(width, 900)
+  await b.go(LIST)
+  await clickExpr(b, `${cortesCard}.querySelector('a')`)
+  await waitPath(b, RESCHEDULE)
+  await pick(b, '17', '17:00')
+}
+const confirmHour = async (b) => {
+  await clickSel(b, await submitSel(b))
+  await waitPath(b, LIST)
+}
+// Atrás y Adelante del navegador (el historial de la pestaña, no history.back()).
+const historyStep = async (b, delta) => {
+  const { currentIndex, entries } = await b.send('Page.getNavigationHistory')
+  await b.send('Page.navigateToHistoryEntry', { entryId: entries[currentIndex + delta].id })
+  await settle(700)
+}
+const FOCUS_LOG = `(() => { window.__focusLog = []; window.__focusObserver?.disconnect(); window.__focusObserver = new MutationObserver(() => { const a = document.activeElement; window.__focusLog.push(!a || a === document.body ? 'BODY' : a.tagName) }); window.__focusObserver.observe(document.body, { childList: true, subtree: true }); return true })()`
+const noticeNow = `({ ruta: location.pathname, aviso: document.querySelector('main .c-notice--success .c-notice__title')?.textContent ?? null, foco: ${label}, pasoPorBody: (window.__focusLog ?? []).includes('BODY') })`
+
+// Sonda de «Confirmar hora»: al final de cada lote de mutaciones y antes de
+// cada pintado, qué página hay (por su h1, no por la URL: React Router cambia
+// la URL antes del commit), la placa y «Antes:» de la reprogramación, la
+// fecha de la tarjeta de Cortés, el aviso y el foco. El foco en body se
+// cuenta desde el envío (evento submit): el clic que lleva el foco de la hora
+// al botón deja un lote con body entre el blur y el focus (docs/verificacion.md,
+// Trampas), antes del envío y ajeno a él.
+const RESCHEDULE_PROBE = `(() => {
+  document.addEventListener('submit', () => { window.__sent = true }, { capture: true, once: true })
+  const state = () => {
+    const h1 = document.querySelector('main h1')?.textContent
+    const a = document.activeElement
+    return {
+      enviado: Boolean(window.__sent),
+      pagina: h1 === 'Mis citas' ? 'mis-citas' : h1 === 'Dr. Iván Cortés Naranjo' ? 'reprogramar' : 'otra',
+      placa: document.querySelector('main .c-notice--info:not(.c-booking-summary *) .c-notice__text p:last-child')?.textContent ?? null,
+      antes: document.querySelector('.c-booking-details__previous')?.textContent ?? null,
+      cortes: ${cortesCard}?.querySelector('h3')?.textContent ?? null,
+      aviso: document.querySelector('main .c-notice--success .c-notice__title')?.textContent ?? null,
+      foco: !a || a === document.body ? 'BODY' : a.tagName + (a.id === 'aviso' ? '#aviso' : ''),
+    }
+  }
+  window.__batches = []
+  window.__frames = []
+  new MutationObserver(() => window.__batches.push(state())).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true })
+  const tick = () => { window.__frames.push(state()); if (window.__frames.length < 120) requestAnimationFrame(tick) }
+  requestAnimationFrame(tick)
+  return true
+})()`
+const RESCHEDULE_READ = `(() => {
+  const all = [...window.__batches, ...window.__frames]
+  const here = all.filter((s) => s.pagina === 'reprogramar')
+  const there = all.filter((s) => s.pagina === 'mis-citas')
+  const first = window.__batches.find((s) => s.pagina === 'mis-citas')
+  return {
+    conFechaNueva: here.filter((s) => (s.placa !== null && s.placa !== ${JSON.stringify(R_NOW)}) || (s.antes !== null && s.antes !== ${JSON.stringify(R_BEFORE)})).length,
+    primerLote: first && { cortes: first.cortes, aviso: first.aviso, foco: first.foco },
+    misCitasIncompletos: there.filter((s) => s.cortes !== 'Jueves 17 de mayo · 17:00' || s.aviso !== 'Cita reprogramada' || s.foco !== 'H2#aviso').length,
+    enviado: all.some((s) => s.enviado),
+    enBodyTrasEnviar: all.filter((s) => s.enviado && s.foco === 'BODY').length,
+    otraPagina: all.filter((s) => s.pagina === 'otra').length,
+    frames: window.__frames.length > 0,
+  }
+})()`
+
+async function rescheduleProbe(b, expect) {
+  await b.overlayScrollbars(true)
+  const out = {}
+  for (const w of [375, 1440]) {
+    await toReschedule(b, w)
+    const i0 = await b.ev(idx)
+    await b.ev(RESCHEDULE_PROBE)
+    await clickSel(b, await submitSel(b))
+    await sleep(2200)
+    out[w] = {
+      ...(await b.ev(RESCHEDULE_READ)),
+      ruta: await b.ev('location.pathname'),
+      mismoIdx: (await b.ev(idx)) === i0,
+      state: await b.ev('history.state?.usr?.focus'),
+      aviso: await b.ev(`(() => { const n = document.querySelector('main .c-notice--success'); return { role: n.getAttribute('role'), titulo: n.querySelector('.c-notice__title').tagName, cuerpo: n.querySelector('.c-notice__text p').textContent } })()`),
+      focoAlLeer: await b.ev(label),
+    }
+  }
+  const expected = {
+    conFechaNueva: 0, primerLote: { cortes: 'Jueves 17 de mayo · 17:00', aviso: 'Cita reprogramada', foco: 'H2#aviso' }, misCitasIncompletos: 0, enviado: true, enBodyTrasEnviar: 0, otraPagina: 0, frames: true,
+    ruta: LIST, mismoIdx: true, state: 'aviso', aviso: { role: null, titulo: 'H2', cuerpo: 'Tu cita pasó al jueves 17 de mayo, 17:00.' }, focoAlLeer: 'H2#aviso Cita reprogramada',
+  }
+  expect('sonda de «Confirmar hora» (clic real; MutationObserver y requestAnimationFrame): ningún lote ni frame de la reprogramación con la fecha nueva; el primer lote de Mis citas ya trae la tarjeta del 17, el aviso y el foco en su título; nunca body; replace con state.focus', out, { 375: expected, 1440: expected })
+  await b.metrics(1280, 900)
+}
+
+// POP entre las dos entradas de Mis citas (Atrás y Adelante del navegador):
+// sin aviso; si el foco estaba en su título, al h1 (useFocusFallback) sin
+// ningún lote en body; si estaba en una tarjeta, no se mueve. Contraprueba:
+// sin el respaldo (focus() anulado para #contenido en el prototipo, la única
+// llamada durante el POP), body.
+async function popEntries(b, expect) {
+  await b.overlayScrollbars(true)
+  await toReschedule(b, 375)
+  await confirmHour(b)
+  const llegada = await b.ev(label)
+  await b.ev(FOCUS_LOG)
+  await historyStep(b, -1)
+  const atras = await b.ev(noticeNow)
+  await b.tabTo(`${cortesCard}.querySelector('button')`)
+  await b.ev('(window.__button = document.activeElement), true')
+  await b.ev(FOCUS_LOG)
+  await historyStep(b, 1)
+  const adelante = { ...(await b.ev(noticeNow)), mismoNodo: await b.ev('document.activeElement === window.__button') }
+  await toReschedule(b, 375)
+  await confirmHour(b)
+  await b.ev(`(() => { const f = HTMLElement.prototype.focus; HTMLElement.prototype.focus = function (o) { if (this.id !== 'contenido') f.call(this, o) }; return true })()`)
+  await b.ev(FOCUS_LOG)
+  await historyStep(b, -1)
+  const sinRespaldo = await b.ev(noticeNow)
+  expect('POP entre las dos entradas de Mis citas: Atrás con el foco en el aviso → sin aviso y foco en el h1 sin pasar por body; Adelante con el foco en una tarjeta → sin aviso y el foco no se mueve; sin el respaldo, body (contraprueba)', { llegada, atras, adelante, sinRespaldo }, {
+    llegada: 'H2#aviso Cita reprogramada',
+    atras: { ruta: LIST, aviso: null, foco: 'H1#contenido Mis citas', pasoPorBody: false },
+    adelante: { ruta: LIST, aviso: null, foco: 'BUTTON Cancelar cita', pasoPorBody: false, mismoNodo: true },
+    sinRespaldo: { ruta: LIST, aviso: null, foco: 'BODY', pasoPorBody: true },
+  })
+  await b.metrics(1280, 900)
+}
+
+// Recarga de la entrada con el aviso: carga inicial, sin aviso (el almacén se
+// reinicia) y con state.focus conservado; Atrás desde otra página: sin aviso
+// y respaldo al h1 (D12).
+async function reloadAndBack(b, expect) {
+  await b.overlayScrollbars(true)
+  await toReschedule(b, 375)
+  await confirmHour(b)
+  await b.send('Page.reload')
+  for (let i = 0; i < 50; i++) {
+    await sleep(100)
+    if (await b.ev(`document.readyState === 'complete' && document.querySelector('main h1')?.textContent === 'Mis citas'`)) break
+  }
+  await settle(300)
+  const recarga = { ...(await b.ev(noticeNow)), state: await b.ev('history.state?.usr?.focus'), cortes: await b.ev(`${cortesCard}.querySelector('h3').textContent`) }
+  delete recarga.pasoPorBody
+  await toReschedule(b, 375)
+  await confirmHour(b)
+  await clickSel(b, '.c-bottom-nav a[href="/"]')
+  await waitPath(b, '/')
+  await historyStep(b, -1)
+  const atras = await b.ev(noticeNow)
+  delete atras.pasoPorBody
+  expect('recarga de Mis citas tras reprogramar: sin aviso, foco en body (carga inicial) y state.focus conservado; Atrás desde otra página: sin aviso y foco en el h1 (el destino no existe)', { recarga, atras }, {
+    recarga: { ruta: LIST, aviso: null, foco: 'BODY', state: 'aviso', cortes: 'Miércoles 16 de mayo · 09:30' },
+    atras: { ruta: LIST, aviso: null, foco: 'H1#contenido Mis citas' },
+  })
+  await b.metrics(1280, 900)
+}
+
+// Reprogramar c3 y después cancelarla: la key del aviso lleva el tipo, así
+// que «Cita cancelada» es otro Notice y el foco llega a su título en el commit
+// del aviso (misma sonda que cancelar).
+const SWAP_PROBE = `(() => {
+  const state = () => { const a = document.activeElement; return { aviso: document.querySelector('main .c-notice--success .c-notice__title')?.textContent ?? null, foco: !a || a === document.body ? 'BODY' : a.tagName + (a.id ? '#' + a.id : '') + ' ' + a.textContent.trim().slice(0, 20) } }
+  window.__batches = []
+  new MutationObserver(() => window.__batches.push(state())).observe(document.body, { childList: true, subtree: true, attributes: true })
+  return true
+})()`
+async function rescheduleThenCancel(b, expect) {
+  await b.overlayScrollbars(true)
+  await toReschedule(b, 375)
+  await confirmHour(b)
+  await clickExpr(b, `${cortesCard}.querySelector('button')`)
+  await b.ev(SWAP_PROBE)
+  await clickSel(b, '.c-dialog .c-button--destructive')
+  await sleep(600)
+  const out = await b.ev(`({ focoAlAparecer: window.__batches.find((s) => s.aviso === 'Cita cancelada')?.foco ?? null, focoFinal: window.__batches.at(-1)?.foco ?? null, cuerpo: document.querySelector('main .c-notice--success .c-notice__text p').textContent })`)
+  expect('reprogramar c3 y cancelarla: «Cita cancelada» sustituye a «Cita reprogramada» (key con el tipo) y el foco llega a su título en el commit del aviso', { ...out, focoAlLeer: await b.ev(label) }, {
+    focoAlAparecer: 'H2#aviso Cita cancelada', focoFinal: 'H2#aviso Cita cancelada',
+    cuerpo: 'Ya no tienes la cita del jueves 17 de mayo a las 17:00 con el Dr. Cortés.', focoAlLeer: 'H2#aviso Cita cancelada',
+  })
+  await b.metrics(1280, 900)
+}
+
+// Contador de takeNotice desde el script (solo dev: importa la URL exacta del
+// módulo que cargó la app, docs/verificacion.md, Trampas): 1 por llegada a Mis
+// citas; entrar en la reprogramación no lo ejecuta.
+async function takeCounter(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 900)
+  await b.go(LIST)
+  await b.ev(`(() => { const url = performance.getEntriesByType('resource').map((e) => e.name).find((n) => n.includes('/src/data/appointments.ts')); return import(url).then((m) => { const s = m.appointmentStore; const take = s.takeNotice; window.__takes = []; s.takeNotice = () => { const r = take(); window.__takes.push(r); return r }; return true }) })()`)
+  await clickExpr(b, `${cortesCard}.querySelector('a')`)
+  await waitPath(b, RESCHEDULE)
+  const alEntrar = await b.ev('window.__takes.length')
+  await pick(b, '17', '17:00')
+  await confirmHour(b)
+  const alVolver = await b.ev('window.__takes')
+  await historyStep(b, -1)
+  const alAtras = await b.ev('window.__takes')
+  expect('takeNotice (contador desde el script): 0 al entrar en la reprogramación; 1 por llegada a Mis citas (la vuelta lo consume; Atrás lo vuelve a pedir y ya no hay)', { alEntrar, alVolver, alAtras }, {
+    alEntrar: 0, alVolver: [{ kind: 'reprogramada', id: 'c3' }], alAtras: [{ kind: 'reprogramada', id: 'c3' }, null],
+  })
+  await b.metrics(1280, 900)
+}
+
+// El envío en el árbol AX: nombre y descripción con las dos fechas (panel 02.0).
+const ax = async (b, selector) => {
+  await b.send('Accessibility.enable')
+  const { root } = await b.send('DOM.getDocument', { depth: 0 })
+  const { nodeId } = await b.send('DOM.querySelector', { nodeId: root.nodeId, selector })
+  const { nodes } = await b.send('Accessibility.getPartialAXTree', { nodeId, fetchRelatives: false })
+  const n = nodes.find((x) => !x.ignored) ?? nodes[0]
+  return { rol: n.role?.value, nombre: n.name?.value, descripcion: n.description?.value ?? null }
+}
+async function rescheduleStructure(b, expect) {
+  await b.overlayScrollbars(true)
+  const headings = `[...document.querySelectorAll('main h1, main h2, main h3')].map((h) => h.tagName + ' ' + h.textContent.trim())`
+  await b.metrics(375, 900)
+  await b.go(R027)
+  const movil = {
+    titulo: await b.ev('document.title'),
+    encabezados: await b.ev(headings),
+    placa: await b.ev(`(() => { const n = document.querySelector('main .c-notice--info'); return { role: n.getAttribute('role'), titulo: n.querySelector('.c-notice__title').tagName, foco: n.querySelector('[tabindex]') !== null } })()`),
+    retroceso: await b.ev(`document.querySelector('.c-back-link').getAttribute('href')`),
+    pestana: await b.ev(`document.querySelector('.c-bottom-nav')`),
+    envio: await ax(b, '.c-booking-bar__submit'),
+  }
+  await b.metrics(1440, 900)
+  await b.go(R027)
+  const escritorio = {
+    encabezados: await b.ev(headings),
+    seccion: await b.ev(`(() => { const s = document.querySelector('section.c-booking-summary'); return { nombre: document.getElementById(s.getAttribute('aria-labelledby')).textContent, enElForm: Boolean(s.closest('form')), aside: document.querySelectorAll('main aside').length, pasos: s.querySelector('ol') !== null, nota: s.querySelector('.c-booking-summary__note') !== null } })()`),
+    alConfirmar: await b.ev(`(() => { const n = document.querySelector('.c-booking-summary .c-notice'); return { role: n.getAttribute('role'), titulo: n.querySelector('.c-notice__title').tagName } })()`),
+    breadcrumb: await b.ev(`[...document.querySelectorAll('.c-breadcrumb li')].map((l) => l.textContent.replace('/', '').trim() + (l.querySelector('a') ? ' → ' + l.querySelector('a').getAttribute('href') : ''))`),
+    pestana: await b.ev(`(() => { const a = document.querySelector('.c-header-desktop [aria-current]'); return a.textContent + ' · ' + a.getAttribute('aria-current') })()`),
+    leyenda: await b.ev(`[...document.querySelectorAll('.c-calendar__legend-item')].map((i) => i.textContent.trim())`),
+    mesAnterior: await b.ev(`document.querySelector('[aria-label="Mes anterior"]') !== null`),
+    dia16: await b.ev(`(() => { const cell = (d) => [...document.querySelectorAll('.c-slot-picker__calendar td')].find((td) => td.textContent.trim() === d); const sig = (d) => { const c = cell(d); const e = c.querySelector('[aria-label]') ?? c; return [c.className, e.className, e.getAttribute('aria-selected'), e.getAttribute('aria-disabled')].join('|') }; return { igualQue15: sig('16').replaceAll('16', 'N') === sig('15').replaceAll('15', 'N'), igualQue18: sig('16').replaceAll('16', 'N') === sig('18').replaceAll('18', 'N') } })()`),
+    envio: await ax(b, '.c-booking-summary__actions .c-button'),
+  }
+  // El h2 «mayo de 2029» es el oculto de RAC (DESIGN.md § Fecha y hora). La
+  // descripción la calcula Chromium con los textos de los ids de
+  // aria-describedby separados por espacios.
+  expect('02.7 y 02.8: título (D15), encabezados, placa y «Al confirmar» sin role ni encabezado (C2), «El cambio» como section en el form sin pasos ni nota (C1), retroceso a Mis citas, pestaña «Mis citas» como sección, mayo con «Mes anterior» y sin «Hoy», el 16 igual que un día libre, y el envío descrito por las dos fechas en el árbol AX (C4)', { movil, escritorio }, {
+    movil: {
+      titulo: 'Reprogramar cita · Dr. Iván Cortés Naranjo · Salvia',
+      encabezados: ['H1 Dr. Iván Cortés Naranjo', 'H2 Elige fecha', 'H2 Elige hora'],
+      placa: { role: null, titulo: 'P', foco: false },
+      retroceso: LIST,
+      pestana: null,
+      envio: { rol: 'button', nombre: 'Confirmar hora', descripcion: `jue 17 may · 17:00 Presencial · 30 min Tu cita actual ${R_NOW}` },
+    },
+    escritorio: {
+      encabezados: ['H1 Dr. Iván Cortés Naranjo', 'H2 Elige fecha', 'H2 mayo de 2029', 'H2 Elige hora', 'H2 El cambio'],
+      seccion: { nombre: 'El cambio', enElForm: true, aside: 0, pasos: false, nota: false },
+      alConfirmar: { role: null, titulo: 'P' },
+      breadcrumb: ['Mis citas → /mis-citas', 'Dr. Cortés'],
+      pestana: 'Mis citas · true',
+      leyenda: ['Sin horarios'],
+      mesAnterior: true,
+      dia16: { igualQue15: true, igualQue18: true },
+      envio: { rol: 'button', nombre: 'Confirmar hora', descripcion: `Nueva cita Jueves 17 de mayo, 17:00 ${R_BEFORE}` },
+    },
+  })
+  await b.metrics(1280, 900)
+}
+
+// Missing en escritorio con clic real y con Intro (sin parámetros: el 15).
+async function missingDesktop(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(1440, 900)
+  const read = `({ estado: document.querySelector('.c-slot-picker__status').textContent, foco: (() => { const a = document.activeElement; return a.tagName + ' ' + a.textContent.trim() })(), describe: document.activeElement.getAttribute('aria-describedby')?.split(' ').map((i) => document.getElementById(i)?.textContent).join(' | ') ?? null, mensaje: document.querySelector('.c-booking-summary__message')?.textContent ?? null, url: location.search })`
+  await b.go(RESCHEDULE)
+  const inicial = await b.ev(`document.querySelector('.c-slot-picker__status').textContent`)
+  await clickSel(b, '.c-booking-summary__actions .c-button')
+  const clic = await b.ev(read)
+  await b.go(RESCHEDULE)
+  await b.tabTo(`document.querySelector('.c-booking-summary__actions .c-button')`)
+  await b.enter()
+  await settle(300)
+  const intro = await b.ev(read)
+  const expected = { estado: 'Martes 15 de mayo · 8 horarios libres', foco: 'DIV 09:00', describe: 'Elige un horario primero', mensaje: 'Elige un horario primero', url: '' }
+  expect('Missing en escritorio (sin parámetros, el martes 15): con clic real y con Intro, el foco va a la primera hora libre, descrita por «Elige un horario primero»', { inicial, clic, intro }, { inicial: 'Martes 15 de mayo · 8 horarios libres', clic: expected, intro: expected })
+  await b.metrics(1280, 900)
+}
+
+// C6 (≠ declarado, D4): reprogramar no cambia la disponibilidad, así que una
+// cita puede volver a su propia hora. c1 al 24 a las 10:30 (su hora) y c3 en
+// una segunda pasada, otra vez al 17 a las 17:00.
+async function sameSlot(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(1440, 900)
+  const before = `({ nuevaCita: document.querySelector('.c-booking-details__value').textContent, antes: document.querySelector('.c-booking-details__previous').textContent, alConfirmar: document.querySelector('.c-booking-summary .c-notice__text p:last-child').textContent })`
+  const after = `document.querySelector('main .c-notice--success .c-notice__text p').textContent`
+  await b.go('/mis-citas/c1/reprogramar?fecha=2029-04-24&hora=10:30')
+  const c1 = { antesDeEnviar: await b.ev(before) }
+  await confirmHour(b)
+  c1.aviso = await b.ev(after)
+  await toReschedule(b, 1440)
+  await confirmHour(b)
+  await clickExpr(b, `${cortesCard}.querySelector('a')`)
+  await waitPath(b, RESCHEDULE)
+  await pick(b, '17', '17:00')
+  const c3 = { antesDeEnviar: await b.ev(before) }
+  await confirmHour(b)
+  c3.aviso = await b.ev(after)
+  expect('C6 (≠ declarado, D4): una cita reprogramada a su propia hora nombra dos fechas iguales (c1 al 24 a las 10:30; c3 otra vez al 17 a las 17:00)', { c1, c3 }, {
+    c1: { antesDeEnviar: { nuevaCita: 'Martes 24 de abril, 10:30', antes: 'Antes: martes 24 de abril, 10:30', alConfirmar: 'Se libera el martes 24 de abril a las 10:30 y tu cita pasa al martes 24. Puedes volver a cambiarla hasta 24 horas antes.' }, aviso: 'Tu cita pasó al martes 24 de abril, 10:30.' },
+    c3: { antesDeEnviar: { nuevaCita: 'Jueves 17 de mayo, 17:00', antes: 'Antes: jueves 17 de mayo, 17:00', alConfirmar: 'Se libera el jueves 17 de mayo a las 17:00 y tu cita pasa al jueves 17. Puedes volver a cambiarla hasta 24 horas antes.' }, aviso: 'Tu cita pasó al jueves 17 de mayo, 17:00.' },
+  })
+  await b.metrics(1280, 900)
+}
+
+// C7 (coste declarado): «Confirmar hora» mide 167,3 en el navegador (Figma
+// 167), así que la barra necesita 335,3 de interior (resumen 152 + 16 +
+// 167,3): 368 de viewport con barra superpuesta y 383 con la clásica (el
+// plan decía 367 / 382, con el ancho de Figma). Por debajo, el botón baja de
+// línea y la barra mide 134.
+async function barSweep(b, expect) {
+  const read = `(() => { const bar = document.querySelector('.c-booking-bar'); const s = document.querySelector('.c-booking-bar__summary').getBoundingClientRect(), btn = document.querySelector('.c-booking-bar__submit').getBoundingClientRect(); return { alto: Math.round(bar.getBoundingClientRect().height), unaFila: Math.round(s.top) < Math.round(btn.bottom) && Math.round(btn.top) < Math.round(s.bottom), boton: Math.round(btn.width * 10) / 10 } })()`
+  const out = {}
+  for (const [w, overlay] of [[368, true], [367, true], [383, false], [382, false], [375, false], [375, true]]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(w, 900)
+    await b.go(R027)
+    out[`${w} ${overlay ? 'sup' : 'clás'}`] = await b.ev(read)
+  }
+  const row = { alto: 74, unaFila: true, boton: 167.3 }
+  const wrapped = { alto: 134, unaFila: false, boton: 167.3 }
+  expect('C7: la barra con «Confirmar hora» en una fila desde 368 (superpuesta) y 383 (clásica); por debajo, el botón baja de línea (también a 375 con barra clásica)', out, {
+    '368 sup': row, '367 sup': wrapped, '383 clás': row, '382 clás': wrapped, '375 clás': wrapped, '375 sup': row,
+  })
+  await b.metrics(1280, 900)
+}
+
+// Guarda de D1 en cliente: con c1 cancelada, su reprogramación → replace a
+// /mis-citas (la entrada empujada se sustituye, sin crecer), y el foco en el h1.
+// Solo dev: el aviso de cancelar se retira al cambiar de entrada (useFocusFallback).
+async function rescheduleGuard(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(1280, 900)
+  await b.go(LIST)
+  await cancelAt(b, 1)
+  const i0 = await b.ev(idx)
+  await b.ev(`(history.pushState({ usr: null, key: 'verify', idx: (history.state?.idx ?? 0) + 1 }, '', '/mis-citas/c1/reprogramar'), dispatchEvent(new PopStateEvent('popstate', { state: history.state })), true)`)
+  await sleep(700)
+  const out = { ...(await b.ev(`({ ruta: location.pathname, h1: document.querySelector('main h1').textContent, aviso: document.querySelector('main .c-notice--success') !== null })`)), foco: await b.ev(label), entradas: (await b.ev(idx)) - i0 }
+  expect('guarda en cliente: c1 cancelada → su reprogramación hace replace a /mis-citas (una sola entrada, la empujada) y el foco va al h1', out, { ruta: LIST, h1: 'Mis citas', aviso: false, foco: 'H1#contenido Mis citas', entradas: 1 })
+}
+
+// Cruce de lg: el h1 de la reprogramación es el mismo nodo (su padre no
+// cambia); el foco en la barra o en «Confirmar hora» de «El cambio» va al h1;
+// sin el respaldo, body (contraprueba).
+async function rescheduleCross(b, expect) {
+  await b.overlayScrollbars(true)
+  const h1 = await h1AcrossLg(b, R027)
+  const out = {}
+  await b.metrics(375, 900)
+  await b.go(R027)
+  await b.ev(`document.querySelector('.c-booking-bar__submit').focus(), true`)
+  await b.metrics(1100, 900)
+  await settle(400)
+  out.barraAEscritorio = await b.ev(label)
+  await b.ev(`document.querySelector('.c-booking-summary__actions .c-button').focus(), true`)
+  await b.metrics(375, 900)
+  await settle(400)
+  out.cambioAMovil = await b.ev(label)
+  await b.go(R027)
+  await b.ev(`(() => { const f = HTMLElement.prototype.focus; HTMLElement.prototype.focus = function (o) { if (this.id !== 'contenido') f.call(this, o) }; document.querySelector('.c-booking-bar__submit').focus(); return true })()`)
+  await b.metrics(1100, 900)
+  await settle(400)
+  out.sinRespaldo = await b.ev(label)
+  expect('cruce de lg en la reprogramación: el h1 es el mismo nodo (llegada por useRouteFocus, los dos sentidos, sin lotes en body); la barra y «El cambio» → h1; sin el respaldo, body (contraprueba)', { h1, ...out }, {
+    h1: { '375→1100': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: false, pasoPorBody: false }, '1100→375': { llegada: 'H1#contenido', foco: 'H1#contenido', nodoNuevo: false, pasoPorBody: false } },
+    barraAEscritorio: 'H1#contenido Dr. Iván Cortés Naranjo', cambioAMovil: 'H1#contenido Dr. Iván Cortés Naranjo', sinRespaldo: 'BODY',
+  })
+  await b.metrics(1280, 900)
+}
+
+// Navegación en cliente Mis citas → «Reprogramar» (clic real, 375, barra
+// clásica): la reprogramación en cliente frente a la recargada.
+async function rescheduleNavigation(b, expect) {
+  await b.overlayScrollbars(false)
+  await b.metrics(375, 900, 1)
+  const nav = await clientNavigation(b, { from: LIST, link: 'Reprogramar', to: '/mis-citas/c1/reprogramar', park: true, state: `({ h1: document.querySelector('main h1').textContent, foco: ${label}, titulo: document.title })` })
+  delete nav.afterClient
+  delete nav.afterReload
+  expect(
+    'navegación en cliente Mis citas → «Reprogramar» de la Dra. Ruiz (clic real, 375, barra clásica): foco en el h1 y título de D15; sin restos en los píxeles, y el resto de pintado explicado o mitigado (✗ declarado: DESIGN.md, Pendientes, «Resto de pintado»)',
+    { ...nav, explicado: false },
+    { ruta: '/mis-citas/c1/reprogramar', sinRecarga: true, estado: { h1: 'Dra. Elena Ruiz Arellano', foco: 'H1#contenido Dra. Elena Ruiz Arellano', titulo: 'Reprogramar cita · Dra. Elena Ruiz Arellano · Salvia' }, pixelesDistintosDeLaRecarga: 0, cuatroSegundosDespues: 0, explicado: true },
+  )
+  await b.metrics(1280, 900, 1)
+}
+
+// Anchos intermedios, 200 % a 320 con las dos barras, letra del navegador y
+// forced-colors en 02.7 y 02.8.
+const TEXT_R = '.c-notice__text > *, .c-page-header__title, .c-page-header__specialty, .c-page-header__location-text, .c-back-link, .c-slot-picker__month, .c-slot-picker__week-label, .c-legend__heading, .c-day-chip__weekday, .c-day-chip__day, .c-time-slot, .c-slot-picker__status, .c-slot-list__label, .c-booking-bar__title, .c-booking-bar__meta-text, .c-booking-bar__submit'
+async function rescheduleWidths(b, expect) {
+  const read = `(() => { const card = document.querySelector('.c-slot-picker__card'); return { chrome: document.querySelector('.c-header-desktop') ? 'escritorio' : 'móvil', placa: document.querySelector('main .c-notice--info:not(.c-booking-summary *)') !== null, cambio: document.querySelector('section.c-booking-summary') !== null, barra: document.querySelector('.c-booking-bar') !== null, fila: card ? getComputedStyle(card).flexDirection === 'row' : null, desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth } })()`
+  const out = {}
+  for (const [w, overlay] of [[320, true], [360, true], [608, true], [1023, false], [1024, true], [1112, true], [1113, true], [1440, true]]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(w, 900)
+    await b.go(R027)
+    out[`${w} ${overlay ? 'sup' : 'clás'}`] = await b.ev(read)
+  }
+  const mobile = { chrome: 'móvil', placa: true, cambio: false, barra: true, fila: null, desborde: 0 }
+  const desktop = (fila) => ({ chrome: 'escritorio', placa: false, cambio: true, barra: false, fila, desborde: 0 })
+  expect('anchos intermedios de la reprogramación: chrome móvil con placa y barra hasta 1023; desde lg, «El cambio» y la tarjeta apilada hasta 1112 y en fila desde 1113 (umbral slot-picker); sin desborde', out, {
+    '320 sup': mobile, '360 sup': mobile, '608 sup': mobile, '1023 clás': mobile, '1024 sup': desktop(false), '1112 sup': desktop(false), '1113 sup': desktop(true), '1440 sup': desktop(true),
+  })
+
+  const zoom = {}
+  for (const overlay of [true, false]) {
+    await b.overlayScrollbars(overlay)
+    await b.metrics(320, 900)
+    await b.go(R027)
+    const html = await b.run(text200)
+    await settle(300)
+    const words = await b.run(splitWords, TEXT_R)
+    zoom[overlay ? 'sup' : 'clás'] = { html, desborde: await b.run(overflow), parten: words.split.sort(), pudiendoCaber: words.couldFit.sort() }
+  }
+  // Con barra clásica, «Confirmar» (la del botón de la barra, interior 143)
+  // y «completo» («Ver mes completo», interior 143) son más anchas que su
+  // interior, como «Continuar» y «completo» en 02.1 (V2a).
+  expect('02.7 al 200 % a 320 con las dos barras: sin desborde; solo parten palabras más anchas que su elemento', zoom, {
+    sup: { html: '32px', desborde: 0, parten: [], pudiendoCaber: [] },
+    clás: { html: '32px', desborde: 0, parten: ['Confirmar', 'completo'], pudiendoCaber: [] },
+  })
+
+  const large = {}
+  for (const [w, px] of [[320, 24], [320, 32], [375, 20]]) {
+    await b.overlayScrollbars(false)
+    await b.metrics(w, 800)
+    await font(b, px)
+    await b.go(R027)
+    const page = await b.ev(`({ html: getComputedStyle(document.documentElement).fontSize, barra: getComputedStyle(document.querySelector('.c-app-layout__bar')).position, desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth })`)
+    large[`${w} letra ${px}`] = { ...page, pudiendoCaber: (await b.run(splitWords, TEXT_R)).couldFit }
+  }
+  await font(b, 16)
+  const big = (px) => ({ html: `${px}px`, barra: 'static', desborde: 0, pudiendoCaber: [] })
+  expect('02.7 con la letra del navegador a 24 y 32 (320) y a 20 (375): barra estática, sin desborde ni palabras partidas pudiendo caber', large, { '320 letra 24': big(24), '320 letra 32': big(32), '375 letra 20': big(20) })
+
+  await b.overlayScrollbars(true)
+  await b.forcedColors(true)
+  const border = (selector) => `(() => { const c = getComputedStyle(document.querySelector(${JSON.stringify(selector)})); return c.borderTopStyle + ' ' + c.borderTopWidth + ' ' + (c.borderTopColor === 'rgba(0, 0, 0, 0)' ? 'transparente' : 'visible') })()`
+  await b.metrics(375, 900)
+  await b.go(R027)
+  const forced = { placa: await b.ev(border('main .c-notice--info')), barra: await b.ev(border('.c-booking-bar')) }
+  await b.shot('forced-02.7.png', { x: 0, y: 0, width: 375, height: 900 })
+  await b.metrics(1440, 900)
+  await b.go(R027)
+  forced.cambio = await b.ev(border('.c-booking-summary__card'))
+  forced.alConfirmar = await b.ev(border('.c-booking-summary .c-notice'))
+  forced.confirmar = await b.ev(border('.c-booking-summary__actions .c-button'))
+  await b.shot('forced-02.8.png', { x: 0, y: 0, width: 1440, height: 900 })
+  await confirmHour(b)
+  forced.aviso = await b.ev(border('main .c-notice--success'))
+  await b.forcedColors(false)
+  const solid = 'solid 1px visible'
+  expect('forced-colors: placa, barra, «El cambio», «Al confirmar», «Confirmar hora» y el aviso «Cita reprogramada» conservan su contorno', forced, { placa: solid, barra: solid, cambio: solid, alConfirmar: solid, confirmar: solid, aviso: solid })
+  await b.metrics(1280, 900)
+}
+
+// Orden de Tab en 02.7 y 02.8.
+async function rescheduleTab(b, expect) {
+  await b.overlayScrollbars(true)
+  const order = async (w, n) => {
+    await b.metrics(w, 900)
+    await b.go(R027)
+    await b.ev('document.activeElement?.blur(), window.scrollTo(0, 0), true')
+    const out = []
+    for (let i = 0; i < n; i++) {
+      await b.tab()
+      out.push(await b.ev(`(() => { const a = document.activeElement; return a === document.body ? 'BODY' : a.tagName + ' ' + (a.getAttribute('aria-label') || a.textContent.trim().slice(0, 30)) })()`))
+    }
+    return out
+  }
+  // La tira y la lista de horas son una parada cada una (radios y ListBox de
+  // RAC); el calendario, una (la celda enfocable). La barra de móvil va tras
+  // main. Tras el último control, el marco del navegador (body) y la vuelta.
+  expect('orden de Tab en 02.7 (salto, header, retroceso, «Ver mes completo», semana, tira, horas y «Confirmar hora») y 02.8 (salto, header, breadcrumb, mes, el día elegido, horas y «Confirmar hora»)', { '02.7': await order(375, 12), '02.8': await order(1440, 14) }, {
+    '02.7': ['A Saltar al contenido', 'A Salvia', 'A Ayuda', 'A Mis citas', 'BUTTON Ver mes completo', 'BUTTON Semana anterior', 'BUTTON Semana siguiente', 'INPUT ', 'DIV 17:00', 'BUTTON Confirmar hora', 'BODY', 'A Saltar al contenido'],
+    '02.8': ['A Saltar al contenido', 'A Salvia', 'A Especialistas', 'A Mis citas', 'A Ayuda', 'BUTTON Karla Sánchez', 'A Mis citas', 'BUTTON Mes anterior', 'BUTTON Mes siguiente', 'DIV jueves 17 de mayo de 2029, 8 horarios libres, seleccionado', 'DIV 17:00', 'BUTTON Confirmar hora', 'BODY', 'A Saltar al contenido'],
+  })
+  await b.metrics(1280, 900)
+}
+
 // Flujos de foco contra la preview (sin StrictMode).
 export async function previewFlows(b, expect) {
   await confirmFocus(b, expect)
@@ -774,6 +1363,12 @@ export async function previewFlows(b, expect) {
   await dialogInView(b, expect)
   await cancelProbe(b, expect)
   await cancelFlow(b, expect)
+  await rescheduleProbe(b, expect)
+  await popEntries(b, expect)
+  await reloadAndBack(b, expect)
+  await rescheduleThenCancel(b, expect)
+  await missingDesktop(b, expect)
+  await rescheduleCross(b, expect)
 }
 
 export default async function run(b, expect) {
@@ -796,4 +1391,19 @@ export default async function run(b, expect) {
   await cancelProbe(b, expect)
   await cancelFlow(b, expect)
   await cardStretch(b, expect)
+  await reschedulePairs(b, expect)
+  await rescheduleStructure(b, expect)
+  await rescheduleProbe(b, expect)
+  await popEntries(b, expect)
+  await reloadAndBack(b, expect)
+  await rescheduleThenCancel(b, expect)
+  await takeCounter(b, expect)
+  await missingDesktop(b, expect)
+  await sameSlot(b, expect)
+  await barSweep(b, expect)
+  await rescheduleGuard(b, expect)
+  await rescheduleCross(b, expect)
+  await rescheduleNavigation(b, expect)
+  await rescheduleWidths(b, expect)
+  await rescheduleTab(b, expect)
 }

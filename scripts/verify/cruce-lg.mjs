@@ -1,6 +1,6 @@
 // Foco en el h1 al cruzar lg (V4a). En la confirmación y en la vista 3 el h1 se
 // vuelve a montar al cruzar, porque su padre cambia (los pasos solo existen
-// por debajo de lg); el foco lo salva useLgFocusFallback en el mismo commit
+// por debajo de lg); el foco lo salva useFocusFallback en el mismo commit
 // (DESIGN.md, Pendientes, «5 · cierre»). Llega a `url` en cliente (POP desde
 // /kit/estados: useRouteFocus lleva el foco al h1), cruza lg en los dos
 // sentidos por CDP y registra con un MutationObserver el foco al final de cada

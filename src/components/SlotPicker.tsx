@@ -1,0 +1,299 @@
+import type { CalendarDate } from '@internationalized/date'
+import { useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react'
+import { nextFreeAfter, nextOpeningMonth } from '../data/availability.ts'
+import { TODAY } from '../data/clock.ts'
+import { notifyStore, useNotified } from '../data/notify.ts'
+import type { Specialist } from '../data/specialists.ts'
+import useMediaQuery from '../hooks/useMediaQuery.ts'
+import type useSlotPicker from '../hooks/useSlotPicker.ts'
+import Button from './Button.tsx'
+import Calendar from './Calendar.tsx'
+import DayStrip from './DayStrip.tsx'
+import EmptyState from './EmptyState.tsx'
+import IconButton from './IconButton.tsx'
+import Legend from './Legend.tsx'
+import Sheet from './Sheet.tsx'
+import SlotList, { type SlotListHandle } from './SlotList.tsx'
+import { dayTitle, freeSlotsText, monthName, weekdayDay, weekRangeText } from './dates.ts'
+
+// Selector de fecha y hora de la vista 2 (c-slot-picker), sin prop de modo
+// (D3): lo componen la reserva (Specialist.tsx) y la reprogramación. Todo lo
+// que cambia entre las dos queda fuera: copy y etiqueta del envío, la sección
+// de escritorio (`aside`), pasos, retroceso y destino tras el envío. Lo que
+// cambia dentro sale de los datos («Hoy» de la leyenda, «Semana anterior» y
+// «Mes anterior»).
+//
+// El estado es useSlotPicker (D2), en la composición: la barra y la sección
+// también lo leen. El form es del selector: el envío sin hora pasa a Missing
+// aquí, que es donde vive el destino del foco. Missing persiste hasta elegir
+// hora, también si cambia el día: el mensaje sigue siendo cierto. El destino
+// del foco y de su aria-describedby es la primera hora libre; sin horas, «Ver
+// horarios del …»; sin hueco publicado, «Avisarme si se libera un hueco».
+
+/** Destinos de foco tras un commit: la primera hora libre, el objetivo de Missing o el botón de semana que queda. */
+type PendingFocus = 'first-slot' | 'missing' | 'previous-week' | 'next-week' | null
+
+type Picker = ReturnType<typeof useSlotPicker>
+
+type DateSheetProps = {
+  picker: Picker
+  maxValue: CalendarDate
+  trigger: RefObject<HTMLButtonElement | null>
+  onClose: () => void
+}
+
+// Hoja «Elige una fecha» (02.2): UI/Calendar en una hoja inferior. Borrador
+// propio (D2), nacido de la fecha elegida: solo se aplica con «Ver horarios
+// del …»; «Cerrar», Escape y el velo lo descartan. Foco inicial en el día
+// seleccionado (panel 02.0); al cerrar, vuelve a «Ver mes completo» en los
+// tres casos. Aplicar el mismo día conserva la hora; otro día la borra y la
+// tira pasa a su semana (useSlotPicker). Solo se anuncia el estado de horas:
+// la región viva de la semana no se escribe desde aquí.
+function DateSheet({ picker, maxValue, trigger, onClose }: DateSheetProps) {
+  const [draft, setDraft] = useState(picker.date)
+  const [focused, setFocused] = useState(picker.date)
+
+  return (
+    <Sheet
+      variant="bottom"
+      title="Elige una fecha"
+      initialFocus={(dialog) => dialog.querySelector<HTMLElement>('.c-calendar__grid [tabindex="0"]')}
+      returnFocus={trigger}
+      onDismiss={onClose}
+      onSubmit={() => {
+        picker.selectDate(draft)
+        onClose()
+      }}
+      footer={
+        <Button type="submit" className="c-sheet__fill">
+          {`Ver horarios del ${weekdayDay(draft, focused)}`}
+        </Button>
+      }
+    >
+      <Calendar
+        value={draft}
+        onChange={setDraft}
+        today={TODAY}
+        maxValue={maxValue}
+        freeSlots={picker.freeSlots}
+        focusedValue={focused}
+        onFocusChange={setFocused}
+      />
+    </Sheet>
+  )
+}
+
+type SlotPickerProps = {
+  picker: Picker
+  specialist: Specialist
+  /** Último día reservable: min(MAX_DATE, publishedUntil) (D4). */
+  maxValue: CalendarDate
+  /** El form: la barra de móvil envía por él con form= (vive fuera de main). */
+  formId: string
+  /** Envío con hora elegida. Sin hora, el selector pasa a Missing y no llama. */
+  onSubmit: () => void
+  missing: boolean
+  onMissingChange: (missing: boolean) => void
+  /** El mensaje de Missing (barra o sección): lo recibe como aria-describedby el destino del foco. */
+  messageId: string
+  /** Sección de escritorio junto a la tarjeta, dentro del form: contiene el envío. */
+  aside: ReactNode
+}
+
+export default function SlotPicker({ picker, specialist, maxValue, formId, onSubmit, missing, onMissingChange, messageId, aside }: SlotPickerProps) {
+  const { slug } = specialist
+  const isDesktop = useMediaQuery('lg')
+  const notified = useNotified()
+
+  // La hoja solo existe bajo lg. Al cruzar lg abierta, «Ver mes completo»
+  // deja de existir (D7): la hoja se cierra y el borrador se descarta.
+  const [sheetOpen, setSheetOpen] = useState(false)
+  if (isDesktop && sheetOpen) setSheetOpen(false)
+  const monthButton = useRef<HTMLButtonElement>(null)
+
+  const [weekAnnouncement, setWeekAnnouncement] = useState('')
+  const pendingFocus = useRef<PendingFocus>(null)
+  const list = useRef<SlotListHandle>(null)
+  const nextDayButton = useRef<HTMLButtonElement>(null)
+  const notifyButton = useRef<HTMLButtonElement>(null)
+  const weekButtons = useRef<HTMLDivElement>(null)
+  const hoursId = useId()
+
+  const next = picker.full ? nextFreeAfter(slug, picker.date) : null
+  const notifyPressed = notified.has(slug)
+  // Destino de Missing en el estado actual.
+  const missingTarget = !picker.full ? 'slot' : next ? 'next-day' : 'notify'
+
+  // En el mismo commit que desmonta el control pulsado (lección de V1b): el
+  // foco no pasa por body.
+  useLayoutEffect(() => {
+    const target = pendingFocus.current
+    if (!target) return
+    pendingFocus.current = null
+    if (target === 'first-slot' || (target === 'missing' && missingTarget === 'slot')) list.current?.focusFirstAvailable()
+    else if (target === 'missing') (missingTarget === 'next-day' ? nextDayButton : notifyButton).current?.focus()
+    else {
+      const label = target === 'next-week' ? 'Semana siguiente' : 'Semana anterior'
+      weekButtons.current?.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)?.focus()
+    }
+  })
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    if (!picker.time) {
+      onMissingChange(true)
+      pendingFocus.current = 'missing'
+      return
+    }
+    onSubmit()
+  }
+
+  // La región viva de la semana solo se escribe desde estos botones: al
+  // aplicar la hoja con un día de otra semana, se anuncia solo el estado de
+  // horas (el día elegido), no las dos a la vez.
+  const showWeek = (direction: 1 | -1) => {
+    const start = picker.visibleWeek.add({ weeks: direction })
+    picker.showWeek(direction)
+    setWeekAnnouncement(weekRangeText(start))
+    // Límite de rango: el botón pulsado deja de existir y el foco pasa al que queda.
+    if (direction === -1 && start.compare(picker.firstWeek) === 0) pendingFocus.current = 'next-week'
+    if (direction === 1 && start.compare(picker.lastWeek) === 0) pendingFocus.current = 'previous-week'
+  }
+
+  // Acciones del bloque sin horarios: a ancho completo en móvil, intrínsecas
+  // en escritorio (diseño §3.6; Figma 02.6).
+  const emptyAction = isDesktop ? 'c-slot-picker__action' : 'c-empty-state__action'
+
+  const times = (
+    <div className="c-slot-picker__times">
+      <div className="c-slot-picker__times-header">
+        <h2 className="c-slot-picker__heading" id={hoursId}>
+          Elige hora
+        </h2>
+        {/* Anuncia cada cambio de día (panel 02.0). Sin horas, el texto visible dice solo el día. */}
+        <p className="c-slot-picker__status" role="status">
+          {dayTitle(picker.date)}
+          {picker.full ? <span className="u-sr-only"> · sin horarios libres</span> : ` · ${freeSlotsText(picker.free)}`}
+        </p>
+      </div>
+
+      {picker.full ? (
+        <EmptyState
+          icon="calendar-blank"
+          headingLevel={3}
+          title={picker.date.compare(TODAY) === 0 ? 'La agenda de hoy está completa' : `La agenda del ${weekdayDay(picker.date, picker.date)} está completa`}
+          help={
+            next
+              ? `El horario libre más cercano es ${next.date.compare(TODAY.add({ days: 1 })) === 0 ? 'mañana, ' : 'el '}${weekdayDay(next.date, picker.date)}, a las ${next.time}.`
+              : `No hay horarios libres publicados. El próximo cupo se abre en ${monthName(nextOpeningMonth(specialist))}.`
+          }
+        >
+          {next && (
+            <Button
+              variant="secondary"
+              className={emptyAction}
+              ref={nextDayButton}
+              aria-describedby={missing && missingTarget === 'next-day' ? messageId : undefined}
+              onClick={() => {
+                picker.selectDate(next.date)
+                pendingFocus.current = 'first-slot'
+              }}
+            >
+              {`Ver horarios del ${weekdayDay(next.date, picker.date)}`}
+            </Button>
+          )}
+          {/* Conmutador (diseño §7.3, D16): la clave es el médico, no el día. */}
+          <Button
+            variant="secondary"
+            className={emptyAction}
+            ref={notifyButton}
+            aria-pressed={notifyPressed}
+            aria-describedby={missing && missingTarget === 'notify' ? messageId : undefined}
+            leadingIcon={notifyPressed ? 'check' : undefined}
+            onClick={() => notifyStore.toggle(slug)}
+          >
+            {notifyPressed ? 'Te avisaremos' : 'Avisarme si se libera un hueco'}
+          </Button>
+        </EmptyState>
+      ) : (
+        <SlotList
+          ref={list}
+          aria-labelledby={hoursId}
+          groups={picker.groups}
+          value={picker.time}
+          onChange={(time) => {
+            picker.selectTime(time)
+            onMissingChange(false)
+          }}
+          describedBy={missing ? messageId : undefined}
+        />
+      )}
+    </div>
+  )
+
+  // Un solo retorno con el form en la misma posición en las dos ramas: al
+  // cruzar lg, React conserva el nodo del form, como antes de extraerlo.
+  return (
+    <>
+      {isDesktop ? (
+        <form id={formId} className="o-layout o-layout--aside-end" onSubmit={submit} noValidate>
+          <div className="c-slot-picker">
+            <div className="c-slot-picker__card">
+              <div className="c-slot-picker__calendar">
+                <h2 className="c-slot-picker__heading">Elige fecha</h2>
+                <Calendar
+                  value={picker.date}
+                  onChange={picker.selectDate}
+                  today={TODAY}
+                  maxValue={maxValue}
+                  freeSlots={picker.freeSlots}
+                  focusedValue={picker.visibleMonth}
+                  onFocusChange={picker.focusMonth}
+                />
+              </div>
+              {times}
+            </div>
+          </div>
+          {aside}
+        </form>
+      ) : (
+        <form id={formId} className="c-slot-picker" onSubmit={submit} noValidate>
+          <fieldset className="c-slot-picker__dates">
+            <Legend level="section" headingLevel={2} className="c-slot-picker__legend">
+              Elige fecha
+            </Legend>
+            <Button
+              variant="secondary"
+              leadingIcon="calendar-dots"
+              aria-haspopup="dialog"
+              className="c-slot-picker__month"
+              ref={monthButton}
+              onClick={() => setSheetOpen(true)}
+            >
+              Ver mes completo
+            </Button>
+            <div className="c-slot-picker__week">
+              <div className="c-slot-picker__week-nav">
+                <p className="c-slot-picker__week-label">{weekRangeText(picker.visibleWeek)}</p>
+                <p className="u-sr-only" aria-live="polite">
+                  {weekAnnouncement}
+                </p>
+                <div className="c-slot-picker__week-buttons" ref={weekButtons}>
+                  {picker.hasPreviousWeek && (
+                    <IconButton icon="caret-left" label="Semana anterior" onClick={() => showWeek(-1)} className="c-slot-picker__week-previous" />
+                  )}
+                  {picker.hasNextWeek && (
+                    <IconButton icon="caret-right" label="Semana siguiente" onClick={() => showWeek(1)} className="c-slot-picker__week-next" />
+                  )}
+                </div>
+              </div>
+              <DayStrip name="fecha" days={picker.week} value={picker.date} onChange={picker.selectDate} today={TODAY} />
+            </div>
+          </fieldset>
+          {times}
+        </form>
+      )}
+      {!isDesktop && sheetOpen && <DateSheet picker={picker} maxValue={maxValue} trigger={monthButton} onClose={() => setSheetOpen(false)} />}
+    </>
+  )
+}

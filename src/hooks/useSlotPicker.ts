@@ -1,12 +1,13 @@
 import { parseDate, startOfWeek, type CalendarDate } from '@internationalized/date'
 import { useReducer } from 'react'
 import { useSearchParams } from 'react-router'
-import { AVAILABILITY, freeCount, initialDate, isFreeSlot, slotGroups, type Availability } from '../data/availability.ts'
+import { AVAILABILITY, freeCount, initialDate as firstFreeDate, isFreeSlot, slotGroups, type Availability } from '../data/availability.ts'
 import { TODAY } from '../data/clock.ts'
 
 // Estado del selector de la vista 2 (D2): un reducer con cuatro valores, del
 // que la tira, el calendario y el ListBox son vistas controladas.
-// - date nunca es null: sin parámetros, initialDate (D2).
+// - date nunca es null: sin parámetros, el día inicial de D2 (la opción
+//   initialDate o, en la reserva, el primer día con horas libres).
 // - Cambiar de fecha pone time a null: una hora pertenece a su día.
 // - Navegar de semana no cambia la fecha.
 // - visibleMonth es el día enfocado del calendario, del que sale el mes visible.
@@ -63,16 +64,22 @@ type Options = {
   slug: string
   /** Último día reservable: min(MAX_DATE, publishedUntil) (D4). */
   maxValue: CalendarDate
+  /**
+   * Día inicial sin `fecha` válida en la URL. Por defecto, el de la reserva
+   * (el primer día con horas libres desde hoy); la reprogramación pasa el
+   * suyo (rescheduleStartDate). Es un dato, no un modo (D3).
+   */
+  initialDate?: CalendarDate
   availability?: Availability
 }
 
-export default function useSlotPicker({ slug, maxValue, availability = AVAILABILITY }: Options) {
+export default function useSlotPicker({ slug, maxValue, initialDate, availability = AVAILABILITY }: Options) {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [state, dispatch] = useReducer(reducer, null, (): State => {
     const param = parseParam(searchParams.get('fecha'))
     const inRange = param && param.compare(TODAY) >= 0 && param.compare(maxValue) <= 0
-    const date = inRange ? param : initialDate(slug, availability)
+    const date = inRange ? param : (initialDate ?? firstFreeDate(slug, availability))
     const hora = searchParams.get('hora')
     const time = inRange && isFreeSlot(slug, date.toString(), hora, availability) ? hora : null
     return { date, time, visibleWeek: weekStart(date), visibleMonth: date }

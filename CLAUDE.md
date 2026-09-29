@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b, V3 y V4a hechos).
+Estado actual: fases 1 a 4 cerradas; fase 5 en curso (T0, T1, T2, V1a, V1b, V2a, V2b, V3, V4a y V4b hechos; queda su cierre).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -77,7 +77,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `AppointmentSummary` (`c-appointment-summary`, umbral
   `appointment-summary-compact`), `BookingDetails` (`c-booking-details`,
   compartido con «Tu cita»), `BookingSteps`, `c-booking-review` (columna de
-  38rem desde lg), `PageHeader` con `steps`, `useLgFocusFallback`,
+  38rem desde lg), `PageHeader` con `steps`, `useFocusFallback` (nombre desde V4b),
   `src/data/booking.ts` (modalidad, duración, meta y política);
   `bookingStepLoader` devuelve la selección; desde lg, la misma pantalla con
   breadcrumb de tres niveles y el envío en línea. `pnpm verify 5.2` ampliado.
@@ -98,11 +98,21 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `nextStepsText` en `booking.ts`, el `.ics` en `src/data/calendar.ts`; guarda de D1
   ampliada (cita no Confirmada → `/mis-citas`); el kit toma el copy de `cancelCopy`;
   `pnpm verify 5.4` (y `--preview`) y `scripts/verify/cruce-lg.mjs` en 5.3 y 5.4.
+- Fase 5 · V4b: la reprogramación en `/mis-citas/:id/reprogramar` (`src/views/Reschedule.tsx`,
+  02.7, 02.8) y el aviso «Cita reprogramada» (pieza sin frame n.º 2): `SlotPicker`
+  (`c-slot-picker` 1:1, sin prop de modo, D3), `useSlotPicker` con `initialDate`,
+  `rescheduleStartDate`, `rescheduleCopy` y `rescheduledText`; «El cambio» con
+  `BookingDetails` (`whenTerm`, `previous`, `whenId`), `BookingBar` con `describedBy`,
+  `Notice` con `titleId`; loader de `/mis-citas` que consume el aviso (D13), aviso
+  unificado con key `${tipo}-${id}` y reinicio por entrada del historial;
+  `useFocusFallback` (antes el hook de cruzar lg); `pnpm verify 5.4` ampliado (y
+  `--preview`), 5.0 con 56 contrapruebas.
 
-Siguiente: fase 5 por bloques, cada uno con su commit y la skill `vista`:
-T0 (ronda hecha, salida (c); el defecto sigue abierto) → T1 (hecho) → T2 (hecho) → V1a (hecho) → V1b (hecho) →
-foco de «Siguiente» con `useLayoutEffect` (hecho) → V2a (hecho) → V2b (hecho) → V3 (hecho) → V4a (hecho) → V4b (reprogramación). La fase 6 está absorbida en
-la 5.
+Siguiente: el cierre de la fase 5 (DESIGN.md, Pendientes «5 · cierre»: resto de pintado, `pnpm
+verify 4.4` con un servidor de larga duración, el h1 que se vuelve a montar en V3 y V4a y
+`BOOKING_POLICY` a menos de 24 horas), con su commit y la skill `vista`; después, la fase 7. La
+fase 6 está absorbida en la 5. Hecho: T0 (salida (c); el defecto sigue abierto), T1, T2, V1a,
+V1b, foco de «Siguiente» con `useLayoutEffect`, V2a, V2b, V3, V4a y V4b.
 
 ## Comandos
 

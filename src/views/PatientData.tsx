@@ -24,7 +24,7 @@ import { REASONS } from '../data/reasons.ts'
 import { scenarioFrom } from '../data/scenario.ts'
 import { carriedParams } from '../data/search.ts'
 import { AREAS, CLINICS, shortName } from '../data/specialists.ts'
-import useLgFocusFallback from '../hooks/useLgFocusFallback.ts'
+import useFocusFallback from '../hooks/useFocusFallback.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 import type { bookingStepLoader } from './loaders.ts'
 import ViewLayout from './ViewLayout.tsx'
@@ -62,7 +62,7 @@ export default function PatientData() {
   const { specialist, date, time } = useLoaderData<typeof bookingStepLoader>()
   const { slug } = specialist
   const isDesktop = useMediaQuery('lg')
-  useLgFocusFallback(isDesktop)
+  useFocusFallback(isDesktop)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [draft, setDraft] = useState(() => patientStore.getSnapshot())

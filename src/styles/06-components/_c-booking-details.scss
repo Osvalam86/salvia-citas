@@ -56,8 +56,10 @@
     color: var(--color-text-primary);
   }
 
-  // Segunda línea de «Dónde»: la dirección.
-  &__address {
+  // Segunda línea de «Dónde» (la dirección) y de «Nueva cita» en la
+  // reprogramación (la cita de antes, 02.8): caption secundario bajo el valor.
+  &__address,
+  &__previous {
     @include tools.text(caption);
 
     grid-column: 2;

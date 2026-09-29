@@ -393,8 +393,10 @@ export default async function run(b, expect) {
   // desde V1b: los tres del almacén de avisos (D16); 32 desde V2a: día
   // inicial de Ruiz, hueco más cercano, Rodrigo sin hueco, nombres cortos y
   // forma de los nombres; 33 desde V2b: el resumen de 02.4; 40 desde V3: la
-  // sesión, la validación (03.2, 03.5 y el teléfono) y el borrador (D17).
-  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 48, siguenPasando: [] })
+  // sesión, la validación (03.2, 03.5 y el teléfono) y el borrador (D17); 48
+  // desde V4a; 56 desde V4b: el día inicial de la reprogramación, los cinco
+  // literales de c3 (uno por literal), sin hora y a menos de 24 h.
+  expect('check-data --contrapruebas: cada mutación rompe su aserción (weeks sin mutación: hecho del calendario)', { salida: contra.status, rompen: lines.filter((l) => l.startsWith('✓')).length, siguenPasando: lines.filter((l) => l.startsWith('✗')) }, { salida: 0, rompen: 56, siguenPasando: [] })
 
   // --- Resto de pintado en una navegación real hacia una vista -----------------------------------------------
   await b.metrics(1350, 900, 1)

@@ -8,7 +8,7 @@
 // y el conmutador «Avisarme» (D16). V2b: la confirmación previa (02.4) con
 // sus anchos, texto ampliado, forced-colors, estructura, enlaces, guardas y
 // foco, y la regresión exacta de 02.5 y 02.6 tras sacar BookingSteps,
-// BookingDetails y useLgFocusFallback de Specialist.tsx. `previewFlows`
+// BookingDetails y el respaldo de foco (hoy useFocusFallback) de Specialist.tsx. `previewFlows`
 // repite los flujos de foco contra pnpm preview (sin StrictMode): pnpm verify
 // 5.2 --preview.
 import { sleep } from './cdp.mjs'
@@ -727,7 +727,7 @@ async function confirmPairs(b, expect) {
   await b.metrics(1280, 900)
 }
 
-// Refactor de V2b (BookingSteps, BookingDetails, useLgFocusFallback salen de
+// Refactor de V2b (BookingSteps, BookingDetails y el respaldo de foco salen de
 // Specialist.tsx): las cajas de «Tu cita» en 02.5 y 02.6, exactas (sin el
 // ±1), frente a la línea base medida antes del cambio (b58cad4).
 const V2A_BASE = {

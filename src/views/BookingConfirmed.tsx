@@ -15,7 +15,7 @@ import { calendarFile, calendarFileName, calendarHref } from '../data/calendar.t
 import { PHOTOS } from '../data/photos.ts'
 import { carriedParams } from '../data/search.ts'
 import { AREAS, CLINICS, shortName } from '../data/specialists.ts'
-import useLgFocusFallback from '../hooks/useLgFocusFallback.ts'
+import useFocusFallback from '../hooks/useFocusFallback.ts'
 import useMediaQuery from '../hooks/useMediaQuery.ts'
 import type { confirmedLoader } from './loaders.ts'
 import ViewLayout from './ViewLayout.tsx'
@@ -39,7 +39,7 @@ export default function BookingConfirmed() {
   const { appointment, specialist } = useLoaderData<typeof confirmedLoader>()
   const { slug } = specialist
   const isDesktop = useMediaQuery('lg')
-  useLgFocusFallback(isDesktop)
+  useFocusFallback(isDesktop)
   const [searchParams] = useSearchParams()
 
   // El breadcrumb conserva la consulta de V1 (D1) y lleva al perfil sin fecha
