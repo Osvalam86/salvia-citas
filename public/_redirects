@@ -1,0 +1,12 @@
+# Fallback de SPA (D12). Las rutas de D1 y el catálogo sirven index.html con
+# 200; cualquier otra, con 404 (React Router pinta el 404 de D1). `/` es el
+# propio index.html. Coste declarado: los comodines dan 200 también a un slug
+# o id desconocido y a rutas más profundas inventadas (/kit/a/b).
+/especialistas/*   /index.html   200
+/citas/*           /index.html   200
+/mis-citas         /index.html   200
+/mis-citas/*       /index.html   200
+/fuera-de-alcance  /index.html   200
+/kit               /index.html   200
+/kit/*             /index.html   200
+/*                 /index.html   404

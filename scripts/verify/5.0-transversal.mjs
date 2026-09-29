@@ -14,7 +14,7 @@ import { clientNavigation, resampleNote, toBottom, viewRest } from './navegacion
 
 const RUIZ = '/especialistas/elena-ruiz-arellano'
 const AVATARS = 'src/assets/avatars'
-const ROUTES = [
+export const ROUTES = [
   ['/', 'Encuentra a tu especialista', 'Especialistas · Salvia', ['Especialistas', 'page'], 'Especialistas'],
   [RUIZ, 'Dra. Elena Ruiz Arellano', 'Dra. Elena Ruiz Arellano · Salvia', ['Especialistas', 'true'], null],
   [`${RUIZ}/confirmar?fecha=2029-04-24&hora=10:30`, 'Confirma tu cita', 'Confirma tu cita · Salvia', ['Especialistas', 'true'], null],

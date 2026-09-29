@@ -1,0 +1,16 @@
+# Despliegue continuo desde main (fase 7, D12). pnpm sale de `packageManager`
+# en package.json (Corepack); el fallback de SPA, de public/_redirects.
+[build]
+  command = "pnpm lint && pnpm contrast && pnpm build"
+  publish = "dist"
+
+[build.environment]
+  # check-data importa el TS de src/data/ sin compilar: Node ≥ 22.18.
+  NODE_VERSION = "22"
+
+# Solo lo que lleva hash en el nombre. index.html queda con la caché por
+# defecto de Netlify (revalidar siempre).
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
