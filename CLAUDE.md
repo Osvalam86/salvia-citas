@@ -120,9 +120,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   Node 22; pnpm por `packageManager`; caché inmutable solo en `/assets/*`),
   `public/_redirects` con 404 real (D12) y `pnpm verify 7.0` contra producción;
   el badge «Powered by Netlify», desactivado (verificacion.md, Trampas).
+- Fase 7 · 7.1: un solo `<title>` con `useDocumentTitle` (`src/hooks/`, D15);
+  `text-underline-offset: 0.2em` en la regla base de `a` (§ Constantes);
+  favicon (`favicon.svg`, `favicon.ico` con `scripts/favicon-ico.mjs`), icono
+  de Apple e imagen OG en `public/`, con sus `<link>` y `<meta>` en
+  `index.html`; `pnpm verify` 4.1 y 4.4 (subrayado), 5.0 (un `<title>` por
+  ruta) y 7.0 (iconos, OG y `<meta>`).
 
-Siguiente en la fase 7: 7.1 (títulos, subrayado, favicon, imagen OG y
-`<meta>`), con los pendientes de la fase 7 de DESIGN.md.
+Siguiente en la fase 7: 7.2 (carga diferida por ruta con `lazy` de la ruta),
+con los pendientes de la fase 7 de DESIGN.md.
 
 ## Comandos
 
