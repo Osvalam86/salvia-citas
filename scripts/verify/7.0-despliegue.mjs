@@ -19,6 +19,8 @@ const head = async (path) => {
   const body = await r.text()
   return { status: r.status, type: r.headers.get('content-type')?.split(';')[0] ?? null, cache: r.headers.get('cache-control'), spa: body.includes('<div id="root">') }
 }
+// Netlify normaliza Cache-Control sin espacios («public,max-age=…»): se comparan las directivas.
+const directives = (cache) => (cache ?? '').split(',').map((d) => d.trim()).filter(Boolean).sort()
 const statuses = async (paths) => Object.fromEntries(await Promise.all(paths.map(async (p) => [p, (await head(p)).status])))
 
 export default async function run(b, expect) {
@@ -34,10 +36,10 @@ export default async function run(b, expect) {
     Object.fromEntries(Object.entries(served).map(([p, r]) => [p, [r.status, r.type, r.spa]])),
     Object.fromEntries(ok.map((p) => [p, [200, 'text/html', true]])),
   )
-  const missing = ['/no-existe', '/especialistas', '/citas', '/kit-x', '/mis-citasx', '/assets/no-existe.js']
+  const missing = ['/no-existe', '/especialistas', '/especialistas/', '/citas', '/citas/', '/kit-x', '/mis-citasx', '/assets/no-existe.js']
   const notFound = Object.fromEntries(await Promise.all(missing.map(async (p) => [p, await head(p)])))
   expect(
-    'fuera de las rutas por HTTP: 404 con index.html (el 404 de D1 lo pinta React Router); /kit-x y /mis-citasx no casan con los comodines',
+    'fuera de las rutas por HTTP: 404 con index.html (el 404 de D1 lo pinta React Router); /especialistas y /citas, con y sin barra, por sus reglas antes de los comodines; /kit-x y /mis-citasx no casan con los comodines',
     Object.fromEntries(Object.entries(notFound).map(([p, r]) => [p, [r.status, r.type, r.spa]])),
     Object.fromEntries(missing.map((p) => [p, [404, 'text/html', true]])),
   )
@@ -53,9 +55,9 @@ export default async function run(b, expect) {
   const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((m) => m[1])
   const assetHeads = await Promise.all(assets.map(async (a) => [a, await head(a)]))
   expect(
-    `caché de /assets/* (${assets.length} de index.html): 200 y public, max-age=31536000, immutable`,
-    { hay: assets.length > 0, todos: assetHeads.every(([, r]) => r.status === 200 && r.cache === 'public, max-age=31536000, immutable') },
-    { hay: true, todos: true },
+    `caché de /assets/* (${assets.length} de index.html): 200 y las directivas public, max-age=31536000, immutable`,
+    Object.fromEntries(assetHeads.map(([a, r]) => [a, [r.status, directives(r.cache)]])),
+    Object.fromEntries(assets.map((a) => [a, [200, ['immutable', 'max-age=31536000', 'public']]])),
   )
   const index = await head('/')
   const deep = served['/mis-citas']
@@ -65,11 +67,13 @@ export default async function run(b, expect) {
     [{ immutable: false, maxAgeLargo: false }, { immutable: false, maxAgeLargo: false }],
   )
 
-  // --- Navegador: h1, título y origen de las peticiones ---------------------------------------------------------
+  // --- Navegador: h1, título, origen de las peticiones y nada ajeno a la app -----------------------------------
   await b.metrics(1280, 900, 1)
   const origin = new URL(BASE).origin
   const loaded = {}
   const foreign = new Set()
+  const outside = {}
+  const hud = {}
   const pages = [...ROUTES.map(([path, h1, title]) => [path, h1, title]), ...KIT.map((p) => [p, null, null])]
   for (const [path] of pages) {
     await b.go(path)
@@ -77,6 +81,9 @@ export default async function run(b, expect) {
     for (const u of await b.ev("[location.href, ...performance.getEntriesByType('resource').map((e) => e.name)]")) {
       if (!u.startsWith('data:') && new URL(u).origin !== origin) foreign.add(u)
     }
+    const found = await b.ev(OUTSIDE)
+    if (found.length) outside[path] = found
+    if (await b.ev(`Boolean(document.querySelector('script[src*="/.netlify/scripts/hud"]'))`)) hud[path] = true
   }
   expect(
     'carga completa de cada ruta (1280): h1 y título de D15 (catálogo: «Kit del sistema · Salvia» y «{h1} · Kit · Salvia»)',
@@ -88,4 +95,31 @@ export default async function run(b, expect) {
     })),
   )
   expect('ninguna petición a otro origen en esas cargas (D11: fuentes alojadas)', [...foreign], [])
+  expect(
+    'nada fuera de #root y del <head> con caja ni con tabIndex ≥ 0 en esas cargas (contraprueba manual: el badge de Netlify activo, iframe 197 × 64 en 178,748 a 375 con tabIndex 0)',
+    outside,
+    {},
+  )
+
+  // «Continuar» de la Booking Bar a 375 (02.1): lo que hay en su centro es el botón.
+  await b.metrics(375, 812, 1)
+  await b.go(`${RUIZ}?fecha=2029-04-24&hora=10:30`)
+  expect(
+    '«Continuar» de la Booking Bar a 375: elementFromPoint en su centro devuelve el botón (con el badge activo, IFRAME)',
+    await b.ev(`(() => { const btn = document.querySelector('.c-booking-bar button[type="submit"]'); const r = btn.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return { texto: btn.textContent, golpe: hit.closest('button') === btn ? 'BUTTON' : hit.tagName } })()`),
+    { texto: 'Continuar', golpe: 'BUTTON' },
+  )
+
+  // Datos, sin criterio de paso: lo que Netlify inyecta.
+  console.log(`· dato: script /.netlify/scripts/hud en ${Object.keys(hud).length} de ${pages.length} cargas`)
+  console.log(`· dato: comentario «hosted on Netlify» en el <head> servido: ${html.includes('hosted on Netlify') ? 'sí' : 'no'}`)
 }
+
+// Elementos fuera de #root y del <head> (lo que inyecte el alojamiento) con caja o enfocables por Tab.
+const OUTSIDE = `(() => {
+  const root = document.getElementById('root')
+  return [...document.querySelectorAll('body *, html > :not(head):not(body)')]
+    .filter((e) => !root.contains(e) && e !== root && !e.closest('head'))
+    .map((e) => { const r = e.getBoundingClientRect(); return { tag: e.tagName, caja: [Math.round(r.width), Math.round(r.height)], tabIndex: e.tabIndex, pos: [Math.round(r.x), Math.round(r.y)] } })
+    .filter((e) => e.caja[0] * e.caja[1] > 0 || e.tabIndex >= 0)
+})()`

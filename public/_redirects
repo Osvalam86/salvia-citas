@@ -2,6 +2,12 @@
 # 200; cualquier otra, con 404 (React Router pinta el 404 de D1). `/` es el
 # propio index.html. Coste declarado: los comodines dan 200 también a un slug
 # o id desconocido y a rutas más profundas inventadas (/kit/a/b).
+# Medido en /especialistas y /citas: /x/* casa también con /x y /x/. Sus 404
+# van antes (gana la primera regla que casa).
+/especialistas     /index.html   404
+/especialistas/    /index.html   404
+/citas             /index.html   404
+/citas/            /index.html   404
 /especialistas/*   /index.html   200
 /citas/*           /index.html   200
 /mis-citas         /index.html   200
