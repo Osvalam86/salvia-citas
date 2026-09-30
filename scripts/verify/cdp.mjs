@@ -19,6 +19,15 @@ export async function open(name) {
   const out = path.join(here, 'out', name)
   fs.mkdirSync(out, { recursive: true })
   const port = nextPort++
+  const version = `http://127.0.0.1:${port}/json/version`
+  // Si el puerto ya responde (un Edge de una pasada anterior o de otro pnpm
+  // verify), la pasada se conectaría a ese navegador: se falla antes de lanzar
+  // (docs/verificacion.md, Trampas).
+  const running = await fetch(version).then(
+    (r) => r.json().catch(() => ({ Browser: 'un proceso que no es Edge' })),
+    () => null,
+  )
+  if (running) throw new Error(`El puerto ${port} ya lo ocupa ${running.Browser}: ciérralo y vuelve a lanzar.`)
   const edge = spawn(
     EDGE,
     [
@@ -142,9 +151,30 @@ export async function open(name) {
       }
       throw new Error(`Tab no llega a ${expr}`)
     },
-    close: () => {
+    // Browser.close por el endpoint del navegador y espera a que el puerto quede
+    // libre: en la línea base de 7.2, edge.kill() no cerró el Edge que escuchaba
+    // en él (docs/verificacion.md, Trampas).
+    close: async () => {
       ws.close()
+      try {
+        const { webSocketDebuggerUrl } = await (await fetch(version)).json()
+        const browserWs = new WebSocket(webSocketDebuggerUrl)
+        await new Promise((resolve, reject) => {
+          browserWs.addEventListener('open', resolve, { once: true })
+          browserWs.addEventListener('error', reject, { once: true })
+        })
+        const closed = new Promise((resolve) => browserWs.addEventListener('close', resolve, { once: true }))
+        browserWs.send(JSON.stringify({ id: 1, method: 'Browser.close' }))
+        await Promise.race([closed, sleep(3000)])
+      } catch {
+        // El navegador ya no responde: queda la comprobación del puerto.
+      }
       edge.kill()
+      for (let i = 0; i < 25; i++) {
+        if (!(await fetch(version).then(() => true, () => false))) return
+        await sleep(200)
+      }
+      console.error(`El Edge del puerto ${port} sigue vivo tras cerrar: la siguiente pasada fallará al arrancar.`)
     },
   }
   return b

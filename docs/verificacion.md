@@ -31,10 +31,10 @@ no se versiona.
 
 | Archivo | Qué hace |
 |---|---|
-| `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección |
+| `run.mjs` | Lanzador: comprueba el servidor, abre Edge, ejecuta la sección e imprime la comparación. Con `--preview` va contra :4173 y ejecuta solo `previewFlows` de la sección. Si el puerto de Edge ya responde, sale con código 2 sin conectarse (7.3). Todas sus salidas van por `process.exitCode`: 0, 1 (alguna medida no coincide) o 2 (no se pudo medir) |
 | `5.0-transversal.mjs` | Rutas de D1 (h1, título, chrome), foco de ruta, página genérica y 404 (T1); guardas, 404 lanzado, Atrás tras redirección, `/kit/estados`, fotos y `check-data --contrapruebas` (T2); scroll en cargas completas (`fullLoadScroll`, cierre de la fase 5, también en `--preview`). Exporta `ROUTES`, que usa 7.0. Desde 7.1, un único `<title>` por ruta en D1 y en `/kit/*` (también tras navegar en cliente, en `--preview`), con contraprueba |
 | `7.0-despliegue.mjs` | Despliegue en Netlify (D12), solo con `VERIFY_BASE` en `*.netlify.app`. Estado HTTP con `fetch` de Node: rutas de D1 y `/kit/*` → 200; fuera de ellas → 404, con `/especialistas` y `/citas` con y sin barra; precisión de los comodines (`/kit-x`, `/mis-citasx`) y su coste declarado (rutas inventadas bajo ellos → 200). Caché: directivas de `/assets/*` e `index.html` sin `immutable`. Carga completa de 16 rutas (h1 y título de D15) sin peticiones a otro origen (D11); nada fuera de `#root` y del `<head>` con caja ni con `tabIndex ≥ 0`; el centro de «Continuar» de la Booking Bar a 375 es el botón. Datos sin criterio: el script `/.netlify/scripts/hud` y el comentario del `<head>`. Desde 7.1: `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` y `og-image.png` con 200, su tipo y los mismos bytes que `public/` (contraprueba: un icono que no existe da 404 y `text/html`); los tres `<link>` de `index.html`; `og:url` y `og:image` absolutas y `og:image` resoluble (200, `image/png`, 1200 × 630); el tipo con que se sirve el `.ico`, como dato. **Alcance de «nada fuera de #root»:** vale en cargas completas sin interacción; al interactuar, los popovers de React Aria y su anunciador de región viva se montan en `body` fuera de `#root` (un elemento de 1 × 1 sería ese anunciador, no el alojamiento); sin medir; se comprueba en 7.3 (axe con diálogos y hojas abiertos) |
-| `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo` |
+| `cdp.mjs` | Arnés: Edge headless por CDP; teclado y ratón reales, capturas (`shot`, y `saveBase64` para guardar una ya tomada), `forced-colors`, barras de scroll, estilos de contraprueba, `tabTo`. `open` falla si el puerto ya responde; `close` cierra con `Browser.close` y espera a que el puerto quede libre (7.3) |
 | `5.1-busqueda.mjs` | Vista 1 (V1a): pares de Figma 01.1, 01.3–01.7, cabecera (línea base y alto frente al control), anchos intermedios, texto ampliado, forced-colors, orden de Tab, encabezados, lista en carga, fotos, «Ver horarios», sujeción de `pagina`, historial, scroll y foco de cada acción (también con `lenta`; en la paginación, el foco se lee en el MutationObserver al desmontarse el enlace pulsado, tras V1b). V1b: fila del disparador, hoja «Filtrar y ordenar» (01.2: pares, anchos, texto grande, forced-colors, teclado, borrador, página bloqueada y cruce de `lg`), acción del vacío con texto ampliado y conmutador «Avisarme» (01.8, 01.9) con su persistencia (D16) |
 | `5.2-perfil.mjs` | Vista 2 (V2a): pares de Figma 02.1, 02.3 (375), 02.2 (la hoja, 375 × 812), 02.5 y 02.6 (1440); la fila de «Elige fecha» (367/382), el umbral `slot-picker` (713 de celda) con su contraprueba a 44rem y los botones de semana en columnas fijas; 200 % a 320 y letra del navegador; forced-colors; estructura; teclado (tira, ListBox, Tab, Intro y el botón por defecto); URL (push, parámetros y `escenario`, guardas con la hora codificada y sin codificar); Missing y su regla de salida; foco («Ver horarios del …» con y sin el observador, semana, hoja, cruce de `lg`); conmutador «Avisarme» (D16). V2b: 02.4 a ±1 px (375), anchos intermedios y escritorio (C1-A, con la contraprueba de los 38rem), 200 % a 320 con el umbral `appointment-summary-compact` y su contraprueba, padding al 100 %, letra del navegador, forced-colors, estructura, teclado, enlaces y escenario (con contraprueba), guardas, foco (llegada y cruce de lg, con contraprueba) y la regresión exacta de 02.5 y 02.6 frente a la línea base anterior al refactor; navegación en cliente 02.1 → 02.4. `previewFlows`: foco, Missing y el foco de 02.4 |
 | `5.3-datos.mjs` | Vista 3 (V3): pares de Figma 03.1, 03.2, 03.5 (375) y 03.3, 03.4, 03.6 (1440); padding de `--aside` (16 en «Tu cita», 24 en 02.4); resumen de errores (foco en el h2 con clic e Intro, enlaces → control con la etiqueta a la vista y sobre la barra, historial +0, contraprueba del ancla nativa); reserva fallida (foco en el título en el mismo commit, pie, valores, Intro sin envío) y la posición del título; envío válido (replace) y la sonda del form reiniciado (MutationObserver y un muestreo por frame); borrador (D17) al ir al aviso de privacidad y tras «Elegir otra hora»; anchos y paso de la rejilla a dos columnas; 200 % a 320; letra del navegador; forced-colors; estructura y el h2 en el árbol AX; `noValidate` y botón por defecto con sus contrapruebas; volver a enviar; cruce de lg; orden de Tab; navegación en cliente 02.4 → 03.1. `previewFlows`: resumen, reserva fallida, sonda del envío válido y cruce de lg |
@@ -148,7 +148,8 @@ no se versiona.
   (4.6).
 - **Dos `pnpm verify` a la vez comparten el puerto 9400** de Edge: el segundo
   se conecta al navegador del primero y le navega la página (una pasada de 4.2
-  falló así en 4.6). Las secciones se ejecutan una detrás de otra.
+  falló así en 4.6). Las secciones se ejecutan una detrás de otra. Desde 7.3,
+  el segundo sale con código 2 al arrancar.
 - **Git Bash convierte `/kit/…` en una ruta de Windows** cuando va como
   argumento de un script (`Page.navigate: Cannot navigate to invalid URL`).
   Con `MSYS_NO_PATHCONV=1` llega tal cual (4.6).
@@ -349,8 +350,35 @@ no se versiona.
   (`Target does not support metrics override`). Entre 7.1 y 7.2 cambiaron Edge
   (153 → 154.0.4258.37) y Node (26.3.0): sin aislar. Las series de 7.2 corrieron
   con un lanzador fuera del repo que, tras cada pasada, cierra los Edge de su
-  carpeta temporal y comprueba que el 9400 queda libre. Pendiente: que `run.mjs`
-  falle si el 9400 está ocupado al arrancar (DESIGN.md, Pendientes) (7.2).
+  carpeta temporal y comprueba que el 9400 queda libre (7.2).
+  **7.3:** `open` falla si el puerto ya responde y `run.mjs` sale con
+  código 2 (contraprueba con un Edge a mano en el 9400: código 2 y ese Edge sigue
+  en `about:blank`); `close` cierra con `Browser.close` y espera al puerto. El
+  defecto de `kill()` **no se reprodujo** con Edge 154.0.4258.37 y Node 26.3.0:
+  0 Edge vivos en las 18 pasadas de la línea base (arnés de fdc8337, TEMP y TMP
+  propios por pasada) y en 2 de 4.2 con el TEMP del sistema; la causa de 7.2
+  sigue sin aislar. `Browser.close` queda como defensa; su contraprueba no
+  discrimina con Edge 154.0.4258.37. Serie con el arnés nuevo (4.1–4.7 y 5.0–5.4
+  en dev, 5.0–5.4 con `--preview` y 7.0 contra producción), idéntica byte a byte
+  a la de fdc8337.
+- **`process.exit` justo después de un `fetch` con respuesta, en Windows.** Con
+  Node 26.3.0, tras el `fetch` a `/json/version` de un puerto ocupado,
+  `process.exit(2)` tumbó el proceso con un assert de libuv (`src\win\async.c`,
+  línea 94) y salió con 127. `run.mjs` devuelve el código desde `main` y lo
+  asigna a `process.exitCode`, en todas sus salidas. Medido: sin argumentos, 2;
+  `4.1 --preview` (sin `previewFlows`), 2; sin servidor, 2; puerto ocupado, 2;
+  4.6 con su ✗ declarado, 1; el resto de la serie, 0; ninguna pasada colgada al
+  terminar. El `process.exit` de «sin `previewFlows`» daba 2 en 3 de 3: ahí el
+  assert no se reprodujo (7.3).
+- **Un Edge lanzado a mano sin `--disable-extensions`** inicia sesión con la
+  cuenta de Windows y sincroniza sus extensiones en el perfil temporal. Para una
+  contraprueba se lanza con los mismos flags que `cdp.mjs` (7.3).
+- **`pnpm lint` en paralelo con una pasada que usa `static.mjs`.** El hook de
+  Stop ejecutó `pnpm lint` mientras corría `pnpm verify 4.1` y encontró
+  `src/views/VerifyTemp.tsx`, el temporal de las contrapruebas de ESLint: el
+  lint falló con los errores que la contraprueba provoca a propósito. No se
+  lanza lint mientras corre una pasada que usa `static.mjs`; al terminar, el
+  archivo no existe (`git status`) (7.3).
 
 ## Comprobaciones manuales
 

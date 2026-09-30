@@ -20,38 +20,52 @@ const SECTIONS = {
   '7.0': './7.0-despliegue.mjs',
 }
 
-const [section, flag] = process.argv.slice(2)
-const preview = flag === '--preview'
-if (!SECTIONS[section] || (flag && !preview)) {
-  console.error(`Uso: pnpm verify <sección> [--preview]. Secciones: ${Object.keys(SECTIONS).join(', ')}`)
-  process.exit(2)
-}
-// Antes de importar el arnés: cdp.mjs lee la base al cargarse.
-if (preview) process.env.VERIFY_BASE ??= 'http://localhost:4173'
-const base = process.env.VERIFY_BASE ?? 'http://localhost:5173'
+// Devuelve el código de salida: 0, 1 (alguna medida no coincide) o 2 (no se
+// pudo medir). Va por process.exitCode, nunca por process.exit: justo después de
+// un fetch con respuesta (el puerto de Edge), process.exit tumba Node en Windows
+// con un assert de libuv (src\win\async.c) y sale con 127.
+async function main() {
+  const [section, flag] = process.argv.slice(2)
+  const preview = flag === '--preview'
+  if (!SECTIONS[section] || (flag && !preview)) {
+    console.error(`Uso: pnpm verify <sección> [--preview]. Secciones: ${Object.keys(SECTIONS).join(', ')}`)
+    return 2
+  }
+  // Antes de importar el arnés: cdp.mjs lee la base al cargarse.
+  if (preview) process.env.VERIFY_BASE ??= 'http://localhost:4173'
+  const base = process.env.VERIFY_BASE ?? 'http://localhost:5173'
 
-try {
-  await fetch(base)
-} catch {
-  console.error(preview ? `No responde la preview en ${base}: pnpm build && pnpm preview.` : 'No responde el servidor de desarrollo: arráncalo con pnpm dev.')
-  process.exit(2)
+  try {
+    await fetch(base)
+  } catch {
+    console.error(preview ? `No responde la preview en ${base}: pnpm build && pnpm preview.` : 'No responde el servidor de desarrollo: arráncalo con pnpm dev.')
+    return 2
+  }
+
+  const { createExpect, open } = await import('./cdp.mjs')
+  const { default: run, previewFlows } = await import(SECTIONS[section])
+  if (preview && !previewFlows) {
+    console.error(`La sección ${section} no tiene flujos de foco para la preview.`)
+    return 2
+  }
+
+  let browser
+  try {
+    browser = await open(preview ? `${section}-preview` : section)
+  } catch (error) {
+    console.error(error.message)
+    return 2
+  }
+  const { expect, print } = createExpect()
+  let failed
+  try {
+    await (preview ? previewFlows : run)(browser, expect)
+    if (browser.consoleErrors.length) expect('consola sin errores', browser.consoleErrors, [])
+  } finally {
+    await browser.close()
+    failed = print()
+  }
+  return failed ? 1 : 0
 }
 
-const { createExpect, open } = await import('./cdp.mjs')
-const { default: run, previewFlows } = await import(SECTIONS[section])
-if (preview && !previewFlows) {
-  console.error(`La sección ${section} no tiene flujos de foco para la preview.`)
-  process.exit(2)
-}
-
-const browser = await open(preview ? `${section}-preview` : section)
-const { expect, print } = createExpect()
-let failed
-try {
-  await (preview ? previewFlows : run)(browser, expect)
-  if (browser.consoleErrors.length) expect('consola sin errores', browser.consoleErrors, [])
-} finally {
-  browser.close()
-  failed = print()
-}
-process.exit(failed ? 1 : 0)
+process.exitCode = await main()
