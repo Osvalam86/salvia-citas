@@ -18,6 +18,7 @@ const SECTIONS = {
   '5.3': './5.3-datos.mjs',
   '5.4': './5.4-citas.mjs',
   '7.0': './7.0-despliegue.mjs',
+  '7.3': './7.3-auditoria.mjs',
 }
 
 // Devuelve el código de salida: 0, 1 (alguna medida no coincide) o 2 (no se
@@ -43,9 +44,15 @@ async function main() {
   }
 
   const { createExpect, open } = await import('./cdp.mjs')
-  const { default: run, previewFlows } = await import(SECTIONS[section])
+  const { default: run, previewFlows, checkBase } = await import(SECTIONS[section])
   if (preview && !previewFlows) {
     console.error(`La sección ${section} no tiene flujos de foco para la preview.`)
+    return 2
+  }
+  // Una sección que solo vale contra cierta base (7.0, 7.3) lo dice antes de abrir Edge.
+  const refused = checkBase?.(process.env.VERIFY_BASE)
+  if (refused) {
+    console.error(refused)
     return 2
   }
 

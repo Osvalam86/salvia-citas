@@ -30,11 +30,14 @@ const head = async (path) => {
 const directives = (cache) => (cache ?? '').split(',').map((d) => d.trim()).filter(Boolean).sort()
 const statuses = async (paths) => Object.fromEntries(await Promise.all(paths.map(async (p) => [p, (await head(p)).status])))
 
-export default async function run(b, expect) {
-  if (!/\.netlify\.app$/.test(new URL(BASE || 'http://localhost').hostname)) {
-    throw new Error('7.0 va contra Netlify: VERIFY_BASE=https://salvia-citas.netlify.app pnpm verify 7.0')
-  }
+// run.mjs la llama antes de abrir Edge: un mensaje es «no se puede medir» (código 2).
+export function checkBase(base) {
+  return /\.netlify\.app$/.test(new URL(base || 'http://localhost').hostname)
+    ? null
+    : '7.0 va contra Netlify: VERIFY_BASE=https://salvia-citas.netlify.app pnpm verify 7.0'
+}
 
+export default async function run(b, expect) {
   // --- Estado HTTP ---------------------------------------------------------------------------------------------
   const ok = [...D1, ...KIT]
   const served = Object.fromEntries(await Promise.all(ok.map(async (p) => [p, await head(p)])))
