@@ -3,6 +3,7 @@
 // search, carga inicial y location.state.focus; la página genérica y el 404.
 // T2: guardas de D1 (404 lanzado, redirecciones con replace y Atrás), los
 // enlaces de /kit/estados, las fotos de avatar y check-data --contrapruebas.
+// 7.2: la carga diferida por ruta (consola y código del catálogo en /).
 // `previewFlows` repite los flujos de foco contra pnpm preview (sin
 // StrictMode): pnpm verify 5.0 --preview.
 import { spawnSync } from 'node:child_process'
@@ -25,6 +26,19 @@ export const ROUTES = [
   ['/fuera-de-alcance', 'Esta sección no forma parte del caso de estudio', 'Fuera del caso de estudio · Salvia', null, ''],
   ['/no-existe', 'No encontramos esta página', 'No encontramos esta página · Salvia', null, ''],
 ]
+// Las 7 vistas del catálogo con un marcador de contenido propio de cada una
+// (único en src/ y en el build): su título, o un id donde el título es una
+// plantilla (KitNav).
+const KIT_VIEWS = {
+  '/kit': ['Kit', 'Kit del sistema · Salvia'],
+  '/kit/layout': ['KitLayout', 'Layout · aside al '],
+  '/kit/navegacion': ['KitNav', 'kit-nav-variantes'],
+  '/kit/resultados': ['KitResults', 'Búsqueda y resultados · Kit · Salvia'],
+  '/kit/fecha-hora': ['KitDateTime', 'Fecha y hora · Kit · Salvia'],
+  '/kit/citas': ['KitAppointments', 'Citas y diálogos · Kit · Salvia'],
+  '/kit/estados': ['KitStates', 'Estados de demo · Kit · Salvia'],
+}
+const KIT_PATHS = Object.keys(KIT_VIEWS)
 
 const focused = "(() => { const a = document.activeElement; return a.tagName + (a.id ? '#' + a.id : '') })()"
 const linkPoint = (text, scope = 'document') => `(() => { const a = [...${scope}.querySelectorAll('a')].find((e) => e.textContent === ${JSON.stringify(text)}); a.scrollIntoView({ block: 'nearest' }); const r = a.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`
@@ -186,7 +200,59 @@ async function fullLoadScroll(b, expect) {
   await b.metrics(1280, 900, 1)
 }
 
+// Carga diferida por ruta (7.2, D12): en la carga completa de cada ruta de D1 y
+// de /kit, ningún aviso ni error de consola desde antes del primer script (sin
+// el HydrateFallback de la raíz, React Router avisa), y ningún JS de la carga
+// de / lleva código del catálogo: ninguno contiene el marcador de una de las 7
+// vistas (KIT_VIEWS). Por contenido y no por nombre: un import estático funde
+// la vista en index-*.js y no queda ningún Kit*-*.js. Cada marcador se
+// comprueba también en la carga de su propia vista, para que la guarda no
+// quede vacía si cambia un título. Contrapruebas manuales: docs/verificacion.md.
+const CONSOLE_PROBE = `(() => {
+  const log = (window.__consola = [])
+  for (const type of ['warn', 'error']) {
+    const original = console[type]
+    console[type] = (...args) => { log.push(type + ': ' + args.map(String).join(' ')); return original.apply(console, args) }
+  }
+})()`
+// Vistas del catálogo cuyo marcador está en algún JS de la carga actual, con
+// el archivo que lo lleva.
+const kitCodeLoaded = (b) =>
+  b.ev(`(async () => {
+    const scripts = performance.getEntriesByType('resource').map((e) => e.name).filter((n) => /\\.(m?js|tsx?)(\\?|$)/.test(new URL(n).pathname))
+    const texts = await Promise.all(scripts.map((n) => fetch(n).then((r) => r.text())))
+    const found = {}
+    for (const [view, marker] of ${JSON.stringify(Object.values(KIT_VIEWS))}) {
+      const files = scripts.filter((n, i) => texts[i].includes(marker)).map((n) => new URL(n).pathname)
+      if (files.length) found[view] = files
+    }
+    return found
+  })()`)
+async function lazyRoutes(b, expect) {
+  await b.metrics(1280, 900, 1)
+  // Sin Page.enable, el script no se inyecta (window.__consola sin definir).
+  await b.send('Page.enable')
+  const { identifier } = await b.send('Page.addScriptToEvaluateOnNewDocument', { source: CONSOLE_PROBE })
+  const avisos = {}
+  const propio = {}
+  let raiz
+  for (const path of [...ROUTES.map(([p]) => p), ...KIT_PATHS]) {
+    await b.go(path)
+    const log = await b.ev('window.__consola')
+    if (log.length) avisos[path] = log
+    if (path === '/') raiz = await kitCodeLoaded(b)
+    if (KIT_VIEWS[path]) propio[path] = Boolean((await kitCodeLoaded(b))[KIT_VIEWS[path][0]])
+  }
+  await b.send('Page.removeScriptToEvaluateOnNewDocument', { identifier })
+  expect(
+    'carga diferida (7.2): 0 avisos y errores de consola en la carga completa de las 16 rutas de D1 y /kit; ningún JS de la carga de / con código del catálogo (marcador de cada una de las 7 vistas); cada marcador, presente en la carga de su vista',
+    { avisos, codigoDelCatalogoEnLaCargaDeRaiz: raiz, marcadorEnSuVista: propio },
+    { avisos: {}, codigoDelCatalogoEnLaCargaDeRaiz: {}, marcadorEnSuVista: Object.fromEntries(KIT_PATHS.map((p) => [p, true])) },
+  )
+}
+
 export async function previewFlows(b, expect) {
+  await lazyRoutes(b, expect)
   await pushByClick(b, expect)
   await pop(b, expect)
   await focusState(b, expect)
@@ -219,7 +285,7 @@ export default async function run(b, expect) {
   )
 
   const kitTitles = {}
-  for (const path of ['/kit', '/kit/layout', '/kit/navegacion', '/kit/resultados', '/kit/fecha-hora', '/kit/citas', '/kit/estados']) {
+  for (const path of KIT_PATHS) {
     await b.metrics(1280, 900, 1)
     await b.go(path)
     kitTitles[path] = await b.ev("[...document.querySelectorAll('title')].map((t) => t.textContent)")
@@ -248,6 +314,8 @@ export default async function run(b, expect) {
     })()`),
     { unico: ['HEAD'], contraprueba: { n: 2, documentTitle: 'Título de React' }, trasRetirarla: 'Estados de demo · Kit · Salvia' },
   )
+
+  await lazyRoutes(b, expect)
 
   // --- Foco de ruta -------------------------------------------------------------------------------------------
   await pushByClick(b, expect)
