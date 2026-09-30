@@ -1565,6 +1565,37 @@ estado de la vista (se pierde al salir), URL (datos personales en la URL) y
 se reinicia con una reserva correcta y no con `ocupada`, cada una con su
 contraprueba; la validación, con los escenarios de 03.2 y 03.5 y el teléfono.
 
+**D18 · División del JS (7.2).** Un chunk por librería, estático:
+`build.rolldownOptions.output.codeSplitting` en `vite.config.ts` con tres grupos,
+`react` (React, React DOM y scheduler, prioridad 3, para que ningún otro grupo lo
+arrastre con sus dependencias), `react-router` y `react-aria` (React Aria, React
+Stately e @internationalized). La app se queda en la entrada; Rolldown añade
+`rolldown-runtime` (0,58 kB, el interop CommonJS que comparten los chunks). La
+entrada los importa de forma estática y Vite los precarga con `modulepreload`
+en `index.html`: se piden en paralelo, sin ronda extra. Build: `react` 218,84 kB
+(gzip 68,25), `react-aria` 190,35 (57,86), `index` 170,71 (54,25) y
+`react-router` 96,33 (31,66); ninguno pasa de 500 kB y desaparece el aviso de
+Vite (antes, un solo `index` de 677,05, gzip 211,68). El CSS no cambia.
+
+**Descartada: carga diferida por ruta** (`lazy` por objeto de React Router, solo
+el componente, con loaders y guardas estáticos; rama `7.2-lazy`, 3816c6f, que se
+conserva como registro). Bajaba el JS de la carga de `/` (430 331 B
+decodificados frente a 677 057), pero añade una ronda: el chunk de la ruta se
+pide cuando la entrada ya se ha ejecutado. Medido en HTTP/2 (branch deploy
+frente a producción; 562,5 ms de latencia, 1474,56 / 675 kbit/s, mediana de 5):
+carga completa hasta el h1, +291 ms en `/` y +622 en el perfil; con la CPU ×4,
++317 y +647; primera visita en cliente, de +627 a +1234 ms sin indicador.
+**«Menos JS en `/`» no se alcanza:** con la división estática, la carga descarga
+lo mismo (676 837 B en 5 archivos).
+
+Medido 7.2 (3423e78) frente a producción, con el mismo perfil y el umbral de
++50 ms: carga completa, +29 y +8 ms en `/` (sin límite de CPU y ×4) y +8 y +9 en
+el perfil; primera visita en cliente, entre −2 y 0 ms.
+
+**Caché:** con un cambio que solo toca la app (medido con un literal de texto),
+los tres chunks de librería y el runtime conservan su hash y solo cambia `index`.
+Un cambio que use otra exportación de una librería no se ha medido.
+
 ---
 
 ## Pendientes anotados
@@ -1623,7 +1654,8 @@ contraprueba; la validación, con los escenarios de 03.2 y 03.5 y el teléfono.
 | 7     | **Foco devuelto al disparador tras `close()` en Safari y Firefox.** `UI/Dialog` lo devuelve de forma explícita (`returnFocus`) además del nativo; solo se midió en Edge |
 | 7     | **`alertdialog` con lector.** Que NVDA y VoiceOver anuncien el título y el cuerpo al abrir (`aria-labelledby` y `aria-describedby`), y que el foco inicial en «Mantener mi cita» no tape el anuncio |
 | 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |
-| 7     | **Carga diferida por ruta.** 4.6 lleva el JS de 393 a 595 kB (gzip 121 → 183) y Vite avisa del chunk de más de 500 kB. Medido en 8087662 y en 4.6 |
+| 7 ✓ | **Carga diferida por ruta. Cerrado en 7.2 con división estática por librería, no con carga diferida** (D18). Ningún chunk pasa de 500 kB y desaparece el aviso (antes, 677,05 kB en un solo `index`). La carga diferida, medida en HTTP/2 frente a producción: +291 / +317 ms hasta el h1 en `/`, +622 / +647 en el perfil (sin límite de CPU / ×4) y de +627 a +1234 ms en la primera visita en cliente; descartada. La división estática: +29 ms como máximo, dentro del umbral de +50. «Menos JS en `/`» no alcanzado. `pnpm verify` 4.1–4.7 y 5.0–5.4 en dev y 5.0–5.4 en `--preview`, iguales a la línea base de b4c3274 |
+| 7     | **`run.mjs` y el puerto 9400.** Que `pnpm verify` falle al arrancar si el 9400 ya está ocupado, en vez de conectarse al Edge que lo ocupa (docs/verificacion.md, Trampas, 7.2) |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |
 | 5 · cierre ✓ | **`pnpm verify 4.4`, «Header/Desktop Signed-in … control a 16», con un `pnpm dev` de larga duración. Cerrado en el cierre de la fase 5.** Causa: `<ScrollRestoration>` guardaba toda carga completa bajo la clave «default», así que una carga completa de otra URL en la misma pestaña heredaba el scroll de la anterior. Receta: `/kit` al final (`scrollY` 5982) y después `/kit/navegacion…` → 766 (el máximo) con el foco en body, sin `getKey`; 0 con él (D12). El perfil persistente no transmite ese estado (al reabrir, `sessionStorage` vacío), lo que cuadra con el 62/62 de V1b al reiniciar solo el servidor. Con servidor nuevo, 62/62 con perfil persistente y nuevo. **Sin medir:** qué producía la carga previa con un servidor de días (no había ninguno arrancado); su disparador queda como hipótesis. **Causa compartida en parte con el resto de pintado:** la misma clave «default» era lo que volvía estable a 4.6 (la carga completa de `/kit` heredaba el scroll; fila de la fase 7) |
 | 5 · V2a ✓ | **Variante inferior de `c-sheet`. Cerrado en V2a:** `c-sheet--bottom` sobre el mismo bloque (D5); 02.2 a ±1 px (§ Fecha y hora, Vista 2) |

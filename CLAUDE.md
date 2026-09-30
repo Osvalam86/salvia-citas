@@ -126,9 +126,12 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   de Apple e imagen OG en `public/`, con sus `<link>` y `<meta>` en
   `index.html`; `pnpm verify` 4.1 y 4.4 (subrayado), 5.0 (un `<title>` por
   ruta) y 7.0 (iconos, OG y `<meta>`).
+- Fase 7 · 7.2: un chunk por librería (`react`, `react-router`, `react-aria`)
+  con `codeSplitting` de Rolldown en `vite.config.ts`, precargados con
+  `modulepreload` (D18); la carga diferida por ruta, medida en HTTP/2 y
+  descartada (rama `7.2-lazy`).
 
-Siguiente en la fase 7: 7.2 (carga diferida por ruta con `lazy` de la ruta),
-con los pendientes de la fase 7 de DESIGN.md.
+Siguiente en la fase 7: 7.3, con los pendientes de la fase 7 de DESIGN.md.
 
 ## Comandos
 

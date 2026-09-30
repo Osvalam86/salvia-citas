@@ -340,6 +340,17 @@ no se versiona.
 - **En `_redirects`, `/x/*` casa también con `/x` y con `/x/`.** Medido: `/especialistas`,
   `/especialistas/`, `/citas` y `/citas/` daban 200; con sus reglas 404 antes de los comodines, 404
   (7.0).
+- **Un Edge de una pasada anterior, vivo en el 9400.** En la línea base de 7.2,
+  `edge.kill()` no cerró el Edge headless que escucha en el 9400: al terminar la
+  serie quedaba uno vivo por pasada, y desde la segunda cada pasada se conectó al
+  navegador de la primera (misma sesión y `sessionStorage`). Síntomas: 5.0 cargaba
+  otra URL en 766 con el foco en body (el caso que corrigió `getKey`), el resto de
+  pintado de 4.6 no salía, había ✗ de Tab en 5.2–5.4 y los `--preview` no medían
+  (`Target does not support metrics override`). Entre 7.1 y 7.2 cambiaron Edge
+  (153 → 154.0.4258.37) y Node (26.3.0): sin aislar. Las series de 7.2 corrieron
+  con un lanzador fuera del repo que, tras cada pasada, cierra los Edge de su
+  carpeta temporal y comprueba que el 9400 queda libre. Pendiente: que `run.mjs`
+  falle si el 9400 está ocupado al arrancar (DESIGN.md, Pendientes) (7.2).
 
 ## Comprobaciones manuales
 
