@@ -129,7 +129,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 - Fase 7 · 7.2: un chunk por librería (`react`, `react-router`, `react-aria`)
   con `codeSplitting` de Rolldown en `vite.config.ts`, precargados con
   `modulepreload` (D18); la carga diferida por ruta, medida en HTTP/2 y
-  descartada (rama `7.2-lazy`).
+  descartada (rama `7.2-lazy`); medido en producción (D18).
 
 Siguiente en la fase 7: 7.3, con los pendientes de la fase 7 de DESIGN.md.
 

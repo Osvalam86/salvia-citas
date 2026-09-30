@@ -1146,7 +1146,7 @@ reintroducirlos:
 
 ---
 
-## Decisiones de arquitectura (D1–D17)
+## Decisiones de arquitectura (D1–D18)
 
 Tomadas en la planeación de la fase de código. No se reabren sin acuerdo
 explícito.
@@ -1596,6 +1596,22 @@ el perfil; primera visita en cliente, entre −2 y 0 ms.
 los tres chunks de librería y el runtime conservan su hash y solo cambia `index`.
 Un cambio que use otra exportación de una librería no se ha medido.
 
+**En producción (fdc8337, 29 sep).** Sirve `index-DgeRHP-Q.js` con los cuatro
+`modulepreload` (`rolldown-runtime`, `react`, `react-router` y `react-aria`) e
+`index-D1ACGvU6.css`. `pnpm verify 7.0` 14/14 y los `--preview` de 5.0 a 5.4,
+8/8, 16/16, 6/6, 5/5 y 12/12, las cifras de 7.0 (fila del fallback en
+Pendientes). `/.netlify/scripts/hud` en 0 de 16 cargas y `favicon.ico` como
+`image/vnd.microsoft.icon`. El comentario «hosted on Netlify» no está en
+`index.html` (lo inyecta Netlify); medido en 7.2, aparece en producción y no en
+los branch deploys. Lighthouse de Osvaldo, dato sin criterio: en producción
+(incógnito, móvil, mediana de tres, 29 sep, 21:53–21:55), rendimiento 98,
+accesibilidad 96, buenas prácticas 100 y SEO 100, FCP y LCP 1,9 s; antes de 7.2
+(b4c3274, incógnito, una pasada), móvil el 29 sep a las 18:07, 98 / 96 / 100 / 100,
+FCP y LCP 1,9 s, y escritorio el 29 sep a las 18:08, 100 / 100 / 100 / 100. El
+96 de accesibilidad: Lighthouse marca «objetivos táctiles» (2.5.8) en «Ver
+horarios» y en la barra inferior. Hipótesis sin medir: falso positivo por la
+barra fija; se mide en 7.3.
+
 ---
 
 ## Pendientes anotados
@@ -1654,7 +1670,7 @@ Un cambio que use otra exportación de una librería no se ha medido.
 | 7     | **Foco devuelto al disparador tras `close()` en Safari y Firefox.** `UI/Dialog` lo devuelve de forma explícita (`returnFocus`) además del nativo; solo se midió en Edge |
 | 7     | **`alertdialog` con lector.** Que NVDA y VoiceOver anuncien el título y el cuerpo al abrir (`aria-labelledby` y `aria-describedby`), y que el foco inicial en «Mantener mi cita» no tape el anuncio |
 | 7     | **Calendario y horas con lector** (spike-rac § 4, más lo medido en 4.6): el `h2` oculto de RAC en la navegación por encabezados, el botón «Siguiente» oculto con VoiceOver por gestos, el posible doble anuncio de `aria-current="date"` junto al segmento «hoy» del nombre y el anuncio del mes al navegar |
-| 7 ✓ | **Carga diferida por ruta. Cerrado en 7.2 con división estática por librería, no con carga diferida** (D18). Ningún chunk pasa de 500 kB y desaparece el aviso (antes, 677,05 kB en un solo `index`). La carga diferida, medida en HTTP/2 frente a producción: +291 / +317 ms hasta el h1 en `/`, +622 / +647 en el perfil (sin límite de CPU / ×4) y de +627 a +1234 ms en la primera visita en cliente; descartada. La división estática: +29 ms como máximo, dentro del umbral de +50. «Menos JS en `/`» no alcanzado. `pnpm verify` 4.1–4.7 y 5.0–5.4 en dev y 5.0–5.4 en `--preview`, iguales a la línea base de b4c3274 |
+| 7 ✓ | **Carga diferida por ruta. Cerrado en 7.2 con división estática por librería, no con carga diferida** (D18). Ningún chunk pasa de 500 kB y desaparece el aviso (antes, 677,05 kB en un solo `index`). La carga diferida, medida en HTTP/2 frente a producción: +291 / +317 ms hasta el h1 en `/`, +622 / +647 en el perfil (sin límite de CPU / ×4) y de +627 a +1234 ms en la primera visita en cliente; descartada. La división estática: +29 ms como máximo, dentro del umbral de +50. «Menos JS en `/`» no alcanzado. `pnpm verify` 4.1–4.7 y 5.0–5.4 en dev y 5.0–5.4 en `--preview`, iguales a la línea base de b4c3274. En producción (fdc8337): `pnpm verify 7.0` 14/14 y `--preview` 8/8, 16/16, 6/6, 5/5 y 12/12 (D18) |
 | 7 ✓ | **`run.mjs` y el puerto 9400. Cerrado en 7.3:** `pnpm verify` sale con código 2 si el puerto de Edge ya responde, sin conectarse (contraprueba con un Edge a mano en el 9400), y `close` cierra con `Browser.close` y espera al puerto. `run.mjs` usa `process.exitCode` en todas sus salidas (`process.exit` tras un `fetch` tumbaba Node 26.3.0 en Windows con 127): sin argumentos, `4.1 --preview`, sin servidor y puerto ocupado, 2; 4.6 con su ✗ declarado, 1; el resto, 0; ninguna pasada colgada. Serie completa (4.1–4.7 y 5.0–5.4 en dev, 5.0–5.4 `--preview` y 7.0 en producción) idéntica byte a byte a fdc8337. El defecto de `kill()` de 7.2, no reproducido con Edge 154.0.4258.37: `Browser.close` queda como defensa y su contraprueba no discrimina (docs/verificacion.md, Trampas) |
 | 7     | **Safari: foco y `scroll-padding`.** La verificación de 2.4.11 (fase 3) se hizo en Chromium (Edge headless, Tab real). Comprobar en Safari de macOS e iOS que al mover el foco con Tab y Shift+Tab el desplazamiento respeta `scroll-padding-block-end` (`--app-layout-bar-size`) y ningún elemento enfocado queda bajo la barra; repetir la contraprueba con el padding a 0 |
 | 5 · cierre ✓ | **`pnpm verify 4.4`, «Header/Desktop Signed-in … control a 16», con un `pnpm dev` de larga duración. Cerrado en el cierre de la fase 5.** Causa: `<ScrollRestoration>` guardaba toda carga completa bajo la clave «default», así que una carga completa de otra URL en la misma pestaña heredaba el scroll de la anterior. Receta: `/kit` al final (`scrollY` 5982) y después `/kit/navegacion…` → 766 (el máximo) con el foco en body, sin `getKey`; 0 con él (D12). El perfil persistente no transmite ese estado (al reabrir, `sessionStorage` vacío), lo que cuadra con el 62/62 de V1b al reiniciar solo el servidor. Con servidor nuevo, 62/62 con perfil persistente y nuevo. **Sin medir:** qué producía la carga previa con un servidor de días (no había ninguno arrancado); su disparador queda como hipótesis. **Causa compartida en parte con el resto de pintado:** la misma clave «default» era lo que volvía estable a 4.6 (la carga completa de `/kit` heredaba el scroll; fila de la fase 7) |
