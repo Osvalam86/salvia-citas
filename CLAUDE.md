@@ -130,8 +130,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   con `codeSplitting` de Rolldown en `vite.config.ts`, precargados con
   `modulepreload` (D18); la carga diferida por ruta, medida en HTTP/2 y
   descartada (rama `7.2-lazy`); medido en producción (D18).
+- Fase 7 · 7.3: auditoría automática en `pnpm verify 7.3` (`7.3-auditoria.mjs`,
+  `7.3-cd.mjs`, `7.3-comun.mjs`; axe-core 4.13.0 por CDP; `checkBase` en 7.0 y 7.3):
+  axe, fuera de `#root`, contraste renderizado (`scripts/contrast-pairs.mjs`), anillo
+  contra vecinos, 2.4.11, 2.5.8, 1.4.12, 3.2.6, ListBox a 320 y 200 % y resto de pintado;
+  matriz WCAG 2.2 A/AA y limitaciones en `docs/auditoria.md`; 6 defectos declarados,
+  con su propuesta en 7.6 (DESIGN.md, Pendientes).
 
-Siguiente en la fase 7: 7.3, con los pendientes de la fase 7 de DESIGN.md.
+Siguiente en la fase 7: 7.4 (prueba manual: lector de pantalla, Safari, Firefox y
+móviles reales), con los pendientes de la fase 7 de DESIGN.md.
 
 ## Comandos
 
