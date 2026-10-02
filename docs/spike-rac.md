@@ -197,22 +197,55 @@ Las tres se instalaron solo para el spike y se revirtieron con él.
 
 ## 4 · Sin validar: comprobar con lector de pantalla en la fase 7
 
+Resultado de 7.4 (1 oct 2026; NVDA 2026.2 con Firefox 157.0, Windows 11 26H2;
+docs/auditoria-manual.md, N3). VoiceOver, sin dispositivo; NVDA con Chrome, sin
+medir en 7.4.
+
 1. **Hora llena (R2):** que NVDA y VoiceOver anuncien «no disponible» o
    «atenuado» por nuestro `aria-disabled`, dado que RAC no lo sabe. Y que al
    pulsar Intro sobre ella no se anuncie nada que sugiera que se seleccionó.
+   **7.4 ✓ (N3.7):** «09:00 no disponible sin seleccionar 1 de 6»; Intro no
+   dice nada y la 10:30 sigue elegida.
 2. **«seleccionado» por partida doble (R3):** el `gridcell` lleva
    `aria-selected="true"` y el nombre del botón incluye «seleccionado». Ver si
    algún lector lo dice dos veces; si es así, quitar el segmento.
+   **7.4 ✓ (N3.3):** una vez, «martes 24 de abril de 2029, 6 horarios libres,
+   seleccionado botón enfocado»: NVDA no añade el estado de `aria-selected`. El
+   segmento se queda. Al entrar con Tab, el nombre entero se lee dos veces
+   (celda y botón).
 3. **Celdas en blanco (2.3):** el `td` vacío sigue siendo un `gridcell` con
    `aria-disabled`. Comprobar cómo se anuncia al recorrer la tabla con las
    órdenes de tabla del lector (no con Tab).
+   **Sin medir en 7.4** (N3.5, recorte).
 4. **Nombre de la rejilla (2.4):** qué dice el lector al entrar en el
    calendario con el encabezado propio.
+   **7.4 ✓ (N3.2):** «abril de 2029» · «Mes siguiente botón» · «abril de 2029
+   tabla» · «martes 24 de abril de 2029, 6 horarios libres, seleccionado fila 5
+   columna 2».
 5. **Grupos «Mañana» y «Tarde» (2.1):** que se anuncie el cambio de grupo al
    cruzar de sección con ↓.
+   **7.4 ✓ (N3.7):** «Elige hora lista · Mañana agrupación · 10:30 4 de 6» al
+   entrar y «Tarde agrupación · 16:00 sin seleccionar 1 de 6» al cruzar con ↓
+   (en la rejilla de 3 columnas, ↓ va de 10:30 a 16:00).
 6. **Botón «Mes anterior» oculto con `visibility: hidden`:** que desaparezca
    también para el lector (debería, porque `visibility: hidden` lo saca del
    árbol de accesibilidad).
+   **Corrección:** ya no usa `visibility: hidden`. `MonthNav` (`Calendar.tsx`)
+   omite «Mes anterior» del DOM en el primer mes del rango, como «Anterior» en la
+   paginación. **Sin medir en 7.4** (N3.6, recorte); en el DOM hay además un
+   segundo botón «Siguiente» de RAC, el de VoiceOver por gestos.
 7. **Navegación del ListBox en rejilla a otros anchos:** el delegado de RAC
    calcula arriba y abajo por posición en pantalla. Probado en una sola
    anchura; verificar a 320 px y con zoom al 200 %.
+   **✓ en Chromium (7.3, bloque D):** a 320 con el texto al 200 %, → sigue el
+   orden del DOM y ↓ la geometría, 4 de 4 (docs/auditoria.md). Firefox, sin
+   medir en 7.4 (K.8).
+
+**`h2` oculto de RAC (§ 2.4), 7.4 (N0.1 y N3.1):** NVDA + Firefox no lo
+encuentra con H: la raíz del calendario lleva `role="application"`
+(`useCalendarBase`, react-aria 3.52.1) y NVDA no recorre su interior con letras
+rápidas en modo exploración. Contraprueba: sin el rol, H da «abril de 2029
+encabezado nivel 2» entre «Elige fecha» y «Elige hora». El calendario se alcanza
+con Tab y su rótulo se oye al entrar. Sin ✗. Dato: hoy se anuncia dos veces,
+«hoy» del nombre y «fecha actual» de `aria-current="date"` (N3.4), redundante,
+a decidir en 7.6.

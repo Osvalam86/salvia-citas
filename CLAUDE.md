@@ -136,9 +136,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   contra vecinos, 2.4.11, 2.5.8, 1.4.12, 3.2.6, ListBox a 320 y 200 % y resto de pintado;
   matriz WCAG 2.2 A/AA y limitaciones en `docs/auditoria.md`; 6 defectos declarados,
   con su propuesta en 7.6 (DESIGN.md, Pendientes).
+- Fase 7 · 7.4: prueba manual, recortada, en `docs/auditoria-manual.md` (guion,
+  literales del Visor de voz y cifras): NVDA 2026.2 con Firefox 157 (y con Chrome 154
+  para repetir los hallazgos), teclado en Firefox, Android (Chrome 153) y Google
+  Calendar; columna «Manual (7.4)» y § Prueba manual · 7.4 en `docs/auditoria.md`;
+  2 hallazgos contra la regla del proyecto, con su fila en 7.6; Safari, iOS y
+  VoiceOver, «7 · sin dispositivo» (DESIGN.md, Pendientes).
 
-Siguiente en la fase 7: 7.4 (prueba manual: lector de pantalla, Safari, Firefox y
-móviles reales), con los pendientes de la fase 7 de DESIGN.md.
+Siguiente en la fase 7: 7.6 (correcciones: las 6 filas «7 · 7.6» de DESIGN.md,
+Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
 
 ## Comandos
 

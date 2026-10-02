@@ -1,8 +1,11 @@
-# Auditoría automática · 7.3
+# Auditoría de accesibilidad · 7.3 automática y 7.4 manual
 
-Qué se midió en la fase 7 con herramientas automáticas, cómo, con qué resultado y qué queda
-abierto. La prueba manual (teclado con lector de pantalla, Safari, Firefox, móviles reales) es
-7.4; lo que depende de ella va marcado como «manual (7.4)», nunca como ✓.
+Qué se midió en la fase 7, cómo, con qué resultado y qué queda abierto. 7.3 es la auditoría
+automática (Edge headless, el grueso de este documento). 7.4 es la prueba manual (NVDA con
+Firefox y Chrome, teclado en Firefox, un Android y Google Calendar), recortada por tiempo: su
+resultado va en la columna «Manual (7.4)» de la matriz y en § Prueba manual · 7.4; el guion,
+con los literales del lector, en docs/auditoria-manual.md. Lo que 7.4 no midió dice «sin medir
+en 7.4», nunca ✓.
 
 - **Sección:** `pnpm verify 7.3` (`scripts/verify/7.3-auditoria.mjs`, `7.3-cd.mjs` y
   `7.3-comun.mjs`; docs/verificacion.md). Audita el build, nunca `pnpm dev`:
@@ -65,69 +68,75 @@ Inicio y Fin con la acción por defecto evitada; un resto inyectado supera el de
 
 ## Matriz WCAG 2.2 A y AA
 
-Resultado: **✓ medido** (con cifra y prueba), **✓ revisado** (cumple por construcción, revisado
-en el código, sin prueba automática), **N/A** (no hay contenido al que aplique), **✗ declarado**
-(defecto conocido, con su pendiente) o **manual (7.4)** (depende de la prueba con lector o de
-otros navegadores). 55 criterios vigentes; 4.1.1 es obsoleto en 2.2.
+Resultado (7.3): **✓ medido** (con cifra y prueba), **✓ revisado** (cumple por construcción,
+revisado en el código, sin prueba automática), **N/A** (no hay contenido al que aplique) o
+**✗ declarado** (defecto conocido, con su pendiente). 55 criterios vigentes; 4.1.1 es obsoleto
+en 2.2.
 
-| Criterio | Nivel | Resultado | Evidencia |
-|---|---|---|---|
-| 1.1.1 Contenido no textual | A | ✓ medido | axe (`image-alt`, `svg-img-alt`, `role-img-alt`…) en 85 pasadas; los iconos, decorativos (`aria-hidden`, `pnpm verify 4.1`); los avatares con foto, con `alt` (4.2, 5.1) |
-| 1.2.1 Solo audio y solo vídeo | A | N/A | No hay medios |
-| 1.2.2 Subtítulos (grabado) | A | N/A | No hay medios |
-| 1.2.3 Audiodescripción o alternativa | A | N/A | No hay medios |
-| 1.2.4 Subtítulos (en directo) | AA | N/A | No hay medios |
-| 1.2.5 Audiodescripción (grabado) | AA | N/A | No hay medios |
-| 1.3.1 Información y relaciones | A | ✓ medido · manual (7.4) | axe (listas, tablas, `label`, landmarks, encabezados); estructura de encabezados y árbol de accesibilidad por vista (5.1–5.4); `Legend` con encabezado (D14). El anuncio con lector, 7.4 |
-| 1.3.2 Secuencia con significado | A | ✓ medido | Orden de Tab = orden del DOM por vista (5.1–5.4); ListBox: → en el orden del DOM a 320 y 200 % (D) |
-| 1.3.3 Características sensoriales | A | ✓ revisado | Ninguna instrucción depende de forma, posición o color (copy de §5 del diseño) |
-| 1.3.4 Orientación | AA | ✓ revisado | Sin bloqueo de orientación en CSS ni en `index.html` |
-| 1.3.5 Identificar el propósito de la entrada | AA | ✓ revisado | `autocomplete` `name`, `email` y `tel-national` en «Tus datos» (`PatientData.tsx`); axe `autocomplete-valid` sin violaciones |
-| 1.4.1 Uso del color | A | ✓ medido | Estados con borde, tachado, glifo o peso además del color (diseño §3.2); `forced-colors` en 4.2–4.7 y 5.1–5.4 |
-| 1.4.2 Control del audio | A | N/A | No hay audio |
-| 1.4.3 Contraste (mínimo) | AA | ✓ medido | 34 pares renderizados, texto ≥ 4,5 (B); `pnpm contrast` (31 pares de F.3); 43 incomplete de axe resueltos |
-| 1.4.4 Cambio de tamaño del texto | AA | ✓ medido | 200 % por inyección y letra del navegador a 24 y 32 en 4.1–4.7 y 5.1–5.4, sin pérdida; ListBox a 320 (D) |
-| 1.4.5 Imágenes de texto | AA | ✓ revisado | El wordmark y todo el texto son texto HTML; no hay imágenes de texto |
-| 1.4.10 Reajuste (reflow) | AA | ✓ medido | 320 sin scroll horizontal en 4.x y 5.x (al 100 % y al 200 %, dos barras); 1.4.12 a 320 sin desborde; ListBox a 320 |
-| 1.4.11 Contraste no textual | AA | ✗ declarado | Límites de control ≥ 3 (B); anillo: 60 paradas de coste medido y 13 del kit con ✗ (grupos 1b y 4, 9 paradas con las dos bandas < 3): § Hallazgos |
-| 1.4.12 Espaciado del texto | AA | ✓ medido | 61 estados a 320 y 1440 con los cuatro valores: 0 recortes, 0 solapes (C) |
-| 1.4.13 Contenido con hover o foco | AA | ✓ revisado | No hay tooltips ni contenido al pasar; el menú de cuenta se abre con clic y se cierra con Escape (4.4) |
-| 2.1.1 Teclado | A | ✓ medido | Flujos por teclado en 4.x y 5.x (Tab, Intro, Espacio, flechas, Escape); en el ListBox, Inicio y Fin mueven el foco (lo que falla es su visibilidad: F1, en 2.4.7) |
-| 2.1.2 Sin trampas para el foco | A | ✓ medido | El diálogo cicla sus botones sin caer en la página y Escape lo cierra (4.7); las hojas se cierran con Escape (5.1, 5.2); los recorridos de Tab de B (929 paradas) y C (1770) avanzan hasta repetir una parada, sin tope |
-| 2.1.4 Atajos de una tecla | A | N/A | No hay atajos de una tecla (el único manejador propio es Escape en el menú) |
-| 2.2.1 Tiempo ajustable | A | N/A | No hay límites de tiempo (`lenta` es latencia simulada) |
-| 2.2.2 Pausar, detener, ocultar | A | N/A | Nada se mueve más de 5 s ni se actualiza solo |
-| 2.3.1 Tres destellos | A | N/A | No hay destellos |
-| 2.4.1 Evitar bloques | A | ✓ medido | «Saltar al contenido» (4.4); axe `bypass` y landmarks |
-| 2.4.2 Titulado de páginas | A | ✓ medido | Un `<title>` por ruta con el texto de D15, en D1 y `/kit` (5.0, 7.0) |
-| 2.4.3 Orden del foco | A | ✓ medido | Orden de Tab por vista y foco de ruta, de errores y de avisos (5.0–5.4, `--preview`) |
-| 2.4.4 Propósito de los enlaces | A | ✓ medido · manual (7.4) | axe `link-name`; nombres con destino (§5 del diseño). La lectura con lector, 7.4 |
-| 2.4.5 Múltiples vías | AA | ✓ revisado | Navegación principal y búsqueda; las páginas de la reserva son pasos de un proceso (exentas) |
-| 2.4.6 Encabezados y etiquetas | AA | ✓ medido | Esquema de encabezados por vista (5.1–5.4); etiquetas visibles encima del control (diseño §3.4, 4.3) |
-| 2.4.7 Foco visible | AA | ✗ declarado | Anillo en las 929 paradas (B); tras Inicio en el ListBox a 320 con la letra a 32, la hora enfocada queda fuera de la vista (F1) |
-| 2.4.11 Foco no tapado (mínimo) | AA | ✓ medido | 1770 paradas sin el componente tapado entero (C). Nota: F2, el anillo bajo la barra fija o sticky, no tapa el componente; incumple la regla del sistema (anillo entero): ✗ declarado del proyecto, 7.6 |
-| 2.5.1 Gestos del puntero | A | N/A | No hay gestos de varios dedos ni de trayectoria |
-| 2.5.2 Cancelación del puntero | A | ✓ revisado | Controles nativos y de React Aria: se activan al soltar |
-| 2.5.3 Etiqueta en el nombre | A | ✓ medido · manual (7.4) | Day Chip: nombre = texto visible + oculto (4.6); el resto, con lector y control por voz, 7.4 |
-| 2.5.4 Activación por movimiento | A | N/A | No hay |
-| 2.5.7 Movimientos de arrastre | AA | N/A | No hay arrastre |
-| 2.5.8 Tamaño del objetivo (mínimo) | AA | ✓ medido | 2752 objetivos a 320, 375, 1440 y 320 con la letra a 32; 2 exenciones «en línea» (C) |
-| 3.1.1 Idioma de la página | A | ✓ medido | `lang="es-MX"`; axe `html-has-lang` y `html-lang-valid` |
-| 3.1.2 Idioma de las partes | AA | N/A | Todo el contenido está en español |
-| 3.2.1 Al recibir el foco | A | ✓ revisado | Ningún control cambia de contexto al recibir el foco (sin `onFocus` que navegue o envíe); los recorridos de Tab de B y C no se cortan |
-| 3.2.2 Al introducir datos | A | ✓ medido | Filtros y orden actualizan resultados sin mover el foco ni cambiar de página (5.1); los envíos van por botón |
-| 3.2.3 Navegación coherente | AA | ✓ medido (dato de C, sin expectativa) | El header, en el mismo orden completo en las 10 cargas con header de cada ancho: «Salvia · Ayuda» a 375; «Salvia · Especialistas · Mis citas · Ayuda · Karla Sánchez» a 1440 (campo `orden` de 3.2.6) |
-| 3.2.4 Identificación coherente | AA | ✓ revisado | Los mismos controles con el mismo nombre en todas las vistas (kit de componentes, D5) |
-| 3.2.6 Ayuda coherente | A | ✓ medido | «Ayuda» en el mismo orden relativo en todas las cargas donde aparece (C) |
-| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) |
-| 3.3.2 Etiquetas o instrucciones | A | ✓ medido | Etiqueta visible en cada campo y ayuda del grupo (4.3, 5.3); axe `label` |
-| 3.3.3 Sugerencia ante errores | AA | ✓ medido | Cada mensaje dice cómo corregir (5.3, diseño §5.3) |
-| 3.3.4 Prevención de errores (legal, financiero, datos) | AA | ✓ revisado | Confirmación previa antes de reservar (02.4) y cancelación con diálogo (04.3); se puede reprogramar y cancelar |
-| 3.3.7 Entrada redundante | A | ✓ medido | El borrador de «Tus datos» se conserva al salir y volver (D17, 5.3) |
-| 3.3.8 Autenticación accesible (mínimo) | AA | N/A | No hay inicio de sesión (sesión simulada) |
-| 4.1.1 Procesamiento | A | Obsoleto | Retirado en WCAG 2.2 |
-| 4.1.2 Nombre, función, valor | A | ✓ medido · manual (7.4) | axe (`aria-*`, `button-name`, `link-name`, `listbox`…); estados ARIA del kit (4.x); el anuncio con lector, 7.4 |
-| 4.1.3 Mensajes de estado | AA | ✗ declarado · manual (7.4) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado). El anuncio real, 7.4 |
+Manual (7.4): **✓** con su navegador (NF: NVDA 2026.2 con Firefox 157; NC: NVDA con Chrome 154;
+Firefox o Android sin lector) y el paso de docs/auditoria-manual.md; **✓ parcial** dice qué
+parte; **sin medir en 7.4** (recorte); **sin dispositivo** (Safari, iOS, VoiceOver); **—** (7.4
+no lo prueba). Lo que 7.4 halló contra la regla del proyecto, no contra WCAG, va con su fila
+de 7.6.
+
+| Criterio | Nivel | Resultado | Evidencia | Manual (7.4) |
+|---|---|---|---|---|
+| 1.1.1 Contenido no textual | A | ✓ medido | axe (`image-alt`, `svg-img-alt`, `role-img-alt`…) en 85 pasadas; los iconos, decorativos (`aria-hidden`, `pnpm verify 4.1`); los avatares con foto, con `alt` (4.2, 5.1) | — |
+| 1.2.1 Solo audio y solo vídeo | A | N/A | No hay medios | — |
+| 1.2.2 Subtítulos (grabado) | A | N/A | No hay medios | — |
+| 1.2.3 Audiodescripción o alternativa | A | N/A | No hay medios | — |
+| 1.2.4 Subtítulos (en directo) | AA | N/A | No hay medios | — |
+| 1.2.5 Audiodescripción (grabado) | AA | N/A | No hay medios | — |
+| 1.3.1 Información y relaciones | A | ✓ medido | axe (listas, tablas, `label`, landmarks, encabezados); estructura de encabezados y árbol de accesibilidad por vista (5.1–5.4); `Legend` con encabezado (D14). El anuncio con lector, 7.4 | ✓ NF parcial: los encabezados de las 9 rutas con H, al 100 % y estrecho (N0.1); el h2 oculto de RAC no sale con H por `role="application"` (N3.1, explicado, sin ✗). NC: sin medir en 7.4. VoiceOver: sin dispositivo |
+| 1.3.2 Secuencia con significado | A | ✓ medido | Orden de Tab = orden del DOM por vista (5.1–5.4); ListBox: → en el orden del DOM a 320 y 200 % (D) | — |
+| 1.3.3 Características sensoriales | A | ✓ revisado | Ninguna instrucción depende de forma, posición o color (copy de §5 del diseño) | — |
+| 1.3.4 Orientación | AA | ✓ revisado | Sin bloqueo de orientación en CSS ni en `index.html` | — |
+| 1.3.5 Identificar el propósito de la entrada | AA | ✓ revisado | `autocomplete` `name`, `email` y `tel-national` en «Tus datos» (`PatientData.tsx`); axe `autocomplete-valid` sin violaciones | — |
+| 1.4.1 Uso del color | A | ✓ medido | Estados con borde, tachado, glifo o peso además del color (diseño §3.2); `forced-colors` en 4.2–4.7 y 5.1–5.4 | — |
+| 1.4.2 Control del audio | A | N/A | No hay audio | — |
+| 1.4.3 Contraste (mínimo) | AA | ✓ medido | 34 pares renderizados, texto ≥ 4,5 (B); `pnpm contrast` (31 pares de F.3); 43 incomplete de axe resueltos | — |
+| 1.4.4 Cambio de tamaño del texto | AA | ✓ medido | 200 % por inyección y letra del navegador a 24 y 32 en 4.1–4.7 y 5.1–5.4, sin pérdida; ListBox a 320 (D) | ✓ parcial, Firefox a 375 (K.7): con la letra a 32 y con el zoom solo de texto al 200 %, modo de texto grande activo y la barra en el flujo (`static`); a 16, `sticky`. 320, 430 y 375 × 812, sin medir. Chrome (C.3) y Android (A.2): sin medir en 7.4. Safari: sin dispositivo |
+| 1.4.5 Imágenes de texto | AA | ✓ revisado | El wordmark y todo el texto son texto HTML; no hay imágenes de texto | — |
+| 1.4.10 Reajuste (reflow) | AA | ✓ medido | 320 sin scroll horizontal en 4.x y 5.x (al 100 % y al 200 %, dos barras); 1.4.12 a 320 sin desborde; ListBox a 320 | — |
+| 1.4.11 Contraste no textual | AA | ✗ declarado | Límites de control ≥ 3 (B); anillo: 60 paradas de coste medido y 13 del kit con ✗ (grupos 1b y 4, 9 paradas con las dos bandas < 3): § Hallazgos | — |
+| 1.4.12 Espaciado del texto | AA | ✓ medido | 61 estados a 320 y 1440 con los cuatro valores: 0 recortes, 0 solapes (C) | — |
+| 1.4.13 Contenido con hover o foco | AA | ✓ revisado | No hay tooltips ni contenido al pasar; el menú de cuenta se abre con clic y se cierra con Escape (4.4) | — |
+| 2.1.1 Teclado | A | ✓ medido | Flujos por teclado en 4.x y 5.x (Tab, Intro, Espacio, flechas, Escape); en el ListBox, Inicio y Fin mueven el foco (lo que falla es su visibilidad: F1, en 2.4.7) | ✓ Firefox: Intro en un radio de la tira hace el envío implícito (K.4 a) |
+| 2.1.2 Sin trampas para el foco | A | ✓ medido | El diálogo cicla sus botones sin caer en la página y Escape lo cierra (4.7); las hojas se cierran con Escape (5.1, 5.2); los recorridos de Tab de B (929 paradas) y C (1770) avanzan hasta repetir una parada, sin tope | ✓ Firefox: con el diálogo abierto ningún elemento de la página recibe el foco (K.1); en la hoja del calendario, Tab sale a la interfaz y vuelve al diálogo (N3.8b). Safari: sin dispositivo |
+| 2.1.4 Atajos de una tecla | A | N/A | No hay atajos de una tecla (el único manejador propio es Escape en el menú) | — |
+| 2.2.1 Tiempo ajustable | A | N/A | No hay límites de tiempo (`lenta` es latencia simulada) | — |
+| 2.2.2 Pausar, detener, ocultar | A | N/A | Nada se mueve más de 5 s ni se actualiza solo | — |
+| 2.3.1 Tres destellos | A | N/A | No hay destellos | — |
+| 2.4.1 Evitar bloques | A | ✓ medido | «Saltar al contenido» (4.4); axe `bypass` y landmarks | — |
+| 2.4.2 Titulado de páginas | A | ✓ medido | Un `<title>` por ruta con el texto de D15, en D1 y `/kit` (5.0, 7.0) | — |
+| 2.4.3 Orden del foco | A | ✓ medido | Orden de Tab por vista y foco de ruta, de errores y de avisos (5.0–5.4, `--preview`) | ✓ Firefox: foco devuelto al cerrar el diálogo (K.2); en la primera tarjeta tras «Siguiente» y «Ver más» (N1.6, N1.7; N1.7 también en Chrome); en la primera hora libre en Missing (K.4 a) |
+| 2.4.4 Propósito de los enlaces | A | ✓ medido | axe `link-name`; nombres con destino (§5 del diseño). La lectura con lector, 7.4 | ✓ NF: los seis enlaces repetidos se oyen con su contexto por `aria-describedby` (N0.3, técnica ARIA1). NC: sin medir en 7.4. VoiceOver: sin dispositivo |
+| 2.4.5 Múltiples vías | AA | ✓ revisado | Navegación principal y búsqueda; las páginas de la reserva son pasos de un proceso (exentas) | — |
+| 2.4.6 Encabezados y etiquetas | AA | ✓ medido | Esquema de encabezados por vista (5.1–5.4); etiquetas visibles encima del control (diseño §3.4, 4.3) | — |
+| 2.4.7 Foco visible | AA | ✗ declarado | Anillo en las 929 paradas (B); tras Inicio en el ListBox a 320 con la letra a 32, la hora enfocada queda fuera de la vista (F1) | Sin medir en 7.4 (K.8) |
+| 2.4.11 Foco no tapado (mínimo) | AA | ✓ medido | 1770 paradas sin el componente tapado entero (C). Nota: F2, el anillo bajo la barra fija o sticky, no tapa el componente; incumple la regla del sistema (anillo entero): ✗ declarado del proyecto, 7.6 | Sin medir en 7.4 (K.6). Safari: sin dispositivo |
+| 2.5.1 Gestos del puntero | A | N/A | No hay gestos de varios dedos ni de trayectoria | — |
+| 2.5.2 Cancelación del puntero | A | ✓ revisado | Controles nativos y de React Aria: se activan al soltar | — |
+| 2.5.3 Etiqueta en el nombre | A | ✓ medido | Day Chip: nombre = texto visible + oculto (4.6); el resto, con lector y control por voz, 7.4 | ✓ NF: el nombre de Day Chip y el del disparador de filtros empiezan por el texto visible (N1.12). Dato: Acceso por voz de Windows, «clic en mar 24», selecciona el chip |
+| 2.5.4 Activación por movimiento | A | N/A | No hay | — |
+| 2.5.7 Movimientos de arrastre | AA | N/A | No hay arrastre | — |
+| 2.5.8 Tamaño del objetivo (mínimo) | AA | ✓ medido | 2752 objetivos a 320, 375, 1440 y 320 con la letra a 32; 2 exenciones «en línea» (C) | ✓ parcial, Android (Chrome 153): los tres enlaces de la barra inferior (A.3). Chips, horas y casillas: sin medir en 7.4 |
+| 3.1.1 Idioma de la página | A | ✓ medido | `lang="es-MX"`; axe `html-has-lang` y `html-lang-valid` | — |
+| 3.1.2 Idioma de las partes | AA | N/A | Todo el contenido está en español | — |
+| 3.2.1 Al recibir el foco | A | ✓ revisado | Ningún control cambia de contexto al recibir el foco (sin `onFocus` que navegue o envíe); los recorridos de Tab de B y C no se cortan | — |
+| 3.2.2 Al introducir datos | A | ✓ medido | Filtros y orden actualizan resultados sin mover el foco ni cambiar de página (5.1); los envíos van por botón | — |
+| 3.2.3 Navegación coherente | AA | ✓ medido (dato de C, sin expectativa) | El header, en el mismo orden completo en las 10 cargas con header de cada ancho: «Salvia · Ayuda» a 375; «Salvia · Especialistas · Mis citas · Ayuda · Karla Sánchez» a 1440 (campo `orden` de 3.2.6) | — |
+| 3.2.4 Identificación coherente | AA | ✓ revisado | Los mismos controles con el mismo nombre en todas las vistas (kit de componentes, D5) | — |
+| 3.2.6 Ayuda coherente | A | ✓ medido | «Ayuda» en el mismo orden relativo en todas las cargas donde aparece (C) | — |
+| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) | ✓ NF: «Corrige 3 campos para continuar», encabezado nivel 2, con el foco (N2.2). Regla del proyecto, no WCAG: «entrada inválida» antes del primer envío, NF y NC (7.6) |
+| 3.3.2 Etiquetas o instrucciones | A | ✓ medido | Etiqueta visible en cada campo y ayuda del grupo (4.3, 5.3); axe `label` | ✓ NF y NC: la ayuda del grupo se oye por `aria-describedby` al entrar (N2.1; con Chrome, en el bloque del hallazgo tras N2.2) |
+| 3.3.3 Sugerencia ante errores | AA | ✓ medido | Cada mensaje dice cómo corregir (5.3, diseño §5.3) | — |
+| 3.3.4 Prevención de errores (legal, financiero, datos) | AA | ✓ revisado | Confirmación previa antes de reservar (02.4) y cancelación con diálogo (04.3); se puede reprogramar y cancelar | — |
+| 3.3.7 Entrada redundante | A | ✓ medido | El borrador de «Tus datos» se conserva al salir y volver (D17, 5.3) | — |
+| 3.3.8 Autenticación accesible (mínimo) | AA | N/A | No hay inicio de sesión (sesión simulada) | — |
+| 4.1.1 Procesamiento | A | Obsoleto | Retirado en WCAG 2.2 | — |
+| 4.1.2 Nombre, función, valor | A | ✓ medido | axe (`aria-*`, `button-name`, `link-name`, `listbox`…); estados ARIA del kit (4.x); el anuncio con lector, 7.4 | ✓ NF parcial: nombre, función y estado oídos en N1–N3 (página actual y actual, contraído y expandido, conmutador pulsado, radio marcado, opción no disponible, «seleccionado» una vez). Dato: el `alertdialog` se lee «diálogo» (N2.3). NC: solo N1.7 y N1.9–N1.11. VoiceOver: sin dispositivo |
+| 4.1.3 Mensajes de estado | AA | ✗ declarado | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado). El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11, 7.6). `role="alert"`: N/A, sin instancia |
 
 ## Hallazgos
 
@@ -135,12 +144,12 @@ Los ✗ de la sección, cada uno declarado en su expectativa y con su fila en DE
 
 | Defecto | Criterio | Cifra | Decisión |
 |---|---|---|---|
-| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto | 7.6: región oculta propia en `c-sheet--bottom` |
+| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | 7.6: región oculta propia en `c-sheet--bottom` |
 | Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | 7.6, solo del kit (D9) |
 | Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | 7.6, solo del kit |
 | F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | 7.6: `onKeyDownCapture` en `SlotList`, como `Calendar` |
 | F2 · Anillo bajo la barra fija o sticky | Regla del sistema (2.4.11 cumple) | 30 paradas con 3,9–5 px del anillo bajo la barra; en el ListBox con la inyección, 27 de 36 puntos | 7.6: `scroll-padding-block-end` = barra + desfase + grosor |
-| Resto de pintado en `/kit` | — (pintado) | A 1350, 12632 px con delta 230 al llegar y a los 4 s, 3 de 3; a 375, 0; igual contra dev (4.6) | ✗ declarado de `/kit` (D9); Chrome real, 7.4 |
+| Resto de pintado en `/kit` | — (pintado) | A 1350, 12632 px con delta 230 al llegar y a los 4 s, 3 de 3; a 375, 0; igual contra dev (4.6) | ✗ declarado de `/kit` (D9); Chrome real, sin medir en 7.4 (tramo C, recorte) |
 
 **Coste medido del anillo (✓, exacto en la expectativa).** 60 paradas que no cumplen la regla
 §3.1 pero tienen en cada punto una banda ≥ 3: Nav Item y Nav Link con desfase −4 junto a la
@@ -152,11 +161,52 @@ enlaces en línea del kit junto al texto vecino, 5.
 `/kit/navegacion` a 375, arriba: el objetivo mide 309 × 50 y 343 × 30 y está bajo la barra
 inferior; al final del scroll y sin la barra, 0 (contraprueba). Explica el 96 de Lighthouse.
 
-**Hallazgo de 7.1: ✓ en Chromium · Firefox (zoom solo de texto) en 7.4.** Con la letra real (`Page.setFontSizes` a 32, 375) la barra va en
+**Hallazgo de 7.1: ✓ en Chromium (7.3) · ✓ en Firefox (7.4).** Con la letra real (`Page.setFontSizes` a 32, 375) la barra va en
 el flujo y nada de lo que queda encima la toca: 60 px de margen mínimo en 27 estados. Con la
 inyección en `html` (la receta de 7.1) la barra sigue sticky y el solape depende del alto: 3,9
 px a 375 × 900 (27 de 36 puntos del anillo pintados) y 60 de margen a 375 × 812; un usuario no
-alcanza esa condición en Chromium. Firefox con zoom solo de texto, 7.4.
+alcanza esa condición en Chromium. En Firefox 157.0 (7.4, K.7 a; RDM 375 × 900, una pasada) el zoom solo de texto mueve la media
+query en rem: al 200 %, `letraRaiz` 32px, modo de texto grande activo y la barra `static`
+(`barraInicio` 832); a 16, `sticky` (836). La condición de 7.1 (texto ampliado con la barra
+sticky) no se alcanza. `ANILLO` y 375 × 812, sin medir.
+
+## Prueba manual · 7.4
+
+Guion, literales del Visor de voz y cifras en docs/auditoria-manual.md. Ejecutada por Osvaldo
+el 1 de octubre de 2026, contra producción con el build `index-DgeRHP-Q.js` (el de 7.3).
+
+**Entornos.**
+
+| Tramo | Hora (GMT−6) | Equipo y sistema | Navegador y lector | Notas |
+|---|---|---|---|---|
+| NF1–NF3 | 10:55–13:35 y 16:45–17:00 | PC de escritorio, Windows 11 26H2 (26300.9550) | Firefox 157.0, NVDA 2026.2 (2026.2.0.57664) | 1920 × 919 al 100 %; estrecho = zoom 200 %, 960 × 460, dpr 2; Adblock Plus (permitido en el sitio) y React DevTools |
+| NC (recortado) | 17:13–17:20 | El mismo | Chrome 154 (`Chrome/154.0.0.0`), NVDA 2026.2 | Solo los hallazgos: N1.7, N1.9–N1.11 y la validación nativa de N2; 1920 × 911, barra 15; `js` sin leer |
+| K (recortado) | 17:22–17:41 | El mismo | Firefox 157.0, sin lector | K.1, K.2, K.4 (a) y K.7; registro de `focusin` y `focusout` en consola |
+| A (recortado) | 17:45–17:54 | POCO F7 (25053PC47G), Android 16 (BP2A.250605.031.A3), HyperOS 3.0.303.0 | Chrome 153.0.8010.52 | A.1 (a) y A.3 en parte; navegación por gestos; sin depuración USB; `js` sin leer |
+| I (recortado) | 17:50 | PC | Chrome 154; Google Calendar web, zona GMT−06 | I.1 en Chrome e I.3 |
+
+**Recorte.** El guion completo no cabía en el tiempo disponible. Sin medir en 7.4: N3.5, N3.6,
+el resto de NC1–NC3, K.3, K.4 (b), K.5, K.6, K.8, K.9, todo el tramo C (resto de pintado en
+Chrome real y letra real de Chrome), A.1 (b), A.2, A.4–A.6, I.1 en Firefox, I.2, I.4 e I.5.
+
+**Resultado.** Con NVDA + Firefox, la estructura (N0), la navegación, la búsqueda, la hoja de
+filtros, el formulario, el diálogo, los avisos y el calendario se oyen como dice el guion,
+salvo dos hallazgos contra la regla del proyecto y el ✗ ya declarado del anunciador inerte.
+Firefox hace el envío implícito, devuelve el foco del diálogo y no lo deja salir a la página.
+En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Calendar importa el
+`.ics` con la hora y la ubicación correctas.
+
+| Hallazgo de 7.4 | Criterio | Literal o cifra | Decisión |
+|---|---|---|---|
+| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | 7.6, propuesta sin decidir |
+| «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | 7.6, propuesta sin decidir |
+| Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | Confirmado de oído; 7.6, ya con fila |
+
+**Datos sin fila.** El h2 oculto de RAC no sale con H porque la raíz del calendario lleva
+`role="application"` (N3.1, contraprueba quitando el rol). Hoy se anuncia dos veces, «hoy» del
+nombre y «fecha actual» de `aria-current="date"` (N3.4): redundante, a decidir en 7.6. El
+`alertdialog` se lee «diálogo» (N2.3). «lista procesando» al llegar el foco tras «Ver más», solo
+en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2.4b).
 
 ## Datos (sin criterio)
 
@@ -182,12 +232,14 @@ alcanza esa condición en Chromium. Firefox con zoom solo de texto, 7.4.
 ## Limitaciones conocidas
 
 - Los seis defectos de § Hallazgos siguen abiertos (5 en 7.6; el resto de pintado de `/kit`,
-  declarado, con Chrome real en 7.4).
-- Solo Chromium (Edge headless). Safari, Firefox y los móviles reales, en 7.4; también la zona
-  segura del iPhone, `last baseline`, `hyphens` y el envío implícito (DESIGN.md, Pendientes).
-- Sin lector de pantalla: los anuncios (regiones vivas, `aria-describedby`, `alertdialog`,
-  estado del conmutador, calendario) se verificaron en su estructura y en el árbol de
-  accesibilidad de Chromium, no oídos. 7.4.
+  declarado, sin medir en Chrome real en 7.4), y los dos hallazgos de 7.4, en 7.6.
+- Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
+  154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,
+  con el recorte de § Prueba manual · 7.4.
+- Sin dispositivo (sin Mac ni iPhone): Safari de macOS e iOS, VoiceOver y la zona segura del
+  iPhone; `last baseline` solo se mide en Safari (DESIGN.md, Pendientes, «7 · sin dispositivo»).
+- Con lector, solo NVDA, y casi todo con Firefox: lo que NVDA dice con Chrome solo se oyó en
+  los hallazgos.
 - El bloque B mide en reposo: sin transiciones ni animaciones y con el puntero aparcado (un
   borde intermedio de 1,45 en una pasada, sin reproducir: docs/verificacion.md, Trampas).
 - `lenta` solo pasa por axe; su estado cambia a los 1,5 s.
