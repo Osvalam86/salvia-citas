@@ -975,10 +975,42 @@ async function flows(b, expect) {
   await pageChangeSlow(b, expect, 2, 'Anterior', 1)
 }
 
+// Nombre del disparador al recibir el foco tras «Ver N resultados» (7.6,
+// hallazgo de 7.4, N1.11): el que anuncia el lector es el del momento del
+// focusin. Con teclado, como en N1.11: Intro en «Ver 11 resultados» tras marcar
+// Videoconsulta sobre Cardiología. Se apunta el nombre en cada focusin del
+// disparador (Chromium devuelve el foco en close() y el explícito no repite el
+// evento).
+async function sheetTriggerName(b, expect) {
+  await b.metrics(375, 812, 1)
+  await goFast(b, Q011)
+  await settled(b)
+  await b.tabTo("document.querySelector('.c-filter-trigger')")
+  await b.enter()
+  await until(b, `Boolean(${SHEET}?.open)`)
+  await clickAt(b, `${SHEET}.querySelector('input[value="videoconsulta"]').closest('label')`)
+  await sleep(100)
+  await b.ev(`window.__nombres = []; document.addEventListener('focusin', (e) => { if (e.target.classList?.contains('c-filter-trigger')) window.__nombres.push(e.target.textContent) }, true), true`)
+  await b.ev(`${SHEET}.querySelector('.c-sheet__fill').focus(), true`)
+  await b.enter()
+  await until(b, `!${SHEET}`)
+  await settled(b)
+  expect('«Ver N resultados» con Intro: el disparador recibe el foco ya con su nombre nuevo (2 filtros aplicados), una sola vez; la región del recuento dice el total', {
+    nombresAlRecibirElFoco: await b.ev('window.__nombres'),
+    foco: await b.ev("document.activeElement.classList.contains('c-filter-trigger')"),
+    recuento: await b.ev("document.querySelector('.c-results-header__count').textContent"),
+  }, {
+    nombresAlRecibirElFoco: ['Filtrar y ordenar, 2 filtros aplicados2'],
+    foco: true,
+    recuento: '11 resultados',
+  })
+}
+
 // Flujos de foco de la hoja (V1b): dependen del orden close() → foco, que
 // StrictMode puede ocultar.
 async function sheetFlows(b, expect) {
   await sheetKeyboard(b, expect)
+  await sheetTriggerName(b, expect)
   await sheetDraft(b, expect)
   await sheetLock(b, expect)
   await sheetCrossing(b, expect)

@@ -16,7 +16,7 @@ type SheetProps = {
   returnFocus: RefObject<HTMLElement | null>
   /** «Cerrar» o Escape: se descarta lo que haya en la hoja. */
   onDismiss: () => void
-  /** Envío del formulario de la hoja. La hoja ya está cerrada y el fondo, activo. */
+  /** Envío del formulario de la hoja. Se llama con la hoja aún abierta; después se cierra y el foco vuelve. */
   onSubmit: () => void
   /** Acciones del pie, dentro del formulario: el envío es un type="submit". */
   footer: ReactNode
@@ -38,11 +38,17 @@ type SheetProps = {
 // pie como columna flex, así el envío es nativo (Intro en un control lo
 // envía) sin `form=`.
 //
-// Orden al enviar: close() antes de avisar al padre y de devolver el foco: con
-// el diálogo abierto la página es inert y el disparador no podría recibirlo.
-// Chromium ya devuelve el foco al cerrar (al elemento que lo tenía antes de
-// showModal()); el explícito es el respaldo para Safari y Firefox, como en
-// UI/Dialog (DESIGN.md, Pendientes, fase 7).
+// Orden al enviar (7.6): primero se avisa al padre, después close() y por
+// último el foco. El padre aplica lo que haya en la hoja; si lo pinta en el
+// acto (la de filtros, con flushSync), el disparador ya lleva su nombre nuevo
+// («2 filtros aplicados») cuando recibe el foco y el lector lo anuncia así.
+// Avisando después, el foco llegaba con el nombre anterior y el cambio no se
+// volvía a anunciar (hallazgo de 7.4, N1.11). Sin pintar en el acto (la hoja
+// del calendario) el orden no cambia nada: React aplica tras el manejador. El
+// foco va después de close(): con el diálogo abierto la página es inert y el
+// disparador no podría recibirlo. Chromium ya lo devuelve al cerrar (al
+// elemento que lo tenía antes de showModal()); el explícito es el respaldo
+// para Safari y Firefox, como en UI/Dialog.
 export default function Sheet({ variant = 'full', title, initialFocus, returnFocus, onDismiss, onSubmit, footer, children }: SheetProps) {
   const dialog = useRef<HTMLDialogElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -96,9 +102,9 @@ export default function Sheet({ variant = 'full', title, initialFocus, returnFoc
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     submitted.current = true
+    onSubmit()
     dialog.current?.close()
     returnFocus.current?.focus()
-    onSubmit()
   }
 
   return (

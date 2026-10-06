@@ -17,7 +17,7 @@ en 7.4», nunca ✓.
   (§ Hallazgos).
 - **7.6:** cada lote corrige un defecto y fija el recuento antes de medir (contra la preview).
   Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos. Lote 2 (anunciador en la hoja): 29/32,
-  3 ✗ declarados con 4 defectos.
+  3 ✗ declarados con 4 defectos. Lote 3 (disparador de filtros, sin expectativa en 7.3): 29/32.
 
 ## Método
 
@@ -139,7 +139,7 @@ de 7.6.
 | 3.3.8 Autenticación accesible (mínimo) | AA | N/A | No hay inicio de sesión (sesión simulada) | — |
 | 4.1.1 Procesamiento | A | Obsoleto | Retirado en WCAG 2.2 | — |
 | 4.1.2 Nombre, función, valor | A | ✓ medido | axe (`aria-*`, `button-name`, `link-name`, `listbox`…); estados ARIA del kit (4.x); el anuncio con lector, 7.4 | ✓ NF parcial: nombre, función y estado oídos en N1–N3 (página actual y actual, contraído y expandido, conmutador pulsado, radio marcado, opción no disponible, «seleccionado» una vez). Dato: el `alertdialog` se lee «diálogo» (N2.3). NC: solo N1.7 y N1.9–N1.11. VoiceOver: sin dispositivo |
-| 4.1.3 Mensajes de estado | AA | ✓ medido (7.6, en el arnés) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado en 7.3), cubierto en 7.6 por la región propia de la hoja (5.2 y 7.3); de oído, tras el deploy. El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11, 7.6). `role="alert"`: N/A, sin instancia |
+| 4.1.3 Mensajes de estado | AA | ✓ medido (7.6, en el arnés) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado en 7.3), cubierto en 7.6 por la región propia de la hoja (5.2 y 7.3); de oído, tras el deploy. El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11; corregido en 7.6 en el arnés, lote 3). `role="alert"`: N/A, sin instancia |
 
 ## Hallazgos
 
@@ -201,7 +201,7 @@ En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Cal
 
 | Hallazgo de 7.4 | Criterio | Literal o cifra | Decisión |
 |---|---|---|---|
-| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | 7.6, propuesta sin decidir |
+| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). De oído, tras el deploy |
 | «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | 7.6, propuesta sin decidir |
 | Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | Confirmado de oído; 7.6, ya con fila |
 

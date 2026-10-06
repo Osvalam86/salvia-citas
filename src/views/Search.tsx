@@ -103,13 +103,16 @@ function useResults(params: SearchParams, scenario: Scenario) {
 // Parámetros de la búsqueda sin su página: cualquier cambio de filtros u orden
 // vuelve a la primera (replace y sin subir el scroll: con radios, cada flecha
 // selecciona, y un push por tecla llenaría el historial).
+//
+// flushSync: la hoja de filtros pide pintar la URL nueva antes de cerrarse,
+// para que el disparador reciba el foco ya con su nombre nuevo (7.6).
 function useSearchUpdate() {
   const [searchParams, setSearchParams] = useSearchParams()
-  return (change: (next: URLSearchParams) => void) => {
+  return (change: (next: URLSearchParams) => void, { flushSync = false } = {}) => {
     const next = new URLSearchParams(searchParams)
     next.delete('pagina')
     change(next)
-    setSearchParams(next, { replace: true, preventScrollReset: true })
+    setSearchParams(next, { replace: true, preventScrollReset: true, flushSync })
   }
 }
 
@@ -348,7 +351,7 @@ function FilterSheet({ params, trigger, onClose }: FilterSheetProps) {
       returnFocus={trigger}
       onDismiss={onClose}
       onSubmit={() => {
-        update((url) => writeFilters(url, draft))
+        update((url) => writeFilters(url, draft), { flushSync: true })
         onClose()
       }}
       footer={
