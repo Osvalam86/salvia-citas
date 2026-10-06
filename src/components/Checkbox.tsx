@@ -11,6 +11,7 @@ type CheckboxProps = {
   checked?: boolean
   defaultChecked?: boolean
   onChange?: ChangeEventHandler<HTMLInputElement>
+  /** Obligatorio: aria-required, no required (FieldText, 7.6). */
   required?: boolean
   /** Mensaje bajo la etiqueta, fuera del <label>: descripción, no nombre. */
   hint?: string
@@ -27,7 +28,7 @@ type CheckboxProps = {
 // UI/Checkbox: <label> que envuelve el input nativo y el texto; toda la fila
 // es área de clic. El input sigue siendo el control real, invisible sobre la
 // caja dibujada.
-export default function Checkbox({ label, hint, error, className, ...input }: CheckboxProps) {
+export default function Checkbox({ label, hint, error, className, required, ...input }: CheckboxProps) {
   const messageId = `${useId()}-mensaje`
   const message = error ?? hint
   const classes = ['c-checkbox', message && 'c-checkbox--with-message', className].filter(Boolean).join(' ')
@@ -40,6 +41,7 @@ export default function Checkbox({ label, hint, error, className, ...input }: Ch
             {...input}
             type="checkbox"
             className="c-checkbox__input"
+            aria-required={required || undefined}
             aria-invalid={error ? true : undefined}
             aria-describedby={message ? messageId : undefined}
           />

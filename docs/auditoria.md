@@ -17,7 +17,8 @@ en 7.4», nunca ✓.
   (§ Hallazgos).
 - **7.6:** cada lote corrige un defecto y fija el recuento antes de medir (contra la preview).
   Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos. Lote 2 (anunciador en la hoja): 29/32,
-  3 ✗ declarados con 4 defectos. Lote 3 (disparador de filtros, sin expectativa en 7.3): 29/32.
+  3 ✗ declarados con 4 defectos. Lote 3 (disparador de filtros, sin expectativa en 7.3): 29/32. Lote 4 («entrada inválida», sin
+  expectativa en 7.3): 29/32.
 
 ## Método
 
@@ -131,7 +132,7 @@ de 7.6.
 | 3.2.3 Navegación coherente | AA | ✓ medido (dato de C, sin expectativa) | El header, en el mismo orden completo en las 10 cargas con header de cada ancho: «Salvia · Ayuda» a 375; «Salvia · Especialistas · Mis citas · Ayuda · Karla Sánchez» a 1440 (campo `orden` de 3.2.6) | — |
 | 3.2.4 Identificación coherente | AA | ✓ revisado | Los mismos controles con el mismo nombre en todas las vistas (kit de componentes, D5) | — |
 | 3.2.6 Ayuda coherente | A | ✓ medido | «Ayuda» en el mismo orden relativo en todas las cargas donde aparece (C) | — |
-| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) | ✓ NF: «Corrige 3 campos para continuar», encabezado nivel 2, con el foco (N2.2). Regla del proyecto, no WCAG: «entrada inválida» antes del primer envío, NF y NC (7.6) |
+| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) | ✓ NF: «Corrige 3 campos para continuar», encabezado nivel 2, con el foco (N2.2). Regla del proyecto, no WCAG: «entrada inválida» antes del primer envío, NF y NC (corregido en 7.6 en el arnés, lote 4: `aria-required` y el correo como text) |
 | 3.3.2 Etiquetas o instrucciones | A | ✓ medido | Etiqueta visible en cada campo y ayuda del grupo (4.3, 5.3); axe `label` | ✓ NF y NC: la ayuda del grupo se oye por `aria-describedby` al entrar (N2.1; con Chrome, en el bloque del hallazgo tras N2.2) |
 | 3.3.3 Sugerencia ante errores | AA | ✓ medido | Cada mensaje dice cómo corregir (5.3, diseño §5.3) | — |
 | 3.3.4 Prevención de errores (legal, financiero, datos) | AA | ✓ revisado | Confirmación previa antes de reservar (02.4) y cancelación con diálogo (04.3); se puede reprogramar y cancelar | — |
@@ -202,7 +203,7 @@ En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Cal
 | Hallazgo de 7.4 | Criterio | Literal o cifra | Decisión |
 |---|---|---|---|
 | El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). De oído, tras el deploy |
-| «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | 7.6, propuesta sin decidir |
+| «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | ✓ 7.6 en el arnés (lote 4): `aria-required` en vez de `required` y el correo como text con `inputMode="email"`; 5.3 mide `form :invalid` vacío al cargar y ningún obligatorio inválido en el árbol AX. De oído, tras el deploy |
 | Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | Confirmado de oído; 7.6, ya con fila |
 
 **Datos sin fila.** El h2 oculto de RAC no sale con H porque la raíz del calendario lleva

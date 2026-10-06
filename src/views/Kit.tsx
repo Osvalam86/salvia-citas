@@ -77,8 +77,10 @@ function FormDemos() {
         <FieldText
           label="Correo electrónico"
           name="kit-correo"
-          type="email"
+          inputMode="email"
           autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
           required
           placeholder="nombre@ejemplo.com"
           hint="Te enviaremos el comprobante de la cita"
@@ -86,8 +88,10 @@ function FormDemos() {
         <FieldText
           label="Correo electrónico"
           name="kit-correo-error"
-          type="email"
+          inputMode="email"
           autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
           defaultValue="karla@"
           error="Escribe un correo válido, con @ y dominio"
         />

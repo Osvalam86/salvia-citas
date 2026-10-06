@@ -147,9 +147,11 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   cierres en `scripts/verify/out/7.6/`, sin versionar): cerrados el lote 1 (F1,
   Inicio y Fin en `SlotList`), el 2 (región del mes en la hoja del calendario,
   `announceMonth`) y el 3 (disparador de filtros: `Sheet` avisa al padre antes
-  de cerrar y `FilterSheet` aplica con `flushSync`). Quedan el 4 («entrada
-  inválida»), el 5 (F2, anillo bajo la barra, con el Day Chip) y el 6 (anillo
-  del kit), y al final la tanda de NVDA y un commit `docs`.
+  de cerrar y `FilterSheet` aplica con `flushSync`) y el 4 («entrada
+  inválida»: `aria-required` en vez de `required` en los campos y el correo
+  como text con `inputMode="email"`, desviación declarada en DESIGN.md).
+  Quedan el 5 (F2, anillo bajo la barra, con el Day Chip) y el 6 (anillo del
+  kit), y al final la tanda de NVDA y un commit `docs`.
 
 Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en
 DESIGN.md, Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.

@@ -14,6 +14,7 @@ type FieldSelectProps = {
    * valor (Ordenar por).
    */
   placeholder?: string
+  /** Obligatorio: aria-required, no required (FieldText, 7.6). */
   required?: boolean
   value?: string
   defaultValue?: string
@@ -35,6 +36,7 @@ export default function FieldSelect({
   error,
   className,
   id: idProp,
+  required,
   ...select
 }: FieldSelectProps) {
   const generatedId = useId()
@@ -53,6 +55,7 @@ export default function FieldSelect({
           {...select}
           id={id}
           className="c-field__select"
+          aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={message ? messageId : undefined}
         >

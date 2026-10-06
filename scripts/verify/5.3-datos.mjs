@@ -629,7 +629,8 @@ async function forcedColors(b, expect) {
 }
 
 // Estructura: título (D15), encabezados (D14: legends con h2), grupos, ayuda
-// por aria-describedby, required solo en los obligatorios, noValidate, tipos y
+// por aria-describedby, aria-required solo en los obligatorios (ningún required
+// nativo, 7.6), noValidate, tipos (el correo, text con inputMode email) y
 // autocompletado; en escritorio, «Tu cita» como section dentro del form. El h2
 // del resumen en el árbol de accesibilidad al recibir el foco.
 async function structure(b, expect) {
@@ -643,9 +644,11 @@ async function structure(b, expect) {
       titulo: document.title,
       encabezados: [...document.querySelectorAll('main h1, main h2, main h3')].map((h) => h.tagName + ' ' + h.textContent),
       grupos: fs.map((f) => f.querySelector('legend').textContent + (f.getAttribute('aria-describedby') ? ' · ' + document.getElementById(f.getAttribute('aria-describedby')).textContent : '')),
-      obligatorios: [...form.querySelectorAll('[required]')].map((e) => e.id),
+      obligatorios: [...form.querySelectorAll('[aria-required="true"]')].map((e) => e.id),
+      nativos: [...form.querySelectorAll('[required]')].map((e) => e.id),
       noValidate: form.noValidate,
       controles: [...form.querySelectorAll('input, select')].map((e) => e.id + ' ' + (e.type ?? '') + ' ' + (e.getAttribute('autocomplete') ?? '-')),
+      correo: Object.fromEntries(['inputmode', 'autocapitalize', 'spellcheck'].map((a) => [a, form.querySelector('#correo').getAttribute(a)])),
       pasos: document.querySelector('ol[aria-label="Pasos de la reserva"] [aria-current="step"]')?.textContent,
     }
   })()`
@@ -664,8 +667,10 @@ async function structure(b, expect) {
       encabezados: ['H1 Tus datos', 'H2 Corrige 3 campos para continuar', 'H2 Datos del paciente', 'H2 Antes de confirmar'],
       grupos: ['Datos del paciente · Todos los campos son obligatorios salvo los marcados como opcionales', 'Antes de confirmar'],
       obligatorios: ['nombre', 'correo', 'motivo', 'privacidad'],
+      nativos: [],
       noValidate: true,
-      controles: ['nombre text name', 'correo email email', 'telefono tel tel-national', 'motivo select-one -', 'privacidad checkbox -', 'recordatorio checkbox -'],
+      controles: ['nombre text name', 'correo text email', 'telefono tel tel-national', 'motivo select-one -', 'privacidad checkbox -', 'recordatorio checkbox -'],
+      correo: { inputmode: 'email', autocapitalize: 'none', spellcheck: 'false' },
       pasos: '2Tus datos',
     },
     ax: { rol: 'heading', nombre: 'Corrige 3 campos para continuar', nivel: 2, enfocado: true },
@@ -680,6 +685,11 @@ async function structure(b, expect) {
 
 // Contraprueba de noValidate: sin él, con required en los obligatorios, el
 // navegador bloquea el envío (sin evento submit) y el resumen no aparece.
+// Desde 7.6 los campos llevan aria-required y no required: se inyecta
+// required en los cuatro en los dos brazos, para que la prueba siga
+// discriminando lo que hace noValidate. El correo es text: «karla@» ya no es
+// inválido, y el primero que lo es, en el orden del DOM, es el motivo vacío.
+const INJECT_REQUIRED = `['nombre', 'correo', 'motivo', 'privacidad'].forEach((id) => document.getElementById(id).required = true), true`
 async function noValidateCheck(b, expect) {
   await b.overlayScrollbars(true)
   await b.metrics(375, 812)
@@ -687,13 +697,56 @@ async function noValidateCheck(b, expect) {
   for (const [name, remove] of [['con noValidate', false], ['sin noValidate (contraprueba)', true]]) {
     await b.go(P031)
     await fillErrors(b)
+    await b.ev(INJECT_REQUIRED)
     if (remove) await b.ev(`document.querySelector('form.c-patient-form').noValidate = false, true`)
     await submitBar(b)
     out[name] = { resumen: await b.ev(`Boolean(document.querySelector('.c-error-summary'))`), foco: await b.ev(focused) }
   }
-  expect('noValidate: con él, el resumen recibe el foco; sin él (contraprueba), el navegador bloquea el envío en el primer campo inválido y no hay resumen', out, {
+  expect('noValidate (con required inyectado en los cuatro obligatorios): con él, el resumen recibe el foco; sin él (contraprueba), el navegador bloquea el envío en el primer campo inválido y no hay resumen', out, {
     'con noValidate': { resumen: true, foco: 'H2 Corrige 3 campos para continuar' },
-    'sin noValidate (contraprueba)': { resumen: false, foco: 'INPUT #correo' },
+    'sin noValidate (contraprueba)': { resumen: false, foco: 'SELECT #motivo' },
+  })
+}
+
+// Validez nativa antes del primer envío (7.6, hallazgo de 7.4): con aria-required
+// y el correo como text, nada del form es :invalid al cargar, y en el árbol de
+// accesibilidad ninguno de los cuatro obligatorios es inválido. Tras el
+// envío con errores, inválidos los tres que los tienen (aria-invalid). Contraprueba:
+// required inyectado en el select lo vuelve :invalid (con su fieldset, como en 7.4)
+// e inválido en el árbol.
+async function nativeValidity(b, expect) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 812)
+  await b.send('Accessibility.enable')
+  const state = async () => {
+    const { nodes } = await b.send('Accessibility.getFullAXTree')
+    const ax = {}
+    for (const id of ['nombre', 'correo', 'motivo', 'privacidad']) {
+      const { result } = await b.send('Runtime.evaluate', { expression: `document.getElementById('${id}')` })
+      const { node } = await b.send('DOM.describeNode', { objectId: result.objectId })
+      const n = nodes.find((x) => x.backendDOMNodeId === node.backendNodeId)
+      const prop = (k) => n?.properties?.find((p) => p.name === k)?.value?.value
+      // CDP solo lista `required` en los textbox: en el combobox (select) y el checkbox
+      // no sale ni con el required nativo (medido en 7.6). Ahí cuenta el atributo.
+      ax[id] = { requeridoAX: prop('required') ?? null, ariaRequired: await b.ev(`document.getElementById('${id}').getAttribute('aria-required')`), invalido: prop('invalid') ?? 'false' }
+    }
+    return { invalidos: await b.ev(`[...document.querySelectorAll('form.c-patient-form :invalid')].map((e) => e.tagName + (e.id ? ' #' + e.id : ''))`), ax }
+  }
+  await b.go(P031)
+  const carga = await state()
+  await fillErrors(b)
+  await submitBar(b)
+  const envio = await state()
+  await b.go(P031)
+  await b.ev(`document.getElementById('motivo').required = true, true`)
+  const contraprueba = await state()
+  // Textbox: requerido en el árbol AX. Combobox y checkbox: CDP no lista la propiedad,
+  // así que se comprueba aria-required (lo que se oye, en la tanda de NVDA).
+  const field = (requeridoAX, invalido) => ({ requeridoAX, ariaRequired: 'true', invalido })
+  expect('validez nativa: al cargar, nada del form es :invalid y los cuatro obligatorios llevan aria-required (requeridos en el árbol AX los textbox) y no son inválidos; tras enviar con errores, inválidos correo, motivo y privacidad; con required inyectado en el select (contraprueba), :invalid (con su fieldset) e inválido', { carga, envio: envio.ax, contraprueba: { invalidos: contraprueba.invalidos, motivo: contraprueba.ax.motivo } }, {
+    carga: { invalidos: [], ax: { nombre: field(true, 'false'), correo: field(true, 'false'), motivo: field(null, 'false'), privacidad: field(null, 'false') } },
+    envio: { nombre: field(true, 'false'), correo: field(true, 'true'), motivo: field(null, 'true'), privacidad: field(null, 'true') },
+    contraprueba: { invalidos: ['FIELDSET', 'SELECT #motivo'], motivo: field(null, 'true') },
   })
 }
 
@@ -851,6 +904,7 @@ export default async function run(b, expect) {
   await forcedColors(b, expect)
   await structure(b, expect)
   await noValidateCheck(b, expect)
+  await nativeValidity(b, expect)
   await defaultButton(b, expect)
   await resubmit(b, expect)
   await crossLg(b, expect)

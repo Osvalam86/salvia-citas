@@ -152,19 +152,20 @@ export default async function run(b, expect) {
 
   // --- Estáticas -------------------------------------------------------------------------------------
   expect(
-    'tipos de FieldText: fallan type, inputMode, required y name; autoComplete mal escrito compila',
+    'tipos de FieldText: fallan type, inputMode, required y name, y type="email" (fuera de la unión desde 7.6); autoComplete mal escrito compila',
     typeErrorLines(`import FieldText from '../components/FieldText.tsx'
-export const V = () => <FieldText label="Correo" name="correo" type="email" autoComplete="email" inputMode="email" required />
+export const V = () => <FieldText label="Correo" name="correo" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required />
 export const T = () => <FieldText label="Edad" name="edad" type="number" />
 export const A = () => <FieldText label="Correo" name="correo" autoComplete="emali" />
 export const I = () => <FieldText label="Tel" name="tel" inputMode="telefono" />
 export const R = () => <FieldText label="Correo" name="correo" required="sí" />
 export const N = () => <FieldText label="Correo" />
+export const E = () => <FieldText label="Correo" name="correo" type="email" />
 `),
-    [3, 5, 6, 7],
+    [3, 5, 6, 7, 8],
   )
   expect('ESLint: autoComplete mal escrito en FieldText; el válido pasa', lintLines(`import FieldText from '../components/FieldText.tsx'
-export const A = () => <FieldText label="Correo" name="correo" type="email" autoComplete="emali" />
-export const B = () => <FieldText label="Correo" name="correo" type="email" autoComplete="email" />
+export const A = () => <FieldText label="Correo" name="correo" autoComplete="emali" />
+export const B = () => <FieldText label="Correo" name="correo" autoComplete="email" />
 `), ['2: jsx-a11y/autocomplete-valid'])
 }

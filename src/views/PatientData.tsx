@@ -195,8 +195,10 @@ export default function PatientData() {
                   label="Correo electrónico"
                   id="correo"
                   name="correo"
-                  type="email"
+                  inputMode="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                   placeholder="nombre@ejemplo.com"
                   value={draft.email}
