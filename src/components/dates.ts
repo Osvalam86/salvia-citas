@@ -29,6 +29,14 @@ export function monthTitle(date: CalendarDate) {
   return `${month[0].toUpperCase()}${month.slice(1)} ${date.year}`
 }
 
+/**
+ * «mayo de 2029»: el mes como lo anuncia RAC en línea (Intl es-MX), para la
+ * región propia de la hoja (7.6): el mismo texto dentro y fuera de ella.
+ */
+export function monthAnnouncement(date: CalendarDate) {
+  return `${monthLong.format(toDate(date))} de ${date.year}`
+}
+
 /** «abril», para el texto oculto del Day Chip. */
 export function monthName(date: CalendarDate) {
   return monthLong.format(toDate(date))

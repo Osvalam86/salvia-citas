@@ -47,8 +47,9 @@ type DateSheetProps = {
 // del …»; «Cerrar», Escape y el velo lo descartan. Foco inicial en el día
 // seleccionado (panel 02.0); al cerrar, vuelve a «Ver mes completo» en los
 // tres casos. Aplicar el mismo día conserva la hora; otro día la borra y la
-// tira pasa a su semana (useSlotPicker). Solo se anuncia el estado de horas:
-// la región viva de la semana no se escribe desde aquí.
+// tira pasa a su semana (useSlotPicker). Al aplicar solo se anuncia el estado
+// de horas: la región viva de la semana no se escribe desde aquí. Dentro, el
+// mes lo anuncia la región propia del calendario (announceMonth, 7.6).
 function DateSheet({ picker, maxValue, trigger, onClose }: DateSheetProps) {
   const [draft, setDraft] = useState(picker.date)
   const [focused, setFocused] = useState(picker.date)
@@ -78,6 +79,7 @@ function DateSheet({ picker, maxValue, trigger, onClose }: DateSheetProps) {
         freeSlots={picker.freeSlots}
         focusedValue={focused}
         onFocusChange={setFocused}
+        announceMonth
       />
     </Sheet>
   )

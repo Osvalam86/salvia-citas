@@ -16,7 +16,8 @@ en 7.4», nunca ✓.
 - **Resultado de la sección:** 30 expectativas, 25 ✓ y 5 ✗ declarados que cubren 6 defectos
   (§ Hallazgos).
 - **7.6:** cada lote corrige un defecto y fija el recuento antes de medir (contra la preview).
-  Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos.
+  Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos. Lote 2 (anunciador en la hoja): 29/32,
+  3 ✗ declarados con 4 defectos.
 
 ## Método
 
@@ -56,7 +57,7 @@ Inicio y Fin con la acción por defecto evitada; un resto inyectado supera el de
 | Prueba | Resultado |
 |---|---|
 | axe (A) | 0 violaciones salvo un falso positivo de posición, declarado exacto: target-size de «Ver horarios» (`/`) y de «Relleno 4» (`/kit/navegacion`) a 375, arriba, tapados por la barra inferior (sus relacionados son los tres Nav Item); 0 al final y sin la barra. Es el mismo aviso de «objetivos táctiles» de Lighthouse (96 en accesibilidad) |
-| Fuera de `#root` (A) | Solo el anunciador de región viva de React Aria (1 × 1, recortado, sin foco), al navegar de mes en el calendario: expuesto a 1440 e ignorado (`activeModalDialog`) dentro de la hoja modal. ✗ declarado |
+| Fuera de `#root` (A) | Solo el anunciador de región viva de React Aria (1 × 1, recortado, sin foco), al navegar de mes en el calendario: expuesto a 1440 e ignorado (`activeModalDialog`) dentro de la hoja modal. ✗ declarado. **7.6:** ✓, el anunciador ignorado como coste exacto y la región propia de la hoja en el árbol AX con «mayo de 2029» (vacía al abrir); en línea, ninguna |
 | Contraste (B) | ✓ 34 pares: texto ≥ 4,5 y límites ≥ 3 (o su relleno ≥ 3), ninguno de los 6 «No usar». 423 textos tapados, fuera de la cuenta (detrás de un modal o una hoja, y la inicial bajo la foto) |
 | Incomplete de axe (B) | ✓ 43 de 43 resueltos con su par: 41 iniciales tapadas por la foto (sin texto visible) y 2 cuerpos del diálogo sobre el panel (16,65) |
 | Anillo contra vecinos (B) | Regla del proyecto (diseño §3.1): las dos bandas ≥ 3 en cada punto. 856 de 929 paradas la cumplen; las 73 restantes, en seis grupos (§ Hallazgos): 60 de coste medido (✓ exacto) y 13 defectos del kit (✗ declarado). La hora seleccionada, 6,02 contra la superficie en las dos bandas |
@@ -138,7 +139,7 @@ de 7.6.
 | 3.3.8 Autenticación accesible (mínimo) | AA | N/A | No hay inicio de sesión (sesión simulada) | — |
 | 4.1.1 Procesamiento | A | Obsoleto | Retirado en WCAG 2.2 | — |
 | 4.1.2 Nombre, función, valor | A | ✓ medido | axe (`aria-*`, `button-name`, `link-name`, `listbox`…); estados ARIA del kit (4.x); el anuncio con lector, 7.4 | ✓ NF parcial: nombre, función y estado oídos en N1–N3 (página actual y actual, contraído y expandido, conmutador pulsado, radio marcado, opción no disponible, «seleccionado» una vez). Dato: el `alertdialog` se lee «diálogo» (N2.3). NC: solo N1.7 y N1.9–N1.11. VoiceOver: sin dispositivo |
-| 4.1.3 Mensajes de estado | AA | ✗ declarado | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado). El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11, 7.6). `role="alert"`: N/A, sin instancia |
+| 4.1.3 Mensajes de estado | AA | ✓ medido (7.6, en el arnés) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado en 7.3), cubierto en 7.6 por la región propia de la hoja (5.2 y 7.3); de oído, tras el deploy. El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11, 7.6). `role="alert"`: N/A, sin instancia |
 
 ## Hallazgos
 
@@ -146,7 +147,7 @@ Los ✗ de la sección, cada uno declarado en su expectativa y con su fila en DE
 
 | Defecto | Criterio | Cifra | Decisión |
 |---|---|---|---|
-| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | 7.6: región oculta propia en `c-sheet--bottom` |
+| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | ✓ 7.6 en el arnés: región propia en la hoja (`Calendar`, `announceMonth`), vacía al abrir y al cruzar de mes con el foco en la rejilla; foco y no región cuando el botón desaparece (5.2 y 7.3). La fecha seleccionada, declarada en la fila. De oído, tras el deploy |
 | Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | 7.6, solo del kit (D9) |
 | Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | 7.6, solo del kit |
 | F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | ✓ 7.6: escuchador nativo en captura en `SlotList` (ListBox no reenvía `onKeyDownCapture`), en las combinaciones que RAC atiende; 4 de 4 a la vista |
@@ -233,7 +234,8 @@ en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2
 
 ## Limitaciones conocidas
 
-- De los seis defectos de § Hallazgos, F1 se cerró en 7.6 (lote 1); el resto sigue abierto (4 en 7.6; el resto de pintado de `/kit`,
+- De los seis defectos de § Hallazgos, F1 (lote 1) y el anunciador inerte (lote 2, en el arnés) se
+  cerraron en 7.6; el resto sigue abierto (3 en 7.6; el resto de pintado de `/kit`,
   declarado, sin medir en Chrome real en 7.4), y los dos hallazgos de 7.4, en 7.6.
 - Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
   154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,

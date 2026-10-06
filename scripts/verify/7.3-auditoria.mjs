@@ -75,6 +75,16 @@ async function axNode(b, index) {
   return { ignorado: n.ignored, razones: (n.ignoredReasons ?? []).map((r) => r.name) }
 }
 
+// Región propia del mes dentro de la hoja del calendario (7.6): su texto y si está en el
+// árbol de accesibilidad. null si el calendario no la lleva (en línea, o sin hoja).
+async function monthRegion(b) {
+  const sel = `document.querySelector('.c-calendar [role=status]')`
+  if (!(await b.ev(`Boolean(${sel})`))) return null
+  const { result } = await b.send('Runtime.evaluate', { expression: sel })
+  const { nodes } = await b.send('Accessibility.getPartialAXTree', { objectId: result.objectId, fetchRelatives: false })
+  return { texto: await b.ev(`${sel}.textContent`), enElDialogo: await b.ev(`Boolean(${sel}.closest('dialog:modal'))`), ignorado: nodes[0].ignored }
+}
+
 async function outside(b) {
   const kids = await b.ev(OUTSIDE)
   for (let i = 0; i < kids.length; i++) kids[i].ax = await axNode(b, i)
@@ -223,6 +233,7 @@ export default async function run(b, expect) {
   const report = []
   const violations = {}
   const outsideBad = {}
+  const monthRegions = {}
   let cargando = {}
   const pairs = new Map()
   const resolved = []
@@ -247,7 +258,9 @@ export default async function run(b, expect) {
       const positions = fixed.length && scrollable && !modal && !state.loading ? ['arriba', 'final'] : ['arriba']
       const fuera = await outside(b)
       const bad = offending(fuera)
-      if (bad.length) outsideBad[`${state.id} · ${width}`] = bad.map((k) => k.etiqueta)
+      if (bad.length) outsideBad[`${state.id} · ${width}`] = bad.map((k) => k.etiqueta + (k.atributos['data-live-announcer'] ? ` anunciador de RAC «${k.texto}»` : ''))
+      const region = await monthRegion(b)
+      if (region) monthRegions[`${state.id} · ${width}`] = region
 
       let topIncomplete = []
       for (const pos of positions) {
@@ -321,17 +334,30 @@ export default async function run(b, expect) {
       'carga /kit/navegacion · 375 · arriba': [{ regla: 'target-size', nodo: 'Relleno 4', relacionados: bar }],
     },
   )
+  // El anunciador de RAC, en body, queda ignorado (activeModalDialog) bajo la hoja modal del
+  // calendario: coste exacto desde 7.6, porque lo que anuncia lo lleva la región propia de la
+  // hoja (expectativa siguiente). Cualquier otro elemento fuera de #root, o el mismo en otro
+  // estado, hace fallar la expectativa.
   expect(
-    'fuera de #root: sin caja visible, nada enfocable y ninguna región viva ignorada en el árbol de accesibilidad (✗ declarado: el anunciador de RAC, en body, queda ignorado por activeModalDialog dentro de la hoja modal del calendario; propuesta en 7.6, DESIGN.md Pendientes)',
+    'fuera de #root: sin caja visible, nada enfocable y ninguna región viva ignorada en el árbol de accesibilidad, salvo el anunciador de RAC bajo la hoja modal del calendario (coste exacto: lo cubre la región propia de la hoja, 7.6)',
     outsideBad,
-    {},
+    { 'hoja del calendario, mes siguiente · 375': ['DIV anunciador de RAC «mayo de 2029»'] },
   )
-  // Contraprueba del hallazgo: el mismo anunciador, sin modal (calendario en línea a 1440), está expuesto.
+  expect(
+    'región propia del mes en la hoja del calendario (7.6): dentro del <dialog> modal y en el árbol de accesibilidad; vacía al abrir y «mayo de 2029» tras «Mes siguiente»; ninguna en línea',
+    monthRegions,
+    {
+      'hoja del calendario · 375': { texto: '', enElDialogo: true, ignorado: false },
+      'hoja del calendario, mes siguiente · 375': { texto: 'mayo de 2029', enElDialogo: true, ignorado: false },
+    },
+  )
+  // Contraprueba del hallazgo: el mismo anunciador, sin modal (calendario en línea a 1440), está
+  // expuesto, y en línea no hay región propia (anunciaría dos veces).
   const inline = report.find((p) => p.estado === 'calendario, mes siguiente' && p.ancho === 1440)
   expect(
-    'contraprueba: a 1440, sin modal, el anunciador de RAC (1 × 1, sin foco) está expuesto en el árbol de accesibilidad',
-    inline.fuera.map((k) => ({ anunciador: k.atributos['data-live-announcer'], caja: k.caja, enfocables: k.enfocables, ignorado: k.ax.ignorado })),
-    [{ anunciador: 'true', caja: [1, 1], enfocables: 0, ignorado: false }],
+    'contraprueba: a 1440, sin modal, el anunciador de RAC (1 × 1, sin foco) está expuesto en el árbol de accesibilidad y el calendario en línea no lleva región propia',
+    { anunciador: inline.fuera.map((k) => ({ anunciador: k.atributos['data-live-announcer'], caja: k.caja, enfocables: k.enfocables, ignorado: k.ax.ignorado })), regionPropia: monthRegions['calendario, mes siguiente · 1440'] ?? null },
+    { anunciador: [{ anunciador: 'true', caja: [1, 1], enfocables: 0, ignorado: false }], regionPropia: null },
   )
   const bpTotal = (kind) => report.filter((p) => p.bestPractice[kind].length).length
   console.log(`· dato: best-practice con violaciones en ${bpTotal('violations')} de ${report.length} pasadas, con incomplete en ${bpTotal('incomplete')}`)

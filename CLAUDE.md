@@ -143,8 +143,15 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   2 hallazgos contra la regla del proyecto, con su fila en 7.6; Safari, iOS y
   VoiceOver, «7 · sin dispositivo» (DESIGN.md, Pendientes).
 
-Siguiente en la fase 7: 7.6 (correcciones: las 6 filas «7 · 7.6» de DESIGN.md,
-Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
+- Fase 7 · 7.6, en curso (un lote por fila, un commit `fix` por lote; plan y
+  cierres en `scripts/verify/out/7.6/`, sin versionar): cerrados el lote 1 (F1,
+  Inicio y Fin en `SlotList`) y el 2 (región del mes en la hoja del calendario,
+  `announceMonth`). Quedan el 3 (disparador de filtros), el 4 («entrada
+  inválida»), el 5 (F2, anillo bajo la barra) y el 6 (anillo
+  del kit), y al final la tanda de NVDA y un commit `docs`.
+
+Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en
+DESIGN.md, Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
 
 ## Comandos
 

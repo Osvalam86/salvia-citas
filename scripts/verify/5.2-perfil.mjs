@@ -657,6 +657,96 @@ async function focusFlows(b, expect) {
   await b.metrics(1280, 900)
 }
 
+// Región del mes en la hoja 02.2 (7.6): el anunciador de RAC, en body, queda
+// inerte bajo el <dialog> modal; la hoja lleva su región (Calendar,
+// announceMonth). Un MutationObserver apunta cada texto de la región. a) botón,
+// flechas hasta otro mes y botón de vuelta al mismo mes: se vacía al cruzar con
+// las flechas y vuelve a anunciarse. b) en el mes de minValue y en el de
+// maxValue el botón desaparece y RAC lleva el foco a un día: foco, no región.
+// `full`: también la región al abrir y su ausencia en línea (no en --preview).
+const MONTH_REGION = `document.querySelector('dialog.c-sheet .c-calendar [role=status]')`
+const recordMonth = `(() => { const r = ${MONTH_REGION}; window.__mesObs?.disconnect(); window.__mes = []; window.__mesObs = new MutationObserver(() => window.__mes.push(r.textContent)); window.__mesObs.observe(r, { childList: true, characterData: true, subtree: true }); return true })()`
+const shiftTab = async (b) => {
+  await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, modifiers: 8 })
+  await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, modifiers: 8 })
+  await settle(b, 150)
+}
+const pressMonth = async (b, label) => {
+  await b.ev(`document.querySelector('dialog.c-sheet [aria-label="${label}"]').focus(), true`)
+  await b.enter()
+  await settle(b)
+}
+async function monthRegion(b, expect, full) {
+  await b.overlayScrollbars(true)
+  await b.metrics(375, 812)
+  const out = {}
+  if (full) {
+    await b.go(P021)
+    await openSheet(b)
+    out.alAbrir = await b.ev(`(() => { const r = ${MONTH_REGION}; return r && { enElDialogo: Boolean(r.closest('dialog:modal')), texto: r.textContent } })()`)
+  }
+  // a) «Mes siguiente», ↓ hasta junio, Mayús+Tab hasta «Mes anterior» e Intro.
+  await b.go(P021)
+  await openSheet(b)
+  await b.ev(recordMonth)
+  await pressMonth(b, 'Mes siguiente')
+  await b.tab()
+  for (let i = 0; i < 2; i++) await arrow(b, 'ArrowDown', 40)
+  const grid = await b.ev(focused)
+  await shiftTab(b)
+  await shiftTab(b)
+  await b.enter()
+  await settle(b)
+  out.a = { textos: await b.ev('window.__mes'), rejilla: grid, foco: await b.ev(focused) }
+  // b) mayo → «Mes anterior» hacia abril (minValue).
+  await b.go(P021)
+  await openSheet(b)
+  await pressMonth(b, 'Mes siguiente')
+  await b.ev(recordMonth)
+  await pressMonth(b, 'Mes anterior')
+  out.bMin = { textos: await b.ev('window.__mes'), foco: await b.ev(focused), anterior: await b.ev(`Boolean(document.querySelector('dialog.c-sheet [aria-label="Mes anterior"]'))`) }
+  // b) «Mes siguiente» hasta el mes de maxValue: el último clic se registra aparte.
+  await b.go(P021)
+  await openSheet(b)
+  const months = []
+  for (let i = 0; i < 6; i++) {
+    const next = `document.querySelector('dialog.c-sheet [aria-label="Mes siguiente"]')`
+    const last = await b.ev(`(() => { const s = document.querySelector('dialog.c-sheet .c-calendar__month').textContent; return s })()`)
+    months.push(last)
+    if (!(await b.ev(`Boolean(${next})`))) break
+    await b.ev(recordMonth)
+    await pressMonth(b, 'Mes siguiente')
+  }
+  out.bMax = { meses: months, textos: await b.ev('window.__mes'), foco: await b.ev(focused), siguiente: await b.ev(`Boolean(document.querySelector('dialog.c-sheet [aria-label="Mes siguiente"]'))`) }
+  expect('región del mes en la hoja (a): «Mes siguiente» la escribe; al cruzar de mes con las flechas se vacía; «Mes anterior» de vuelta al mismo mes vuelve a escribirla', { textos: out.a.textos, rejillaEnJunio: /^DIV .* de junio de 2029/.test(out.a.rejilla), foco: out.a.foco }, {
+    textos: ['mayo de 2029', '', 'mayo de 2029'],
+    rejillaEnJunio: true,
+    foco: 'BUTTON Mes anterior',
+  })
+  expect('región del mes en la hoja (b, minValue): «Mes anterior» hacia abril desaparece y RAC lleva el foco al día; la región se vacía y no nombra abril (foco, no región)', out.bMin, {
+    textos: [''],
+    foco: 'DIV martes 24 de abril de 2029, 6 horarios libres, seleccionado',
+    anterior: false,
+  })
+  expect('región del mes en la hoja (b, maxValue): el último «Mes siguiente» desaparece y RAC lleva el foco a un día de julio; la región se vacía y no nombra julio', { meses: out.bMax.meses, textos: out.bMax.textos, siguiente: out.bMax.siguiente, focoEnJulio: /^DIV .* de julio de 2029/.test(out.bMax.foco) }, {
+    meses: ['Abril 2029', 'Mayo 2029', 'Junio 2029', 'Julio 2029'],
+    textos: [''],
+    siguiente: false,
+    focoEnJulio: true,
+  })
+  if (full) {
+    await b.metrics(1440, 900)
+    await b.go(P021)
+    await b.ev(`document.querySelector('[aria-label="Mes siguiente"]').focus(), true`)
+    await b.enter()
+    await settle(b)
+    out.enLinea = await b.ev(`document.querySelectorAll('.c-calendar [role=status]').length`)
+    await b.metrics(1280, 900)
+    expect('región del mes en la hoja: al abrir, dentro del diálogo modal y vacía', out.alAbrir, { enElDialogo: true, texto: '' })
+    expect('región del mes: a 1440, con el calendario en línea y tras «Mes siguiente», ninguna región propia (anuncia RAC)', out.enLinea, 0)
+  }
+}
+
 // Conmutador «Avisarme si se libera un hueco» (D16): clave por médico. Se
 // activa en la Result Card de Rodrigo (V1) y su perfil ya dice «Te
 // avisaremos»; conmutarlo aquí deja el foco en el botón.
@@ -1031,6 +1121,7 @@ async function confirmFocus(b, expect) {
 
 export async function previewFlows(b, expect) {
   await focusFlows(b, expect)
+  await monthRegion(b, expect, false)
   await missing(b, expect)
   await confirmFocus(b, expect)
 }
@@ -1096,6 +1187,7 @@ export default async function run(b, expect) {
   await url(b, expect)
   await missing(b, expect)
   await focusFlows(b, expect)
+  await monthRegion(b, expect, true)
   await notify(b, expect)
 
   // V2b

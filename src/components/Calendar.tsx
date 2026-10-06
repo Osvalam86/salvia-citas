@@ -1,5 +1,5 @@
 import { endOfWeek, isSameMonth, startOfWeek, type CalendarDate } from '@internationalized/date'
-import { useContext, type KeyboardEvent } from 'react'
+import { useContext, useState, type KeyboardEvent } from 'react'
 import {
   Button,
   Calendar as RacCalendar,
@@ -9,7 +9,7 @@ import {
 } from 'react-aria-components'
 import CalendarDay from './CalendarDay.tsx'
 import Icon from './Icon.tsx'
-import { monthTitle, WEEKDAY_LETTERS } from './dates.ts'
+import { monthAnnouncement, monthTitle, WEEKDAY_LETTERS } from './dates.ts'
 
 type CalendarProps = {
   value: CalendarDate | null
@@ -27,6 +27,12 @@ type CalendarProps = {
    */
   focusedValue: CalendarDate
   onFocusChange: (date: CalendarDate) => void
+  /**
+   * Región propia que anuncia el mes al cambiar con los botones. Solo dentro
+   * de un <dialog> modal (la hoja de 02.2): ahí el anunciador de RAC, en body,
+   * queda inerte. En línea no: lo anunciaría dos veces.
+   */
+  announceMonth?: boolean
 }
 
 // Navegación de mes. Un límite del rango no deja un botón desactivado: se
@@ -80,11 +86,36 @@ function Legend({ today }: { today: CalendarDate }) {
   )
 }
 
+// Anuncio del mes dentro de la hoja (7.6). La condición es la de RAC: el mes
+// se anuncia si el foco no está en la rejilla, es decir, si cambió con un
+// botón. Si cambió con las flechas, o si el botón desapareció en el mes de
+// minValue o de maxValue y RAC llevó el foco a un día, la región se vacía: el
+// nombre del día ya dice el mes, y vacía, volver con el botón al mismo mes
+// vuelve a ser un cambio que se anuncia. RAC fija isFocused en su render,
+// antes que el de sus hijos, así que aquí ya vale lo que vale tras el cambio.
+// Vacía al abrir: no se anuncia nada hasta el primer cambio.
+function MonthAnnouncer() {
+  const state = useContext(CalendarStateContext)
+  const month = state ? monthAnnouncement(state.visibleRange.start) : ''
+  const [shown, setShown] = useState(month)
+  const [text, setText] = useState('')
+  if (state && month !== shown) {
+    setShown(month)
+    setText(state.isFocused ? '' : month)
+  }
+
+  return (
+    <p className="u-sr-only" role="status">
+      {text}
+    </p>
+  )
+}
+
 // UI/Calendar: rejilla de fecha del patrón APG con React Aria Calendar. Lunes
 // primero (sin la prop, es-MX empieza en domingo), minValue = hoy y siempre el
 // alto de 6 semanas. La cabecera es propia: RAC escribiría «M» para el
 // miércoles; Figma, «X».
-export default function Calendar({ value, onChange, today, maxValue, freeSlots, focusedValue, onFocusChange }: CalendarProps) {
+export default function Calendar({ value, onChange, today, maxValue, freeSlots, focusedValue, onFocusChange, announceMonth = false }: CalendarProps) {
   // Inicio y Fin: principio y fin de la semana, como piden la APG y la
   // descripción de UI/Calendar Day. RAC los lleva al principio y fin del mes;
   // el foco es controlado, así que basta con adelantarse a su teclado. Sin
@@ -128,6 +159,7 @@ export default function Calendar({ value, onChange, today, maxValue, freeSlots, 
         </CalendarGrid>
       </div>
       <Legend today={today} />
+      {announceMonth && <MonthAnnouncer />}
     </RacCalendar>
   )
 }
