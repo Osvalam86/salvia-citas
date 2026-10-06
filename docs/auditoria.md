@@ -23,6 +23,10 @@ en 7.4», nunca ✓.
   resto de pintado de `/kit`); coste medido 68 (se predijo 70: las dos «A Mis citas» del Nav Item
   suelto pasan a cumplir la regla). Lote 7 (recuento al cerrar la hoja de filtros y celdas nuevas
   por mes en el calendario, sin expectativa en 7.3): 32/33, idéntica.
+- **Cierre de 7.6, contra producción** (6 oct 2026, despliegue de d42afbd: `index-BzYQhdO1.js` e
+  `index-0yonqpyD.css`; Edge 154.0.4258.37, Node 26.3.0): `pnpm verify 7.3` **32/33**, 1 ✗
+  declarado con 1 defecto (el resto de pintado de `/kit`), salida idéntica a la de la preview del
+  lote 7; `pnpm verify 7.0` 14/14; `--preview` 5.0–5.4: 8/8, 18/18, 10/10, 5/5 y 12/12.
 
 ## Método
 
@@ -136,7 +140,7 @@ de 7.6.
 | 3.2.3 Navegación coherente | AA | ✓ medido (dato de C, sin expectativa) | El header, en el mismo orden completo en las 10 cargas con header de cada ancho: «Salvia · Ayuda» a 375; «Salvia · Especialistas · Mis citas · Ayuda · Karla Sánchez» a 1440 (campo `orden` de 3.2.6) | — |
 | 3.2.4 Identificación coherente | AA | ✓ revisado | Los mismos controles con el mismo nombre en todas las vistas (kit de componentes, D5) | — |
 | 3.2.6 Ayuda coherente | A | ✓ medido | «Ayuda» en el mismo orden relativo en todas las cargas donde aparece (C) | — |
-| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) | ✓ NF: «Corrige 3 campos para continuar», encabezado nivel 2, con el foco (N2.2). Regla del proyecto, no WCAG: «entrada inválida» antes del primer envío, NF y NC (corregido en 7.6 en el arnés, lote 4: `aria-required` y el correo como text) |
+| 3.3.1 Identificación de errores | A | ✓ medido | Resumen de errores con el foco y mensajes por campo con `aria-invalid` y `aria-describedby` (5.3) | ✓ NF: «Corrige 3 campos para continuar», encabezado nivel 2, con el foco (N2.2). Regla del proyecto, no WCAG: «entrada inválida» antes del primer envío, NF y NC (corregido en 7.6, lote 4: `aria-required` y el correo como text; de oído en NF y NC, una pasada en cada uno) |
 | 3.3.2 Etiquetas o instrucciones | A | ✓ medido | Etiqueta visible en cada campo y ayuda del grupo (4.3, 5.3); axe `label` | ✓ NF y NC: la ayuda del grupo se oye por `aria-describedby` al entrar (N2.1; con Chrome, en el bloque del hallazgo tras N2.2) |
 | 3.3.3 Sugerencia ante errores | AA | ✓ medido | Cada mensaje dice cómo corregir (5.3, diseño §5.3) | — |
 | 3.3.4 Prevención de errores (legal, financiero, datos) | AA | ✓ revisado | Confirmación previa antes de reservar (02.4) y cancelación con diálogo (04.3); se puede reprogramar y cancelar | — |
@@ -144,7 +148,7 @@ de 7.6.
 | 3.3.8 Autenticación accesible (mínimo) | AA | N/A | No hay inicio de sesión (sesión simulada) | — |
 | 4.1.1 Procesamiento | A | Obsoleto | Retirado en WCAG 2.2 | — |
 | 4.1.2 Nombre, función, valor | A | ✓ medido | axe (`aria-*`, `button-name`, `link-name`, `listbox`…); estados ARIA del kit (4.x); el anuncio con lector, 7.4 | ✓ NF parcial: nombre, función y estado oídos en N1–N3 (página actual y actual, contraído y expandido, conmutador pulsado, radio marcado, opción no disponible, «seleccionado» una vez). Dato: el `alertdialog` se lee «diálogo» (N2.3). NC: solo N1.7 y N1.9–N1.11. VoiceOver: sin dispositivo |
-| 4.1.3 Mensajes de estado | AA | ✓ medido (7.6, en el arnés) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado en 7.3), cubierto en 7.6 por la región propia de la hoja (5.2 y 7.3); de oído, tras el deploy. El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11; corregido en 7.6 en el arnés, lote 3). `role="alert"`: N/A, sin instancia |
+| 4.1.3 Mensajes de estado | AA | ✓ medido (7.6) | Regiones vivas existen antes del mensaje (4.2, 5.1); el anunciador de React Aria queda inerte dentro de la hoja del calendario (✗ declarado en 7.3), cubierto en 7.6 por la región propia de la hoja (5.2 y 7.3); de oído en NF y NC (N3.8b, 7.6). El anuncio real, 7.4 | ✓ NF y NC: el recuento (N1.8) y la región del borrador de la hoja (N1.10); ✓ NF: el aviso en región viva (N2.5). ✗ declarado, confirmado de oído: el anunciador inerte en la hoja (N3.8b). Regla del proyecto, no WCAG: el disparador se anuncia con el recuento anterior al aplicar, NF y NC (N1.11). En 7.6 el nombre, ✓ NF (lote 3); el recuento al cerrar la hoja no se oye en NF (declarado; lote 7 sin efecto de oído). `role="alert"`: N/A, sin instancia |
 
 ## Hallazgos
 
@@ -152,7 +156,7 @@ Los ✗ de la sección, cada uno declarado en su expectativa y con su fila en DE
 
 | Defecto | Criterio | Cifra | Decisión |
 |---|---|---|---|
-| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | ✓ 7.6 en el arnés: región propia en la hoja (`Calendar`, `announceMonth`), vacía al abrir y al cruzar de mes con el foco en la rejilla; foco y no región cuando el botón desaparece (5.2 y 7.3). La fecha seleccionada, declarada en la fila. De oído, tras el deploy |
+| Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | ✓ 7.6: región propia en la hoja (`Calendar`, `announceMonth`), vacía al abrir y al cruzar de mes con el foco en la rejilla; foco y no región cuando el botón desaparece (5.2 y 7.3). La fecha seleccionada, declarada en la fila. De oído, «mayo de 2029» una vez en Firefox y en Chrome (N3.8b, 7.6) |
 | Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | ✓ 7.6 (lote 6): el ancho de su tercio de barra (109) en la demo; pasan al grupo 1 (coste) |
 | Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | ✓ 7.6 (lote 6): halo de superficie (`box-shadow`) solo sin header; 0 paradas |
 | F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | ✓ 7.6: escuchador nativo en captura en `SlotList` (ListBox no reenvía `onKeyDownCapture`), en las combinaciones que RAC atiende; 4 de 4 a la vista |
@@ -211,16 +215,27 @@ En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Cal
 
 | Hallazgo de 7.4 | Criterio | Literal o cifra | Decisión |
 |---|---|---|---|
-| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). La tanda tras el deploy del lote 6 oyó el nombre nuevo pero no «11 resultados»: regresión del lote 3 (el `flushSync` cambiaba también la región con la página inert). ✓ 7.6 en el arnés (lote 7): la región, congelada mientras la hoja está abierta, se suelta al cerrar; 5.1 la lee en 34 dentro de `close()` y en el `focusin`, y en 11 después. De oído, tras el deploy |
-| Estado arrastrado en las celdas del calendario (tanda de 7.6, no de 7.4) | Regla del proyecto (el nombre y el estado de la celda enfocada, §4.5), sin criterio WCAG decidido: hipótesis sobre Firefox | En la hoja, con → del 24 al 29 de mayo: «botón no disponible» en el 24–27 y «seleccionado» en el 29 con el 25 seleccionado (Firefox 157 + NVDA 2026.2, 6 oct 2026; `scripts/verify/out/7.6/nvda.txt`, paso 3). En Chrome 154, ninguno. RAC reutiliza las celdas por posición: las de mayo son los nodos de abril | ✓ 7.6 en el arnés (lote 7): `key` por mes en el cuerpo de la rejilla; 4.6 y 5.2 miden 0 celdas reutilizadas en cada cambio de mes y el foco en la rejilla. De oído, tras el deploy |
-| «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | ✓ 7.6 en el arnés (lote 4): `aria-required` en vez de `required` y el correo como text con `inputMode="email"`; 5.3 mide `form :invalid` vacío al cargar y ningún obligatorio inválido en el árbol AX. De oído, tras el deploy |
-| Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | Confirmado de oído; 7.6, ya con fila |
+| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). El nombre, ✓ de oído en Firefox (cuatro pasadas, § Tandas de 7.6). **El recuento al cerrar la hoja no se oye en Firefox** (dos pasadas con el build del lote 6 y dos con el del lote 7), aunque desde el lote 7 la región cambia en el arnés con el diálogo ya cerrado; causa sin aislar. Fila abierta y declarada: desviación de la regla de los dos mensajes, no ✗ de WCAG (el recuento se oye en la hoja al cambiar el filtro y está en el nombre de «Ver 11 resultados»). Chrome, sin medir |
+| Estado arrastrado en las celdas del calendario (tanda de 7.6, no de 7.4) | Regla del proyecto (el nombre y el estado de la celda enfocada, §4.5), sin criterio WCAG decidido | En la hoja, con → del 24 al 29 de mayo: «botón no disponible» en el 24–27 y «seleccionado» en el 29 con el 25 seleccionado (Firefox con NVDA, build del lote 6, 6 oct 2026; `scripts/verify/out/7.6/nvda.txt`, paso 3). En Chrome, ninguno. RAC reutiliza las celdas por posición: las de mayo son los nodos de abril | ✓ 7.6 (lote 7): `key` por mes en el cuerpo de la rejilla; 4.6 y 5.2 miden 0 celdas reutilizadas en cada cambio de mes y el foco en la rejilla. De oído en Firefox con el build del lote 7, una pasada: ningún «no disponible», «seleccionado» solo en el 25 y, al cruzar a junio con ↓, solo el día |
+| «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | ✓ 7.6 (lote 4): `aria-required` en vez de `required` y el correo como text con `inputMode="email"`; 5.3 mide `form :invalid` vacío al cargar y ningún obligatorio inválido en el árbol AX. ✓ de oído en Firefox y en Chrome, una pasada en cada uno: «requerido» sin «entrada inválida» antes de enviar, y «entrada inválida» después en los campos con error |
+| Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | ✓ 7.6 (lote 2): región propia en la hoja. De oído, «mayo de 2029» una vez: Firefox y Chrome con el build del lote 6 (una pasada cada uno) y Firefox con el del lote 7 (una) |
 
 **Datos sin fila.** El h2 oculto de RAC no sale con H porque la raíz del calendario lleva
 `role="application"` (N3.1, contraprueba quitando el rol). Hoy se anuncia dos veces, «hoy» del
 nombre y «fecha actual» de `aria-current="date"` (N3.4): redundante, a decidir en 7.6. El
 `alertdialog` se lee «diálogo» (N2.3). «lista procesando» al llegar el foco tras «Ver más», solo
 en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2.4b).
+
+### Tandas de 7.6 · NVDA tras el deploy
+
+Ejecutadas por Osvaldo el 6 de octubre de 2026 contra producción, con NVDA y Firefox (Chrome solo
+en la primera); versiones sin anotar (en 7.4, NVDA 2026.2, Firefox 157.0 y Chrome 154). Literales
+en docs/auditoria-manual.md (N1.11, hallazgo tras N2.2, N3.8b y N3.9).
+
+| Tanda | Build | Pasos | Resultado |
+|---|---|---|---|
+| 1 | Lote 6 (5a0a33d) | Filtros (Firefox, dos pasadas); validación (Firefox y Chrome, una cada uno, 100 %); mes en la hoja (Firefox y Chrome, una cada uno) | Lote 2 ✓ en los dos; lote 4 ✓ en los dos; lote 3: el nombre ✓, el recuento al cerrar no se oye; hallazgo nuevo en Firefox, estado arrastrado en las celdas |
+| 2 | Lote 7 (d42afbd, `index-BzYQhdO1.js`) | Calendario en la hoja (Firefox, una pasada); filtros (Firefox, dos pasadas) | Estado arrastrado ✓; el recuento al cerrar sigue sin oírse (fila declarada) |
 
 ## Datos (sin criterio)
 
@@ -245,11 +260,16 @@ en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2
 
 ## Limitaciones conocidas
 
-- De los seis defectos de § Hallazgos, F1 (lote 1), el anunciador inerte (lote 2, en el arnés) y
-  F2 (lote 5) se cerraron en 7.6; los dos hallazgos de 7.4, en el arnés (lotes 3 y 4; el 3, con
-  su regresión corregida en el lote 7). También los dos del kit (1b y 4, lote 6), y el estado
-  arrastrado de las celdas del calendario en Firefox, en el arnés (lote 7, hipótesis hasta oírlo). Sigue abierto el resto de pintado de `/kit` (declarado, sin medir
-  en Chrome real en 7.4).
+- De los seis defectos de § Hallazgos, F1 (lote 1), el anunciador inerte (lote 2; de oído en
+  Firefox y Chrome) y F2 (lote 5) se cerraron en 7.6, y los dos del kit (1b y 4, lote 6). De
+  los dos hallazgos de 7.4, «entrada inválida» (lote 4) se cerró, de oído en Firefox y Chrome;
+  del disparador de filtros, el nombre (lote 3, de oído en Firefox), y el recuento al cerrar la
+  hoja queda abierto y declarado: no se oye en Firefox en cuatro pasadas, aunque en el arnés
+  cambia con el diálogo cerrado (lote 7); causa sin aislar; Chrome, sin medir. El estado
+  arrastrado de las celdas del calendario en Firefox (tanda de 7.6), cerrado en el lote 7, de
+  oído en una pasada. Sigue abierto el resto de pintado de `/kit` (declarado, sin medir en
+  Chrome real en 7.4).
+- Las tandas de 7.6 no anotaron las versiones de NVDA, Firefox y Chrome.
 - Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
   154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,
   con el recorte de § Prueba manual · 7.4.

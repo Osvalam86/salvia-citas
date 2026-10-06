@@ -368,6 +368,16 @@ orden de los dos mensajes.
 | ✓ / ✗ | ✗ del proyecto, hallazgo de 7.4 (candidato a 7.6): se anuncia «1 filtro aplicado» en vez de 2. No es ✗ de WCAG: el nombre se corrige y el recuento llega por la región de estado; es ✗ de la regla del diseño (los dos mensajes al aplicar) | ✗ del proyecto, igual que NF |
 | Notas | Contraprueba: NVDA+Tab después: «Filtrar y ordenar , 2 filtros aplicados botón enfocado abre diálogo»; `location.search` `"?q=Cardiolog%C3%ADa&especialidad=cardiologia&modalidad=videoconsulta"`. Causa en el código: `Sheet.tsx` devuelve el foco (línea 100) antes de `onSubmit()` (línea 101), así que el disparador recibe el foco con el recuento anterior y el cambio de nombre no se vuelve a anunciar. Dato: «Saltar al contenido» se lee antes del disparador al cerrar. Repetir en NC1 antes de redactar la fila de 7.6; sin propuesta de código todavía | Conclusión: general a los dos navegadores; causa en `Sheet.tsx` (foco devuelto en la línea 100, antes de `onSubmit()` en la 101). La línea «Saltar al contenido» al cerrar sale en los dos (dato) |
 
+**7.6, tras el deploy** (6 oct 2026, NVDA con Firefox, zoom 200 %, versiones sin anotar;
+`scripts/verify/out/7.6/nvda.txt`). Dos pasadas con el build del lote 6 y dos con el del lote 7,
+la segunda de cada par con 5 s de espera; las cuatro dan lo mismo:
+
+| | NF (Firefox) | NC (Chrome) |
+|---|---|---|
+| Literal del Visor de voz | Al marcar Videoconsulta, dentro de la hoja: «11 resultados» · «marcado». Tras «Ver 11 resultados botón» + Intro: «cliqueable misma página enlace Saltar al contenido» · «principal región Filtrar y ordenar , 2 filtros aplicados botón abre diálogo». Después no se oye «11 resultados» | Sin medir en 7.6 |
+| ✓ / ✗ | El nombre, ✓ (lote 3). El recuento al cerrar, no se oye: desviación declarada de la regla de los dos mensajes, no ✗ de WCAG (DESIGN.md, Pendientes) | |
+| Notas | En el arnés, desde el lote 7, la región cambia con el diálogo ya cerrado; de oído no cambió nada. Causa sin aislar | |
+
 #### N1.12 · Etiqueta en el nombre (2.5.3)
 
 Ruta: `RUIZ?SLOT`, estrecho. Acción: Tab hasta la tira de días (entra en el día marcado).
@@ -429,6 +439,17 @@ diseño §3.4, `PatientData.tsx:46`), no ✗ de WCAG. Repetir en NC2 antes de re
 | Literal del Visor de voz | Antes de «Confirmar cita»: al cargar, el fieldset «Datos del paciente agrupación entrada inválida»; «Motivo de consulta cuadro combinado Elige una opción contraído requerido entrada inválida»; «Acepto el aviso de privacidad casilla de verificación sin marcar requerido entrada inválida»; en el correo, al teclear la primera letra, «k · entrada inválida» | «Datos del paciente agrupación Todos los campos son obligatorios salvo los marcados como opcionales» (sin «entrada inválida») · «Nombre completo edición requerido Como aparece en tu identificación seleccionado Karla Sánchez Bautista» · «Motivo de consulta cuadro combinado Elige una opción contraído requerido entrada inválida Nos ayuda a preparar tu consulta» · «Acepto el aviso de privacidad casilla de verificación sin marcar requerido entrada inválida Solo usamos tus datos para esta cita» |
 | ✓ / ✗ | ✗ del proyecto | ✗ del proyecto: se reproduce en los controles, no en el fieldset |
 | Notas | Contraprueba (carga completa, sin tocar): `form :invalid` = `["FIELDSET · Datos del paciente · aria-invalid=null", "SELECT · Motivo de consulta · aria-invalid=null", "FIELDSET · Antes de confirmar · aria-invalid=null", "INPUT · Acepto el aviso de privacidad · aria-invalid=null"]`. Es la validez nativa de `required` y `type=email`, que Firefox expone aunque el form tenga `noValidate`; la app solo pone `aria-invalid` con error (`FieldText.tsx:48`, `FieldSelect.tsx:56`, `Checkbox.tsx:43`). Al elegir «Primera consulta», «entrada inválida» desaparece del select. Dato para la propuesta: con `setAttribute('aria-invalid', 'false')` en el select (sin recargar), NVDA sigue diciendo «requerido entrada inválida» (una pasada): el `false` explícito no lo anula en Firefox | Conclusión: general (Firefox 157 y Chrome 154 con NVDA 2026.2); solo el anuncio en el fieldset es de Firefox. Dato: Chrome anuncia «formulario región» |
+
+**7.6, tras el deploy del lote 6** (6 oct 2026, zoom 100 %, una pasada en cada navegador,
+versiones sin anotar; `scripts/verify/out/7.6/nvda.txt`, paso 2). Con `aria-required` y el correo
+como text (lote 4):
+
+| | NF (Firefox) | NC (Chrome) |
+|---|---|---|
+| Antes de «Confirmar cita» | «Datos del paciente agrupación Todos los campos son obligatorios salvo los marcados como opcionales» (sin «entrada inválida») · «Nombre completo edición requerido tiene auto completado» · «Correo electrónico edición requerido tiene auto completado» · «Motivo de consulta cuadro combinado Elige una opción contraído requerido Nos ayuda a preparar tu consulta» · «Acepto el aviso de privacidad casilla de verificación sin marcar requerido Solo usamos tus datos para esta cita». Al escribir «k» en el correo: «k · selección eliminada» | «Motivo de consulta cuadro combinado Elige una opción contraído requerido Nos ayuda a preparar tu consulta» · «Acepto el aviso de privacidad casilla de verificación sin marcar requerido» |
+| Tras «Confirmar cita» | «Corrige 3 campos para continuar encabezado nivel 2 · lista con 3 elementos» · «Correo electrónico edición requerido entrada inválida tiene auto completado Escribe un correo válido, con @ y dominio seleccionado k» · «Motivo de consulta cuadro combinado Elige una opción contraído requerido entrada inválida Elige el motivo de tu consulta» | «Corrige 2 campos para continuar encabezado nivel 2» · «Motivo de consulta cuadro combinado Elige una opción contraído requerido entrada inválida Elige el motivo de tu consulta» |
+| ✓ / ✗ | ✓ | ✓ |
+| Notas | 3 campos: el correo «k» es inválido | 2 campos: no se cambió ningún campo, como pedía el paso (motivo y privacidad). 3 y 2 no es un defecto |
 
 #### N2.3 · `alertdialog` al abrir
 
@@ -591,6 +612,30 @@ anota.
 | Literal del Visor de voz | En la hoja, a 200 %: «Elige una fecha diálogo · abril de 2029 · abril de 2029 tabla · martes 24 … seleccionado»; «Mes siguiente botón» + Intro → no se oye «mayo de 2029»; NVDA+Tab: «Mes siguiente botón enfocado» | Sin medir en 7.4 |
 | ✓ / ✗ | ✗ esperado, confirmado de oído (7.6, anunciador inerte). Dos pasadas | |
 | Notas | Dato: dentro de la hoja, Tab sale a la interfaz de Firefox («Pestañas del navegador barra de herramientas» … «Marcadores») y vuelve al diálogo («Elige una fecha diálogo · Ver horarios del martes 24 · Cerrar botón · abril de 2029 aplicación · Mes siguiente botón»), sin caer en la página | |
+
+**7.6, tras el deploy** (6 oct 2026, zoom 200 %, versiones sin anotar;
+`scripts/verify/out/7.6/nvda.txt`, paso 3 y segunda tanda). Con la región propia de la hoja (lote 2):
+
+| | NF (Firefox) | NC (Chrome) |
+|---|---|---|
+| Literal del Visor de voz | «Mes siguiente botón» + Intro: «mayo de 2029», una vez. Build del lote 6 y del lote 7, una pasada cada uno | «Mes siguiente botón» + Intro: «mayo de 2029». Build del lote 6, una pasada |
+| ✓ / ✗ | ✓ | ✓ |
+| Notas | Dato de la fecha seleccionada (sin región): Espacio en el 25, «viernes 25 de mayo de 2029, 7 horarios libres, seleccionado» (lote 6) y «…, seleccionado · seleccionado» (lote 7) | |
+
+#### N3.9 · Estado de las celdas al cambiar de mes en la hoja (7.6)
+
+Hallazgo de la primera tanda de 7.6, fuera del guion de 7.4. Ruta: `RUIZ?SLOT`, estrecho (zoom
+200 %). Acción: «Ver mes completo»; «Mes siguiente» + Intro; Tab a la rejilla (24 de mayo); → de
+día en día hasta el 29, Espacio en el 25 y otra vez → hasta el 29; ↓ a junio. Debe oírse: ningún
+«no disponible» y «seleccionado» solo en el día seleccionado.
+
+| | NF (Firefox) | NC (Chrome) |
+|---|---|---|
+| Build del lote 6 | Tab: «mayo de 2029 tabla · jueves 24 de mayo de 2029, 8 horarios libres fila 4 columna 4 · botón no disponible»; →: «viernes 25 de mayo de 2029, 7 horarios libres columna 5 · botón no disponible»; Espacio: «viernes 25 de mayo de 2029, 7 horarios libres, seleccionado»; con el 25 seleccionado, →: «viernes 25 … seleccionado botón no disponible» · «sábado 26 de mayo de 2029, 8 horarios libres botón no disponible» · «domingo 27 de mayo de 2029, sin horarios botón no disponible» · «lunes 28 de mayo de 2029, 7 horarios libres botón» · «martes 29 de mayo de 2029, 9 horarios libres seleccionado columna 2 · botón» | Del 24 al 29, ninguno con «no disponible» ni con «seleccionado» |
+| ✓ / ✗ | ✗ del proyecto: el estado de las celdas de abril en las de mayo | ✓ |
+| Build del lote 7 (`key` por mes) | Tab: «mayo de 2029 tabla · jueves 24 de mayo de 2029, 8 horarios libres fila 4 columna 4 · botón»; →: «viernes 25 de mayo de 2029, 7 horarios libres columna 5 · botón»; Espacio: «viernes 25 de mayo de 2029, 7 horarios libres, seleccionado · seleccionado»; →: «sábado 26 … botón» · «domingo 27 de mayo de 2029, sin horarios columna 7 · botón» · «lunes 28 … fila 5 columna 1 · botón» · «martes 29 de mayo de 2029, 9 horarios libres columna 2 · botón»; ↓: «martes 5 de junio de 2029, 9 horarios libres fila 2 · botón» | Sin medir (ya leía limpio) |
+| ✓ / ✗ | ✓, una pasada: ningún «no disponible», «seleccionado» solo en el 25; al cruzar a junio, el foco en la rejilla y solo el día | |
+| Notas | En el DOM, sin la key, las 35 celdas de mayo eran los nodos de abril: el 24–29 de mayo ocupaban los `td` del 19 al 24 de abril (el 19–22, pasados; el 24, seleccionado) | |
 
 **Parada NF3 / NC3.**
 
@@ -964,16 +1009,17 @@ Ajustada en el cierre de 7.4 con el resultado de cada fila (DESIGN.md, Pendiente
 | Calendario y horas con lector (+ spike § 4.1–4.6) | N3.1–N3.8b | ✓ NF en N3.1–N3.4, N3.7 y N3.8; N3.5 y N3.6: sin medir en 7.4 | VoiceOver («Siguiente» por gestos: A.6, sin medir) |
 | Safari: foco y `scroll-padding` | K.6 (Firefox) | Sin medir en 7.4 | Parte Safari entera |
 | Atrás con la hoja abierta | A.1, K.5 | ✓ Android, hoja de filtros (A.1 a); A.1 b y K.5: sin medir en 7.4 | Safari iOS |
-| Hoja de filtros con lector | N1.9–N1.11 | ✓ NF y NC en N1.9 y N1.10; ✗ del proyecto en N1.11 (7.6) | VoiceOver |
+| Hoja de filtros con lector | N1.9–N1.11 | ✓ NF y NC en N1.9 y N1.10; ✗ del proyecto en N1.11 (7.6). En 7.6, el nombre ✓ NF; el recuento al cerrar, no se oye en NF (declarado) | VoiceOver |
 | Foco devuelto por la hoja | K.3 | ✓ Firefox, filtros al aplicar (N1.11); K.3: sin medir en 7.4 | Safari |
 | Zona segura en un iPhone real | A.5 (dato) | Sin medir en 7.4 | Fila entera: iPhone |
 | Hallazgo de 7.1 (Firefox, solo texto) | K.7 a | ✓ Firefox a 375 × 900: la barra pasa al flujo | — |
-| 7.6 · anunciador inerte en la hoja | N3.8 y N3.8b | ✗ confirmado de oído (N3.8b) | — |
+| 7.6 · anunciador inerte en la hoja | N3.8 y N3.8b | ✗ confirmado de oído (N3.8b); ✓ NF y NC en 7.6 | — |
+| 7.6 · estado arrastrado en las celdas | N3.9 | ✗ NF con el build del lote 6; ✓ NF con el del lote 7; NC limpio | — |
 | 7.6 · F1 y F2 | K.8 y K.6 (Firefox, dato) | Sin medir en 7.4 | — |
 | 7.6 · anillo contra vecinos | — (medida de píxeles, exacta en 7.3) | — | — |
 | spike § 4.7 (rejilla a 320 y 200 %) | K.8 (Firefox, dato; Chromium ✓ en 7.3) | Sin medir en 7.4 | — |
 | Matriz: 1.3.1, 2.4.4, 2.5.3, 4.1.2, 4.1.3 | N0.1; N0.3 (N0.2, dato); N1.12; N1–N3; N1.7–N1.11, N2.5, N3.8 | Columna «Manual (7.4)» de docs/auditoria.md | VoiceOver |
-| Hallazgos de 7.4 | N1.11; hallazgo tras N2.2 | ✗ del proyecto, NF y NC: dos filas «7 · 7.6» nuevas | — |
+| Hallazgos de 7.4 | N1.11; hallazgo tras N2.2 | ✗ del proyecto, NF y NC: dos filas «7 · 7.6» nuevas. En 7.6: «entrada inválida» ✓ NF y NC; el disparador, el nombre ✓ NF y el recuento declarado | — |
 
 ## Sin dispositivo
 

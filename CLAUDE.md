@@ -143,7 +143,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   2 hallazgos contra la regla del proyecto, con su fila en 7.6; Safari, iOS y
   VoiceOver, «7 · sin dispositivo» (DESIGN.md, Pendientes).
 
-- Fase 7 · 7.6, en curso (un lote por fila, un commit `fix` por lote; plan y
+- Fase 7 · 7.6, cerrada (un lote por fila, un commit `fix` por lote; plan y
   cierres en `scripts/verify/out/7.6/`, sin versionar): cerrados el lote 1 (F1,
   Inicio y Fin en `SlotList`), el 2 (región del mes en la hoja del calendario,
   `announceMonth`) y el 3 (disparador de filtros: `Sheet` avisa al padre antes
@@ -158,12 +158,14 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   tanda de NVDA (`nvda.txt`): el recuento de la búsqueda congelado mientras la
   hoja de filtros está abierta y soltado al cerrar (regresión del lote 3,
   `heldCount` en `Search.tsx`), y un cuerpo de rejilla por mes en `Calendar`
-  (`key` en `CalendarGridBody`; estado arrastrado en Firefox, hipótesis),
-  con `scripts/verify/calendario.mjs`. Queda oír A y B tras el deploy, la
-  pasada contra producción y un commit `docs`.
+  (`key` en `CalendarGridBody`; estado arrastrado en Firefox, cerrado de oído),
+  con `scripts/verify/calendario.mjs`. Cierre: dos tandas de NVDA tras el
+  deploy (`nvda.txt`; docs/auditoria-manual.md, N1.11, N2.2, N3.8b y N3.9) y
+  la pasada contra producción. De oído, ✓ los lotes 2, 4 y 7 B y el nombre
+  del lote 3; el recuento al cerrar la hoja de filtros no se oye en Firefox
+  (fila «7 · 7.6 · declarado», causa sin aislar).
 
-Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en
-DESIGN.md, Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
+Siguiente en la fase 7: 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
 
 ## Comandos
 
