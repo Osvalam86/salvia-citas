@@ -145,6 +145,29 @@ export default async function run(b, expect) {
   await sleep(100)
   expect('contraprueba: sin tabindex en el h1, el foco no se mueve', await b.ev('document.activeElement.textContent'), 'Saltar al contenido')
 
+  // Halo del salto (7.6): solo sin header (/kit, el salto seguido de __main), una sombra de
+  // superficie de space-2 bajo el anillo, que sigue siendo el outline; con header, ninguna (taparía
+  // el borde inferior del header móvil). La caja no cambia. En forced-colors el navegador la quita.
+  const halo = {}
+  for (const [route, label, width, forcedColors] of [[NAV, 'con header', 1440, false], [NAV, 'con header', 375, false], ['/kit', 'sin header', 1440, false], ['/kit', 'sin header', 375, false], ['/kit', 'sin header', 375, true]]) {
+    await b.metrics(width, 900, 1)
+    await b.forcedColors(forcedColors)
+    await b.go(route)
+    await b.ev('document.activeElement?.blur(), window.scrollTo(0, 0), true')
+    await b.tab()
+    halo[`${label} · ${width}${forcedColors ? ' · forced-colors' : ''}`] = await b.ev("(() => { const a = document.activeElement, s = getComputedStyle(a), r = a.getBoundingClientRect(); return { foco: a.textContent, sombra: s.boxShadow, anillo: s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineOffset, caja: [r.left, r.top, Math.round(r.width), r.height] } })()")
+  }
+  await b.forcedColors(false)
+  const skipState = (sombra) => ({ foco: 'Saltar al contenido', sombra, anillo: 'solid 2px 2px', caja: [16, 8, 194, 50] })
+  const haloShadow = 'rgb(255, 255, 255) 0px 0px 0px 8px'
+  expect('salto: con header, sin halo; sin header (/kit), halo de superficie de 8 px (box-shadow) bajo el anillo, que sigue siendo el outline; en forced-colors, sin halo; la misma caja en todos', halo, {
+    'con header · 1440': skipState('none'),
+    'con header · 375': skipState('none'),
+    'sin header · 1440': skipState(haloShadow),
+    'sin header · 375': skipState(haloShadow),
+    'sin header · 375 · forced-colors': skipState('none'),
+  })
+
   // --- Header móvil y barra inferior --------------------------------------------------------------------
   await b.metrics(375, 800, 1)
   await b.go(NAV)

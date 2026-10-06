@@ -152,8 +152,10 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   como text con `inputMode="email"`, desviación declarada en DESIGN.md) y el
   5 (F2: `scroll-padding` = barra + alcance del anillo por `:has`, variables
   del anillo en `_mixins.scss`, `inset: -1px` en el radio del Day Chip; coste
-  del anillo en el borde de la barra como grupo 6). Queda el 6 (anillo del
-  kit), y al final la tanda de NVDA y un commit `docs`.
+  del anillo en el borde de la barra como grupo 6) y el 6 (anillo del kit:
+  `c-kit__nav-item` de 109 en la demo del Nav Item y halo `box-shadow` del
+  salto al contenido solo sin header, desviación declarada). Queda la tanda de
+  NVDA, la pasada contra producción y un commit `docs`.
 
 Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en
 DESIGN.md, Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
@@ -212,6 +214,8 @@ No hay test runner configurado.
   conserva el foco; el envío nunca se deshabilita (validación al enviar, con
   resumen de errores que recibe el foco).
 - **Foco:** un único anillo `outline` (nunca `box-shadow`) 2px / desfase 2px.
+  Única sombra junto al foco: el halo de superficie del salto al contenido
+  sin header (7.6), que es fondo y no anillo (DESIGN.md, § Constantes).
 - **Iconos:** Phosphor Regular, lista cerrada de 19, extraídos por MCP a
   `src/assets/icons/*.svg` y servidos inline por un componente `Icon`; siempre
   decorativos (`aria-hidden`, `focusable="false"`).

@@ -43,6 +43,14 @@
     max-inline-size: 100%;
   }
 
+  // Nav Item suelto: el ancho de un tercio de la barra a 375 (109, medido en
+  // 4.4), como en su contexto. Sin él el ítem mide lo que su etiqueta (padding
+  // lateral 0) y la etiqueta llega al anillo, que va hacia dentro (desfase −4):
+  // las dos bandas por debajo de 3 (grupo 1b del anillo contra vecinos, 7.6).
+  &__nav-item {
+    inline-size: 6.8125rem;
+  }
+
   &__specimens {
     display: flex;
     flex-direction: column;

@@ -262,12 +262,12 @@ function NavDemos() {
 
       <h3 className="c-kit__subheading">Nav Item</h3>
       <ul className="o-cluster o-cluster--gap-2 o-cluster--align-start" role="list">
-        <li>
+        <li className="c-kit__nav-item">
           <NavItem href={PATHS.especialistas} icon="magnifying-glass" current>
             Especialistas
           </NavItem>
         </li>
-        <li>
+        <li className="c-kit__nav-item">
           <NavItem href={PATHS.misCitas} icon="calendar-check">
             Mis citas
           </NavItem>

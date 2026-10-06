@@ -74,6 +74,21 @@
   @include tools.visually-hidden;
 }
 
+// Halo del salto al contenido (7.6, desviación declarada en DESIGN.md § Foco),
+// solo sin header (el salto seguido directamente de __main: /kit/*). Ahí el
+// enlace se superpone al contenido y el anillo, que sigue siendo el outline,
+// caía con su banda exterior sobre texto (grupo 4 del anillo contra vecinos);
+// una sombra de superficie bajo el anillo le da fondo propio. Con header no:
+// el anillo ya cae sobre la superficie del header, y el halo taparía el borde
+// inferior del header móvil (64 de alto; el salto llega a 58). Es box-shadow,
+// pero no es el anillo: se pinta bajo el fondo y el borde del enlace, a
+// diferencia de un ::before con z-index negativo, que caería sobre ellos. En
+// forced-colors el navegador la quita y queda el anillo del sistema. :where
+// deja la especificidad en (0,2,0).
+.c-app-layout__skip:focus:where(:has(+ .c-app-layout__main)) {
+  box-shadow: 0 0 0 var(--space-2) var(--color-surface);
+}
+
 // Criterio 2.4.11: el foco no queda bajo la barra. El desplazador es el
 // viewport, así que scroll-padding va en la raíz. El valor no es una
 // constante: AppLayout mide el hueco de la barra (ResizeObserver) y lo escribe

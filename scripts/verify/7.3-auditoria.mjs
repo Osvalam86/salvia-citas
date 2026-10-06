@@ -123,14 +123,15 @@ function classify(tipo, fg, bg, palette) {
 const ringFail = (s) => s.sinAnillo || (s.pintado > 0 && (s.exterior.min < 3 || s.interior.min < 3))
 
 // Grupos de los ✗ del anillo (decisión de 7.3, DESIGN.md Pendientes 7 · 7.6): 1, 2, 3, 5 y 6 (este, de 7.6),
-// coste medido; 1b y 4, defectos del kit, candidatos a 7.6. Una parada de un grupo de coste
+// coste medido; 1b y 4, defectos del kit de 7.3, corregidos en 7.6 (lote 6): se conservan para
+// clasificar, y su expectativa pide que no haya ninguna parada en ellos. Una parada de un grupo de coste
 // con algún punto de las dos bandas < 3 (✗ de 1.4.11) no es coste: pasa a «Nb».
 const RING_GROUPS = {
   1: '1 · Nav Item y Nav Link (desfase −4) junto a la barra de actual o al borde de la barra: coste medido',
-  '1b': '1b · Nav Item suelto de /kit: ✗ WCAG (las dos bandas < 3 junto a su etiqueta), candidato a 7.6',
+  '1b': '1b · Nav Item suelto de /kit: ✗ WCAG (las dos bandas < 3 junto a su etiqueta), corregido en 7.6',
   2: '2 · chip y celda del calendario junto al borde del vecino: coste medido',
   3: '3 · disparador del menú junto al borde del panel abierto: coste medido',
-  4: '4 · salto al contenido sobre el contenido de /kit/*: candidato a 7.6',
+  4: '4 · salto al contenido sobre el contenido de /kit/*: corregido en 7.6',
   5: '5 · enlaces en línea del kit junto al texto vecino: coste medido',
   6: '6 · anillo que termina en el borde superior de la barra tras el desplazamiento (scroll-padding = barra + alcance, F2, 7.6): coste medido',
 }
@@ -159,8 +160,11 @@ const RING_EXPECTED = {
     'carga /especialistas/elena-ruiz-arellano · 1440 · A Especialistas',
     'carga /especialistas/elena-ruiz-arellano/confirmar?fecha=2029-04-24&hora=10:30 · 1440 · A Especialistas',
     'carga /especialistas/elena-ruiz-arellano/datos?fecha=2029-04-24&hora=10:30 · 1440 · A Especialistas',
-    'carga /kit · 1440 · A Mis citas',
-    'carga /kit · 375 · A Mis citas',
+    // 7.6 · lote 6: el Nav Item suelto de /kit, con el ancho de su tercio de barra. «Especialistas»
+    // pasa de 1b a este grupo (la banda exterior sobre la barra de actual, la interior en la
+    // superficie); «Mis citas», que estaba aquí con la interior sobre su etiqueta, ya cumple.
+    'carga /kit · 1440 · A Especialistas',
+    'carga /kit · 375 · A Especialistas',
     'carga /kit/navegacion · 1440 · A Especialistas',
     'carga /kit/navegacion · 375 · A Cuenta',
     'carga /kit/navegacion · 375 · A Especialistas',
@@ -192,7 +196,6 @@ const RING_EXPECTED = {
     '«Avisarme» activado · 375 · A Especialistas',
     '«Avisarme» activado · 375 · A Mis citas',
   ],
-  '1b': ['carga /kit · 1440 · A Especialistas', 'carga /kit · 375 · A Especialistas'],
   2: [
     'carga /kit/fecha-hora · 1440 · INPUT 2029-04-24',
     'carga /kit/fecha-hora · 1440 · INPUT 2029-05-17',
@@ -200,19 +203,6 @@ const RING_EXPECTED = {
     'sin horarios (Rodrigo) · 375 · INPUT 2029-04-23',
   ],
   3: ['menú de cuenta · 1440 · BUTTON Karla Sánchez'],
-  4: [
-    'carga /kit · 1440 · A Saltar al contenido',
-    'carga /kit · 375 · A Saltar al contenido',
-    'carga /kit/citas · 1440 · A Saltar al contenido',
-    'carga /kit/citas · 375 · A Saltar al contenido',
-    'carga /kit/estados · 1440 · A Saltar al contenido',
-    'carga /kit/estados · 375 · A Saltar al contenido',
-    'carga /kit/fecha-hora · 1440 · A Saltar al contenido',
-    'carga /kit/fecha-hora · 375 · A Saltar al contenido',
-    'carga /kit/layout · 1440 · A Saltar al contenido',
-    'carga /kit/resultados · 1440 · A Saltar al contenido',
-    'carga /kit/resultados · 375 · A Saltar al contenido',
-  ],
   5: [
     'carga /kit · 1440 · A ir a Foco',
     'carga /kit · 375 · A ir a Foco',
@@ -414,7 +404,7 @@ export default async function run(b, expect) {
     { grupos: pickGroups(COST, RING_EXPECTED), truncados: [] },
   )
   expect(
-    `anillo contra vecinos, defectos del kit (✗ declarado, candidatos a 7.6, DESIGN.md Pendientes): ${RING_GROUPS['1b']} (${RING_EXPECTED['1b'].length} paradas) y ${RING_GROUPS[4]} (${RING_EXPECTED[4].length} paradas)`,
+    'anillo contra vecinos, defectos del kit (1b, el Nav Item suelto, y 4, el salto al contenido sobre el contenido de /kit/*; corregidos en 7.6, lote 6): ninguna parada',
     pickGroups(DEFECTS, ringFails),
     {},
   )

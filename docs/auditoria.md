@@ -19,7 +19,9 @@ en 7.4», nunca ✓.
   Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos. Lote 2 (anunciador en la hoja): 29/32,
   3 ✗ declarados con 4 defectos. Lote 3 (disparador de filtros, sin expectativa en 7.3): 29/32. Lote 4 («entrada inválida», sin
   expectativa en 7.3): 29/32. Lote 5 (F2 y el Day Chip): 31/33, 2 ✗ declarados con 3 defectos;
-  coste medido del anillo, 68.
+  coste medido del anillo, 68. Lote 6 (anillo del kit): 32/33, 1 ✗ declarado con 1 defecto (el
+  resto de pintado de `/kit`); coste medido 68 (se predijo 70: las dos «A Mis citas» del Nav Item
+  suelto pasan a cumplir la regla).
 
 ## Método
 
@@ -62,7 +64,7 @@ Inicio y Fin con la acción por defecto evitada; un resto inyectado supera el de
 | Fuera de `#root` (A) | Solo el anunciador de región viva de React Aria (1 × 1, recortado, sin foco), al navegar de mes en el calendario: expuesto a 1440 e ignorado (`activeModalDialog`) dentro de la hoja modal. ✗ declarado. **7.6:** ✓, el anunciador ignorado como coste exacto y la región propia de la hoja en el árbol AX con «mayo de 2029» (vacía al abrir); en línea, ninguna |
 | Contraste (B) | ✓ 34 pares: texto ≥ 4,5 y límites ≥ 3 (o su relleno ≥ 3), ninguno de los 6 «No usar». 423 textos tapados, fuera de la cuenta (detrás de un modal o una hoja, y la inicial bajo la foto) |
 | Incomplete de axe (B) | ✓ 43 de 43 resueltos con su par: 41 iniciales tapadas por la foto (sin texto visible) y 2 cuerpos del diálogo sobre el panel (16,65) |
-| Anillo contra vecinos (B) | Regla del proyecto (diseño §3.1): las dos bandas ≥ 3 en cada punto. 856 de 929 paradas la cumplen; las 73 restantes, en seis grupos (§ Hallazgos): 60 de coste medido (✓ exacto) y 13 defectos del kit (✗ declarado). La hora seleccionada, 6,02 contra la superficie en las dos bandas. **7.6 · lote 5:** coste medido 68, con el grupo 6 (8 paradas con el anillo en el borde superior de la barra, F2); 848 de 929 cumplen la regla |
+| Anillo contra vecinos (B) | Regla del proyecto (diseño §3.1): las dos bandas ≥ 3 en cada punto. 856 de 929 paradas la cumplen; las 73 restantes, en seis grupos (§ Hallazgos): 60 de coste medido (✓ exacto) y 13 defectos del kit (✗ declarado). La hora seleccionada, 6,02 contra la superficie en las dos bandas. **7.6 · lote 5:** coste medido 68, con el grupo 6 (8 paradas con el anillo en el borde superior de la barra, F2); 848 de 929 cumplen la regla. **Lote 6:** los defectos del kit (1b y 4) a 0 y coste final 68; 861 de 929 cumplen la regla y 0 paradas tienen las dos bandas < 3 |
 | 2.4.11 (C) | ✓ ninguna de las 1770 paradas con el componente tapado entero. Dato: 6 parciales y 30 con parte del anillo bajo la barra (F2). **7.6 · lote 5:** expectativa nueva de la regla del anillo entero, 0 paradas con parte del anillo bajo la barra |
 | Anillo sobre la barra en el flujo (C) | ✓ con la letra real a 32 (375, 27 estados), nada de lo que queda encima toca la barra: margen mínimo de 60 px. Receta de 7.1 (inyección): 3,9 px a 375 × 900, 60 de margen a 375 × 812 |
 | 2.5.8 (C) | ✓ 2752 objetivos, ninguno por debajo de 24 × 24 sin exención; 2 exenciones «en línea» (§ Datos) |
@@ -103,7 +105,7 @@ de 7.6.
 | 1.4.4 Cambio de tamaño del texto | AA | ✓ medido | 200 % por inyección y letra del navegador a 24 y 32 en 4.1–4.7 y 5.1–5.4, sin pérdida; ListBox a 320 (D) | ✓ parcial, Firefox a 375 (K.7): con la letra a 32 y con el zoom solo de texto al 200 %, modo de texto grande activo y la barra en el flujo (`static`); a 16, `sticky`. 320, 430 y 375 × 812, sin medir. Chrome (C.3) y Android (A.2): sin medir en 7.4. Safari: sin dispositivo |
 | 1.4.5 Imágenes de texto | AA | ✓ revisado | El wordmark y todo el texto son texto HTML; no hay imágenes de texto | — |
 | 1.4.10 Reajuste (reflow) | AA | ✓ medido | 320 sin scroll horizontal en 4.x y 5.x (al 100 % y al 200 %, dos barras); 1.4.12 a 320 sin desborde; ListBox a 320 | — |
-| 1.4.11 Contraste no textual | AA | ✗ declarado | Límites de control ≥ 3 (B); anillo: 60 paradas de coste medido (68 desde 7.6 · lote 5, con el grupo 6 junto al borde de la barra, que no es ✗ de 1.4.11: en cada punto una banda ≥ 3) y 13 del kit con ✗ (grupos 1b y 4, 9 paradas con las dos bandas < 3): § Hallazgos | — |
+| 1.4.11 Contraste no textual | AA | ✓ medido (7.6) | Límites de control ≥ 3 (B); anillo: 60 paradas de coste medido (68 desde 7.6 · lote 5, con el grupo 6 junto al borde de la barra, que no es ✗ de 1.4.11: en cada punto una banda ≥ 3) y 13 del kit con ✗ (grupos 1b y 4, 9 paradas con las dos bandas < 3), corregidos en 7.6 · lote 6: 0 paradas con las dos bandas < 3 y coste final 68: § Hallazgos | — |
 | 1.4.12 Espaciado del texto | AA | ✓ medido | 61 estados a 320 y 1440 con los cuatro valores: 0 recortes, 0 solapes (C) | — |
 | 1.4.13 Contenido con hover o foco | AA | ✓ revisado | No hay tooltips ni contenido al pasar; el menú de cuenta se abre con clic y se cierra con Escape (4.4) | — |
 | 2.1.1 Teclado | A | ✓ medido | Flujos por teclado en 4.x y 5.x (Tab, Intro, Espacio, flechas, Escape); en el ListBox, Inicio y Fin mueven el foco (lo que fallaba era su visibilidad: F1, en 2.4.7, corregido en 7.6) | ✓ Firefox: Intro en un radio de la tira hace el envío implícito (K.4 a) |
@@ -150,8 +152,8 @@ Los ✗ de la sección, cada uno declarado en su expectativa y con su fila en DE
 | Defecto | Criterio | Cifra | Decisión |
 |---|---|---|---|
 | Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | ✓ 7.6 en el arnés: región propia en la hoja (`Calendar`, `announceMonth`), vacía al abrir y al cruzar de mes con el foco en la rejilla; foco y no región cuando el botón desaparece (5.2 y 7.3). La fecha seleccionada, declarada en la fila. De oído, tras el deploy |
-| Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | 7.6, solo del kit (D9) |
-| Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | 7.6, solo del kit |
+| Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | ✓ 7.6 (lote 6): el ancho de su tercio de barra (109) en la demo; pasan al grupo 1 (coste) |
+| Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | ✓ 7.6 (lote 6): halo de superficie (`box-shadow`) solo sin header; 0 paradas |
 | F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | ✓ 7.6: escuchador nativo en captura en `SlotList` (ListBox no reenvía `onKeyDownCapture`), en las combinaciones que RAC atiende; 4 de 4 a la vista |
 | F2 · Anillo bajo la barra fija o sticky | Regla del sistema (2.4.11 cumple) | 30 paradas con 3,9–5 px del anillo bajo la barra; en el ListBox con la inyección, 27 de 36 puntos | ✓ 7.6 (lote 5): `scroll-padding-block-end` = barra + 4 px (desfase + grosor) con barra, por `:has`, e `inset: -1px` en el radio del Day Chip; 0 paradas con el anillo bajo la barra y el ListBox entero (36/36). Coste medido: 8 paradas y las opciones 7–10 con la banda exterior en el borde de la barra (grupo 6) |
 | Resto de pintado en `/kit` | — (pintado) | A 1350, 12632 px con delta 230 al llegar y a los 4 s, 3 de 3; a 375, 0; igual contra dev (4.6) | ✗ declarado de `/kit` (D9); Chrome real, sin medir en 7.4 (tramo C, recorte) |
@@ -163,7 +165,9 @@ junto al borde del vecino (1,4 y 1,01), 4; disparador del menú junto al borde d
 enlaces en línea del kit junto al texto vecino, 5. **Desde 7.6 (lote 5), 68:** el grupo 6, 8 paradas
 con el anillo entero que termina en el borde superior de la barra tras el desplazamiento
 (`scroll-padding` = barra + alcance, F2), con la banda exterior sobre el borde de la barra (2,66)
-o sobre la barra de actual del Nav Item (1,33) y la interior en la superficie (6,02).
+o sobre la barra de actual del Nav Item (1,33) y la interior en la superficie (6,02). **Lote 6,
+sigue en 68:** las dos «A Especialistas» del Nav Item suelto de `/kit` entran en el grupo 1 (eran 1b)
+y salen sus dos «A Mis citas», que con el ancho de 109 cumplen la regla; el grupo 1 se queda en 50.
 
 **Falso positivo de posición (✓, exacto en la expectativa).** target-size de axe en `/` y en
 `/kit/navegacion` a 375, arriba: el objetivo mide 309 × 50 y 343 × 30 y está bajo la barra
@@ -240,8 +244,8 @@ en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2
 ## Limitaciones conocidas
 
 - De los seis defectos de § Hallazgos, F1 (lote 1), el anunciador inerte (lote 2, en el arnés) y
-  F2 (lote 5) se cerraron en 7.6; los dos hallazgos de 7.4, en el arnés (lotes 3 y 4). Siguen
-  abiertos los dos del kit (1b y 4, lote 6) y el resto de pintado de `/kit` (declarado, sin medir
+  F2 (lote 5) se cerraron en 7.6; los dos hallazgos de 7.4, en el arnés (lotes 3 y 4). También los
+  dos del kit (1b y 4, lote 6). Sigue abierto el resto de pintado de `/kit` (declarado, sin medir
   en Chrome real en 7.4).
 - Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
   154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,
