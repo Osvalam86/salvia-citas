@@ -31,9 +31,10 @@ const SPACING = '*, *::before, *::after { line-height: 1.5 !important; letter-sp
 
 const font = (b, px) => b.send('Page.setFontSizes', { fontSizes: { standard: px, fixed: Math.round((px * 13) / 16) } })
 const htmlSize = (b) => b.ev('getComputedStyle(document.documentElement).fontSize')
-const press = async (b, k, code, vk) => {
-  await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk })
-  await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk })
+// modifiers de CDP: Alt 1, Ctrl 2, Meta 4, Mayús 8.
+const press = async (b, k, code, vk, modifiers = 0) => {
+  await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk, modifiers })
+  await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk, modifiers })
   await sleep(80)
 }
 const setWidth = async (b, width) => {
@@ -331,7 +332,7 @@ export async function runCD(b, expect) {
     keyed.map((r) => ({ [label(r)]: [] })),
   )
   expect(
-    'ListBox a 320 y 200 % (teclado): Fin e Inicio dejan la opción enfocada dentro del viewport (✗ declarado F1: la acción por defecto de la tecla no se evita y la página se desplaza; propuesta en 7.6, DESIGN.md Pendientes)',
+    'ListBox a 320 y 200 % (teclado): Fin e Inicio dejan la opción enfocada dentro del viewport (F1, corregido en 7.6: SlotList evita la acción por defecto)',
     keyed.map((r) => ({ [label(r)]: { fin: r.fin.enViewport, inicio: r.inicio.enViewport } })),
     keyed.map((r) => ({ [label(r)]: { fin: true, inicio: true } })),
   )
@@ -349,6 +350,36 @@ export async function runCD(b, expect) {
   await press(b, 'Home', 'Home', 36)
   const homePrevented = await b.ev(view)
   expect('contraprueba: evitando la acción por defecto de Inicio y Fin en el ListBox (02.1, 320, 200 %), la última y la primera hora quedan a la vista', { fin: endPrevented, inicio: homePrevented }, { fin: { opcion: '18:30', enViewport: true }, inicio: { opcion: '09:00', enViewport: true } })
+
+  // F1 (7.6): SlotList evita la acción por defecto en las combinaciones que RAC atiende (la
+  // tecla sola, Mayús, Ctrl y Mayús+Ctrl en Windows). Un escuchador en burbuja en window lee
+  // defaultPrevented. Contraprueba: Alt+Inicio, que RAC no atiende, no se intercepta; el mismo
+  // escuchador la evita después de leerla, para que la pasada no vaya a la página de inicio.
+  await b.go(P021)
+  await b.run(text200)
+  await b.ev("window.__f1 = []; addEventListener('keydown', (e) => { if (e.key !== 'Home' && e.key !== 'End') return; window.__f1.push(e.defaultPrevented); if (e.altKey) e.preventDefault() }), true")
+  for (let i = 0; i < 60 && !(await b.ev("document.activeElement?.getAttribute('role') === 'option'")); i++) await b.tab()
+  const combos = {}
+  for (const [name, mods] of [['', 0], ['Mayús+', 8], ['Ctrl+', 2], ['Mayús+Ctrl+', 10]]) {
+    for (const [k, vk, label] of [['End', 35, 'Fin'], ['Home', 36, 'Inicio']]) {
+      await press(b, k, k, vk, mods)
+      combos[name + label] = { ...(await b.ev(view)), evitada: await b.ev('window.__f1.at(-1)') }
+    }
+  }
+  await press(b, 'End', 'End', 35)
+  const before = await b.ev(view)
+  await press(b, 'Home', 'Home', 36, 1)
+  combos['Alt+Inicio (contraprueba)'] = { ...(await b.ev(view)), evitada: await b.ev('window.__f1.at(-1)'), mismaOpcion: (await b.ev(view)).opcion === before.opcion }
+  const hit = (opcion) => ({ opcion, enViewport: true, evitada: true })
+  expect(
+    'ListBox (02.1, 320, 200 %): Inicio y Fin solos, con Mayús, con Ctrl y con Mayús+Ctrl evitan la acción por defecto y dejan la opción a la vista; Alt+Inicio no se intercepta y el foco no se mueve (contraprueba)',
+    combos,
+    {
+      Fin: hit('18:30'), Inicio: hit('09:00'), 'Mayús+Fin': hit('18:30'), 'Mayús+Inicio': hit('09:00'),
+      'Ctrl+Fin': hit('18:30'), 'Ctrl+Inicio': hit('09:00'), 'Mayús+Ctrl+Fin': hit('18:30'), 'Mayús+Ctrl+Inicio': hit('09:00'),
+      'Alt+Inicio (contraprueba)': { opcion: '18:30', enViewport: true, evitada: false, mismaOpcion: true },
+    },
+  )
 
   // --- D · Resto de pintado desde /?q=Cardiología&pagina=9 a 375 -------------------------------------------------
   await b.metrics(375, SIZES[375], 1)

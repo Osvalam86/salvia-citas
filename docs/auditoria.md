@@ -15,6 +15,8 @@ en 7.4», nunca ✓.
   axe-core 4.13.0.
 - **Resultado de la sección:** 30 expectativas, 25 ✓ y 5 ✗ declarados que cubren 6 defectos
   (§ Hallazgos).
+- **7.6:** cada lote corrige un defecto y fija el recuento antes de medir (contra la preview).
+  Lote 1 (F1): 27/31, 4 ✗ declarados con 5 defectos.
 
 ## Método
 
@@ -63,7 +65,7 @@ Inicio y Fin con la acción por defecto evitada; un resto inyectado supera el de
 | 2.5.8 (C) | ✓ 2752 objetivos, ninguno por debajo de 24 × 24 sin exención; 2 exenciones «en línea» (§ Datos) |
 | 1.4.12 (C) | ✓ 61 estados a 320 y 1440 con los cuatro valores: 0 recortes, 0 solapes, 0 desborde horizontal |
 | 3.2.6 (C) | ✓ «Ayuda» siempre en el mismo orden relativo: a 375, «Salvia · Ayuda»; a 1440, «Salvia · Especialistas · Mis citas · Ayuda · Karla Sánchez»; antes de `main`. Las 12 cargas de `/kit` no tienen header (no aplica) |
-| ListBox a 320 y 200 % (D) | ✓ sin desborde, sin opciones recortadas, sin palabras partidas (8 de 8); ✓ → sigue el orden del DOM y ↓ la geometría (4 de 4); ✗ declarado F2 (anillo de las opciones 7–10 con la inyección, 27 de 36 puntos); ✗ declarado F1 (Inicio, 2 de 4 fuera del viewport) |
+| ListBox a 320 y 200 % (D) | ✓ sin desborde, sin opciones recortadas, sin palabras partidas (8 de 8); ✓ → sigue el orden del DOM y ↓ la geometría (4 de 4); ✗ declarado F2 (anillo de las opciones 7–10 con la inyección, 27 de 36 puntos); ✗ declarado F1 (Inicio, 2 de 4 fuera del viewport). **7.6:** F1 ✓, Fin e Inicio a la vista en 4 de 4 y las ocho combinaciones con `defaultPrevented` |
 | Resto de pintado (D) | ✓ las vistas: desde `/?q=Cardiología&pagina=9` desplazada a 375 (34 tarjetas, «Ver horarios» de la última), 0 píxeles con delta > 64 al llegar y a los 4 s, en 3 de 3. `/kit`: a 1350, 12632 px con delta 230 al llegar y a los 4 s en 3 de 3; a 375, 0. ✗ declarado |
 
 ## Matriz WCAG 2.2 A y AA
@@ -101,7 +103,7 @@ de 7.6.
 | 1.4.11 Contraste no textual | AA | ✗ declarado | Límites de control ≥ 3 (B); anillo: 60 paradas de coste medido y 13 del kit con ✗ (grupos 1b y 4, 9 paradas con las dos bandas < 3): § Hallazgos | — |
 | 1.4.12 Espaciado del texto | AA | ✓ medido | 61 estados a 320 y 1440 con los cuatro valores: 0 recortes, 0 solapes (C) | — |
 | 1.4.13 Contenido con hover o foco | AA | ✓ revisado | No hay tooltips ni contenido al pasar; el menú de cuenta se abre con clic y se cierra con Escape (4.4) | — |
-| 2.1.1 Teclado | A | ✓ medido | Flujos por teclado en 4.x y 5.x (Tab, Intro, Espacio, flechas, Escape); en el ListBox, Inicio y Fin mueven el foco (lo que falla es su visibilidad: F1, en 2.4.7) | ✓ Firefox: Intro en un radio de la tira hace el envío implícito (K.4 a) |
+| 2.1.1 Teclado | A | ✓ medido | Flujos por teclado en 4.x y 5.x (Tab, Intro, Espacio, flechas, Escape); en el ListBox, Inicio y Fin mueven el foco (lo que fallaba era su visibilidad: F1, en 2.4.7, corregido en 7.6) | ✓ Firefox: Intro en un radio de la tira hace el envío implícito (K.4 a) |
 | 2.1.2 Sin trampas para el foco | A | ✓ medido | El diálogo cicla sus botones sin caer en la página y Escape lo cierra (4.7); las hojas se cierran con Escape (5.1, 5.2); los recorridos de Tab de B (929 paradas) y C (1770) avanzan hasta repetir una parada, sin tope | ✓ Firefox: con el diálogo abierto ningún elemento de la página recibe el foco (K.1); en la hoja del calendario, Tab sale a la interfaz y vuelve al diálogo (N3.8b). Safari: sin dispositivo |
 | 2.1.4 Atajos de una tecla | A | N/A | No hay atajos de una tecla (el único manejador propio es Escape en el menú) | — |
 | 2.2.1 Tiempo ajustable | A | N/A | No hay límites de tiempo (`lenta` es latencia simulada) | — |
@@ -113,7 +115,7 @@ de 7.6.
 | 2.4.4 Propósito de los enlaces | A | ✓ medido | axe `link-name`; nombres con destino (§5 del diseño). La lectura con lector, 7.4 | ✓ NF: los seis enlaces repetidos se oyen con su contexto por `aria-describedby` (N0.3, técnica ARIA1). NC: sin medir en 7.4. VoiceOver: sin dispositivo |
 | 2.4.5 Múltiples vías | AA | ✓ revisado | Navegación principal y búsqueda; las páginas de la reserva son pasos de un proceso (exentas) | — |
 | 2.4.6 Encabezados y etiquetas | AA | ✓ medido | Esquema de encabezados por vista (5.1–5.4); etiquetas visibles encima del control (diseño §3.4, 4.3) | — |
-| 2.4.7 Foco visible | AA | ✗ declarado | Anillo en las 929 paradas (B); tras Inicio en el ListBox a 320 con la letra a 32, la hora enfocada queda fuera de la vista (F1) | Sin medir en 7.4 (K.8) |
+| 2.4.7 Foco visible | AA | ✓ medido (7.6) | Anillo en las 929 paradas (B); tras Inicio en el ListBox a 320 con la letra a 32, la hora enfocada quedaba fuera de la vista (F1, ✗ en 7.3); corregido en 7.6: a la vista en 4 de 4 y con las ocho combinaciones de Inicio y Fin (D) | Sin medir en 7.4 (K.8) |
 | 2.4.11 Foco no tapado (mínimo) | AA | ✓ medido | 1770 paradas sin el componente tapado entero (C). Nota: F2, el anillo bajo la barra fija o sticky, no tapa el componente; incumple la regla del sistema (anillo entero): ✗ declarado del proyecto, 7.6 | Sin medir en 7.4 (K.6). Safari: sin dispositivo |
 | 2.5.1 Gestos del puntero | A | N/A | No hay gestos de varios dedos ni de trayectoria | — |
 | 2.5.2 Cancelación del puntero | A | ✓ revisado | Controles nativos y de React Aria: se activan al soltar | — |
@@ -147,7 +149,7 @@ Los ✗ de la sección, cada uno declarado en su expectativa y con su fila en DE
 | Anunciador de React Aria inerte dentro de la hoja del calendario | 4.1.3 | Ignorado por `activeModalDialog` al pasar de mes («mayo de 2029»); a 1440, en línea, expuesto. Confirmado de oído en 7.4 (NVDA + Firefox, N3.8b: en la hoja no se oye; en línea, sí, N3.8) | 7.6: región oculta propia en `c-sheet--bottom` |
 | Anillo del Nav Item suelto de `/kit` (grupo 1b) | 1.4.11 | 2 paradas con un punto de 36 con las dos bandas < 3 (1,33 sobre la barra de actual y 2,75 sobre la etiqueta) | 7.6, solo del kit (D9) |
 | Salto al contenido sobre el contenido de `/kit/*` (grupo 4) | 1.4.11 | 11 paradas, 7 con puntos de las dos bandas < 3: el catálogo no tiene header debajo | 7.6, solo del kit |
-| F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | 7.6: `onKeyDownCapture` en `SlotList`, como `Calendar` |
+| F1 · Inicio y Fin en el ListBox | 2.4.7 | Inicio deja la hora fuera de la vista en 2 de 4 casos (letra a 32; y −217 y −172); la acción por defecto no se evita | ✓ 7.6: escuchador nativo en captura en `SlotList` (ListBox no reenvía `onKeyDownCapture`), en las combinaciones que RAC atiende; 4 de 4 a la vista |
 | F2 · Anillo bajo la barra fija o sticky | Regla del sistema (2.4.11 cumple) | 30 paradas con 3,9–5 px del anillo bajo la barra; en el ListBox con la inyección, 27 de 36 puntos | 7.6: `scroll-padding-block-end` = barra + desfase + grosor |
 | Resto de pintado en `/kit` | — (pintado) | A 1350, 12632 px con delta 230 al llegar y a los 4 s, 3 de 3; a 375, 0; igual contra dev (4.6) | ✗ declarado de `/kit` (D9); Chrome real, sin medir en 7.4 (tramo C, recorte) |
 
@@ -231,7 +233,7 @@ en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2
 
 ## Limitaciones conocidas
 
-- Los seis defectos de § Hallazgos siguen abiertos (5 en 7.6; el resto de pintado de `/kit`,
+- De los seis defectos de § Hallazgos, F1 se cerró en 7.6 (lote 1); el resto sigue abierto (4 en 7.6; el resto de pintado de `/kit`,
   declarado, sin medir en Chrome real en 7.4), y los dos hallazgos de 7.4, en 7.6.
 - Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
   154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,

@@ -86,6 +86,26 @@ export default function SlotList({ groups, value, onChange, describedBy, ref, ..
     }
   }, [firstAvailable])
 
+  // Inicio y Fin (F1, 7.6): RAC mueve el foco a la primera o a la última hora
+  // pero, en selección simple, no evita la acción por defecto y la página se
+  // desplaza: con el texto ampliado, la hora enfocada quedaba fuera de la
+  // vista. Se evita aquí, en captura y nativo (ListBox no reenvía
+  // onKeyDownCapture), solo en las combinaciones que RAC atiende: la tecla
+  // sola, con Mayús, con Ctrl y con las dos; en Mac, Alt en vez de Ctrl. Alt+Inicio
+  // en Windows es la página de inicio del navegador y no se toca.
+  useEffect(() => {
+    const root = listRef.current
+    if (!root) return
+    const mac = /^Mac/i.test(navigator.platform)
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Home' && event.key !== 'End') return
+      if (event.metaKey || (mac ? event.ctrlKey : event.altKey)) return
+      event.preventDefault()
+    }
+    root.addEventListener('keydown', onKeyDown, { capture: true })
+    return () => root.removeEventListener('keydown', onKeyDown, { capture: true })
+  }, [])
+
   useImperativeHandle(ref, () => ({
     focusFirstAvailable: () => {
       stop()
