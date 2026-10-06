@@ -122,7 +122,7 @@ function classify(tipo, fg, bg, palette) {
 // en la captura (tapado o recortado) es un dato para 2.4.11 (bloque C), no un par que medir.
 const ringFail = (s) => s.sinAnillo || (s.pintado > 0 && (s.exterior.min < 3 || s.interior.min < 3))
 
-// Grupos de los ✗ del anillo (decisión de 7.3, DESIGN.md Pendientes 7 · 7.6): 1, 2, 3 y 5,
+// Grupos de los ✗ del anillo (decisión de 7.3, DESIGN.md Pendientes 7 · 7.6): 1, 2, 3, 5 y 6 (este, de 7.6),
 // coste medido; 1b y 4, defectos del kit, candidatos a 7.6. Una parada de un grupo de coste
 // con algún punto de las dos bandas < 3 (✗ de 1.4.11) no es coste: pasa a «Nb».
 const RING_GROUPS = {
@@ -132,9 +132,11 @@ const RING_GROUPS = {
   3: '3 · disparador del menú junto al borde del panel abierto: coste medido',
   4: '4 · salto al contenido sobre el contenido de /kit/*: candidato a 7.6',
   5: '5 · enlaces en línea del kit junto al texto vecino: coste medido',
+  6: '6 · anillo que termina en el borde superior de la barra tras el desplazamiento (scroll-padding = barra + alcance, F2, 7.6): coste medido',
 }
+// El 6 va antes que los demás: es una vecindad (la barra), no un tipo de control.
 const ringGroup = (s) => {
-  const base = s.sinAnillo ? 'sin anillo' : ['a.c-nav-item', 'a.c-nav-link'].includes(s.pintor) ? '1' : ['label.c-day-chip', 'div.c-calendar-day'].includes(s.pintor) ? '2' : s.pintor === 'button.c-button' ? '3' : s.elemento.startsWith('A Saltar al contenido') ? '4' : '5'
+  const base = s.sinAnillo ? 'sin anillo' : s.bordeBarra ? '6' : ['a.c-nav-item', 'a.c-nav-link'].includes(s.pintor) ? '1' : ['label.c-day-chip', 'div.c-calendar-day'].includes(s.pintor) ? '2' : s.pintor === 'button.c-button' ? '3' : s.elemento.startsWith('A Saltar al contenido') ? '4' : '5'
   return RING_GROUPS[base] && base !== '4' && s.ambas > 0 ? `${base}b` : base
 }
 const RING_EXPECTED = {
@@ -217,6 +219,19 @@ const RING_EXPECTED = {
     'carga /kit/estados · 375 · A Confirmación previa',
     'carga /kit/estados · 375 · A Horarios',
     'carga /kit/estados · 375 · A Vacío por consulta',
+  ],
+  // F2 (7.6): la banda exterior sobre el borde de la barra (color-border, 2,66) o, en
+  // /kit/navegacion, sobre la barra de actual del Nav Item (color-action, 1,33); la interior
+  // en la superficie (6,02). La misma vecindad que el grupo 1 «al borde de la barra».
+  6: [
+    'carga /kit/layout · 1440 · BUTTON Columna 13',
+    'carga /kit/layout · 1440 · BUTTON Columna 24',
+    'carga /kit/layout · 375 · BUTTON Columna 12',
+    'carga /kit/layout · 375 · BUTTON Columna 2',
+    'carga /kit/layout · 375 · BUTTON Columna 22',
+    'carga /kit/navegacion · 375 · BUTTON Relleno 11',
+    'carga /kit/navegacion · 375 · BUTTON Último elemento de la página',
+    'resumen de errores · 375 · INPUT karla.sanchez@ejemplo.com',
   ],
 }
 
@@ -387,14 +402,14 @@ export default async function run(b, expect) {
   const stopCount = rings.reduce((n, w) => n + w.stops.length, 0)
   const ringWcag = rings.reduce((n, w) => n + w.stops.filter((s) => s.ambas > 0).length, 0)
   console.log(`· dato: paradas con algún punto de las dos bandas < 3 (✗ de 1.4.11): ${ringWcag}; grupos: ${Object.entries(RING_GROUPS).map(([k, v]) => `${v} (${(ringFails[k] ?? []).length})`).join('; ')}`)
-  // Coste medido (grupos 1, 2, 3 y 5): exacto. Todo ✗ que no sea coste ni uno de los defectos
+  // Coste medido (grupos 1, 2, 3, 5 y 6): exacto. Todo ✗ que no sea coste ni uno de los defectos
   // declarados (1b, 4) sale aquí como grupo de más.
-  const COST = ['1', '2', '3', '5']
+  const COST = ['1', '2', '3', '5', '6']
   const DEFECTS = ['1b', '4']
   const pickGroups = (keys, from) => Object.fromEntries(Object.entries(from).filter(([k]) => keys.includes(k)))
   const others = Object.keys(ringFails).filter((k) => !DEFECTS.includes(k))
   expect(
-    `anillo contra vecinos, coste medido (§3.1: las dos bandas ≥ 3:1 en cada punto; ${stopCount} paradas en ${rings.length} recorridos): los ✗ de los grupos 1, 2, 3 y 5 son exactamente los declarados, ninguno con las dos bandas < 3, y no hay ✗ fuera de los grupos`,
+    `anillo contra vecinos, coste medido (§3.1: las dos bandas ≥ 3:1 en cada punto; ${stopCount} paradas en ${rings.length} recorridos): los ✗ de los grupos 1, 2, 3, 5 y 6 son exactamente los declarados, ninguno con las dos bandas < 3, y no hay ✗ fuera de los grupos`,
     { grupos: pickGroups(others, ringFails), truncados: rings.filter((w) => w.truncado).map((w) => `${w.estado} · ${w.ancho}`) },
     { grupos: pickGroups(COST, RING_EXPECTED), truncados: [] },
   )

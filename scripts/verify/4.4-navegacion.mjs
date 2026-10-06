@@ -157,7 +157,8 @@ export default async function run(b, expect) {
       scrollPadding: getComputedStyle(document.documentElement).scrollPaddingBottom,
     }
   })()`
-  expect('Header/Mobile 64 y Ayuda a 16, como el wordmark; Bottom Nav 64, tercios, barra sobre el borde; scroll-padding 64', await b.ev(mobile), { header: 64, ayudaAlBorde: 16, wordmarkAlBorde: 16, barra: 64, items: ['109x64 +0 solid', '109x64 +0 none', '109x64 +0 none'], scrollPadding: '64px' })
+  // scroll-padding: la barra (64) más el alcance del anillo (4, F2, 7.6).
+  expect('Header/Mobile 64 y Ayuda a 16, como el wordmark; Bottom Nav 64, tercios, barra sobre el borde; scroll-padding 64 + 4 del anillo', await b.ev(mobile), { header: 64, ayudaAlBorde: 16, wordmarkAlBorde: 16, barra: 64, items: ['109x64 +0 solid', '109x64 +0 none', '109x64 +0 none'], scrollPadding: '68px' })
   expect('Nav Item: actual label en tinta (etiqueta e icono); el resto caption secundario', await b.ev("[...document.querySelectorAll('.c-nav-item')].map((a) => { const s = getComputedStyle(a); return s.fontSize + '/' + s.lineHeight + ' ' + s.fontWeight + ' ' + s.color + ' icono ' + getComputedStyle(a.querySelector('svg')).color })"), ['14px/20px 600 rgb(32, 30, 25) icono rgb(32, 30, 25)', '14px/20px 400 rgb(110, 104, 88) icono rgb(110, 104, 88)', '14px/20px 400 rgb(110, 104, 88) icono rgb(110, 104, 88)'])
   await b.style('.c-header-mobile__help { margin-inline-end: 0 !important } .c-bottom-nav__item { margin-block-start: 0 !important }')
   const counter = await b.ev(mobile)
@@ -262,7 +263,7 @@ export default async function run(b, expect) {
     await b.go(NAV)
     const at100 = { letra: await rootFont(), ...(await b.ev(barState)), partidas: (await b.run(splitWords, '.c-nav-item')).split, lineas: await b.ev(labelLines) }
     expect(`320, barra ${bar}, 100 %: barra fija de 64 en tercios; ninguna etiqueta parte`, at100, {
-      letra: '16px', barra: 'sticky 64', columnas: 3, filas: [64, 64, 64], actual: 'arriba solid · inicio none 0px rgb(32, 30, 25)', scrollPadding: '64px', partidas: [],
+      letra: '16px', barra: 'sticky 64', columnas: 3, filas: [64, 64, 64], actual: 'arriba solid · inicio none 0px rgb(32, 30, 25)', scrollPadding: '68px', partidas: [],
       lineas: ['89 Especialistas', '59 Mis citas', '47 Cuenta'],
     })
     await b.style('.c-nav-item { padding-inline: var(--space-2) !important }')

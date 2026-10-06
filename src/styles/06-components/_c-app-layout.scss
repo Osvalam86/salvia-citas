@@ -77,12 +77,24 @@
 // Criterio 2.4.11: el foco no queda bajo la barra. El desplazador es el
 // viewport, así que scroll-padding va en la raíz. El valor no es una
 // constante: AppLayout mide el hueco de la barra (ResizeObserver) y lo escribe
-// en --app-layout-bar-size; sin barra, 0.
+// en --app-layout-bar-size. Sin barra, 0.
+//
+// Con barra, el alto medido más el alcance del anillo (desfase + grosor,
+// tools.$focus-ring-reach): con solo el alto, el componente quedaba en el
+// borde de la barra y los 4 px del anillo debajo (F2, 7.6; regla del anillo
+// entero, fase 3). La barra se detecta con :has y no con la variable: sin
+// definir, la declaración sería inválida en tiempo de cálculo y quedaría en
+// auto, que no es 0 por especificación. El respaldo 0rem cubre el primer
+// pintado, antes de que AppLayout mida.
 //
 // Con texto grande la barra está en el flujo y no tapa nada: sin reserva.
 // La variable sigue publicada (la barra existe), pero no se usa.
 :where(html) {
-  scroll-padding-block-end: var(--app-layout-bar-size, 0);
+  scroll-padding-block-end: 0;
+}
+
+:where(html:has(.c-app-layout__bar)) {
+  scroll-padding-block-end: calc(var(--app-layout-bar-size, 0rem) + #{tools.$focus-ring-reach});
 
   @include tools.large-text {
     scroll-padding-block-end: 0;

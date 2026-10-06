@@ -247,7 +247,13 @@ export const PAGE = `window.__c ??= (() => {
       const cs = getComputedStyle(p)
       const r = p.getBoundingClientRect()
       const radius = Math.min(parseFloat(cs.borderTopLeftRadius) || 0, r.width / 2, r.height / 2)
-      return { key: all.indexOf(a), elemento: nameOf(a), pintor: describe(p), rect: [r.left, r.top, r.right, r.bottom], radius, off: parseFloat(cs.outlineOffset), w: parseFloat(cs.outlineWidth), color: hex(parse(cs.outlineColor)), seleccionada: p.matches('.c-time-slot[aria-selected=true]') }
+      // Anillo que termina en el borde superior de la barra fija o sticky (grupo 6, 7.6): con
+      // scroll-padding = barra + alcance, el navegador deja el anillo justo encima de ella y su
+      // banda exterior cae en el borde de la barra. Fuera de la barra y a menos de 1 px.
+      const bar = document.querySelector('.c-app-layout__bar')
+      const reach = parseFloat(cs.outlineOffset) + parseFloat(cs.outlineWidth)
+      const bordeBarra = Boolean(bar) && ['fixed', 'sticky'].includes(getComputedStyle(bar).position) && !bar.contains(a) && Math.abs(r.bottom + reach - bar.getBoundingClientRect().top) < 1
+      return { key: all.indexOf(a), elemento: nameOf(a), pintor: describe(p), rect: [r.left, r.top, r.right, r.bottom], radius, off: parseFloat(cs.outlineOffset), w: parseFloat(cs.outlineWidth), color: hex(parse(cs.outlineColor)), seleccionada: p.matches('.c-time-slot[aria-selected=true]'), bordeBarra }
     },
     // 2.4.11: la caja del componente con el foco (la del que pinta su anillo, si es otro) y
     // cinco puntos: las cuatro esquinas, 2 px hacia dentro, y el centro. En cada uno, si lo
@@ -439,7 +445,7 @@ export async function ringWalk(b, capture) {
     }
     const { data } = await b.send('Page.captureScreenshot', { format: 'png' })
     const s = await b.ev(`window.__c.sample(${JSON.stringify(data)}, ${JSON.stringify(g)})`)
-    const stop = { parada: stops.length + 1, elemento: g.elemento, pintor: g.pintor, desfase: g.off, color: g.color, seleccionada: g.seleccionada, ...s }
+    const stop = { parada: stops.length + 1, elemento: g.elemento, pintor: g.pintor, desfase: g.off, color: g.color, seleccionada: g.seleccionada, bordeBarra: g.bordeBarra, ...s }
     if (capture(stop)) stop.captura = b.saveBase64(`anillo-${capture(stop)}-${stop.parada}.png`, data)
     stops.push(stop)
   }

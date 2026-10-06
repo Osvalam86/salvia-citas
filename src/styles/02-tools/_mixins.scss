@@ -59,8 +59,17 @@
 /// del header, Nav Item de la barra inferior e ítems del menú de cuenta.
 /// Outline (no box-shadow): sobrevive a forced-colors. El radio lo sigue el
 /// propio outline desde el border-radius del control.
-@mixin focus-ring($offset: 2px) {
-  outline: 2px solid var(--color-focus-ring);
+// stylelint-disable unit-disallowed-list -- grosor y desfase del anillo: px, como el outline, no escalan con el texto
+$focus-ring-width: 2px;
+$focus-ring-offset: 2px;
+// stylelint-enable unit-disallowed-list
+
+/// Alcance del anillo general fuera de la caja: desfase + grosor (4px). Lo
+/// reserva el scroll-padding junto a la barra del shell (F2, 7.6).
+$focus-ring-reach: $focus-ring-offset + $focus-ring-width;
+
+@mixin focus-ring($offset: $focus-ring-offset) {
+  outline: $focus-ring-width solid var(--color-focus-ring);
   outline-offset: $offset;
 }
 

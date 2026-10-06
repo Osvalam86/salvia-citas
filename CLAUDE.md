@@ -149,8 +149,10 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   `announceMonth`) y el 3 (disparador de filtros: `Sheet` avisa al padre antes
   de cerrar y `FilterSheet` aplica con `flushSync`) y el 4 («entrada
   inválida»: `aria-required` en vez de `required` en los campos y el correo
-  como text con `inputMode="email"`, desviación declarada en DESIGN.md).
-  Quedan el 5 (F2, anillo bajo la barra, con el Day Chip) y el 6 (anillo del
+  como text con `inputMode="email"`, desviación declarada en DESIGN.md) y el
+  5 (F2: `scroll-padding` = barra + alcance del anillo por `:has`, variables
+  del anillo en `_mixins.scss`, `inset: -1px` en el radio del Day Chip; coste
+  del anillo en el borde de la barra como grupo 6). Queda el 6 (anillo del
   kit), y al final la tanda de NVDA y un commit `docs`.
 
 Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en

@@ -39,9 +39,14 @@
     --_border: var(--_border-hover);
   }
 
+  // El radio cubre la caja de borde del chip, no solo la de relleno: el
+  // navegador desplaza a la vista el elemento enfocado (el radio) y el anillo
+  // lo pinta el chip; con inset 0 el chip sobresalía 1 px por debajo y su
+  // anillo quedaba 1 px bajo la barra (7.6). −1px es el borde del chip.
   &__input {
     position: absolute;
-    inset: 0;
+    // stylelint-disable-next-line unit-disallowed-list -- el borde de 1px del chip, que no escala con el texto
+    inset: -1px;
     margin: 0;
     appearance: none;
     cursor: var(--_cursor);

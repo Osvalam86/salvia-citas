@@ -126,8 +126,15 @@ export async function runCD(b, expect) {
   )
   const partial = report.focoTapado.filter((o) => !whole.includes(o))
   console.log(`· dato (regla del sistema, scroll-padding): paradas con algún punto tapado o fuera del viewport: ${partial.length}${partial.length ? ` [${partial.map((o) => `${o.estado} · ${o.ancho} · ${o.letra} · ${o.elemento} ${o.puntosTapados}/5 por ${o.por.join('+')}`).join('; ')}]` : ''}`)
+  // F2 (7.6): con el scroll-padding = barra + alcance del anillo y el radio del Day Chip
+  // cubriendo la caja de borde, ninguna parada deja parte del anillo bajo la barra. En la base
+  // (7.3) eran 30: 8 de 3,9 px, 21 de 4 y el Day Chip de /kit/fecha-hora (1440, letra 32) con 5.
   const under = report.anilloBajoBarra
-  console.log(`· dato: paradas con parte del anillo bajo la barra fija o sticky (el componente, visible): ${under.length}${under.length ? ` [${under.map((o) => `${o.estado} · ${o.ancho} · ${o.letra} · ${o.elemento} ${o.px} px`).join('; ')}]` : ''}`)
+  expect(
+    `regla del anillo entero (F2, 7.6): ninguna de las ${stops} paradas de Tab con parte del anillo bajo la barra fija o sticky`,
+    under.map((o) => `${o.estado} · ${o.ancho} · ${o.letra} · ${o.elemento} ${o.px} px`),
+    [],
+  )
   const barRing = report.anilloBarra
   const margins = Object.entries(report.margenBarra)
   expect(
@@ -307,7 +314,7 @@ export async function runCD(b, expect) {
           await press(b, 'Home', 'Home', 36)
           const home = await b.ev(edge)
           home.captura = b.saveBase64(`listbox-inicio-${url.split('?')[0].split('/').pop()}-${method}.png`, (await b.send('Page.captureScreenshot', { format: 'png' })).data)
-          Object.assign(row, { derecha: right, abajo: down, abajoEsperado: expectedDown, fin: end, inicio: home, anillo: ring.map((s) => ({ opcion: s.opcion, pintado: `${s.pintado}/${s.total}`, minimo: Math.min(s.exterior.min, s.interior.min) })) })
+          Object.assign(row, { derecha: right, abajo: down, abajoEsperado: expectedDown, fin: end, inicio: home, anillo: ring.map((s) => ({ opcion: s.opcion, pintado: `${s.pintado}/${s.total}`, minimo: Math.min(s.exterior.min, s.interior.min), exterior: s.exterior, interior: s.interior })) })
         }
         report.listbox.push(row)
       }
@@ -326,10 +333,20 @@ export async function runCD(b, expect) {
     keyed.map((r) => ({ [label(r)]: { derechaEnOrden: r.derecha.every((k, i) => k === i), abajoGeometrico: JSON.stringify(r.abajo) === JSON.stringify(r.abajoEsperado) } })),
     keyed.map((r) => ({ [label(r)]: { derechaEnOrden: true, abajoGeometrico: true } })),
   )
+  // F2 (7.6): con el scroll-padding = barra + alcance, el anillo de cada opción se pinta entero.
+  // Con la inyección, las opciones 7–10 quedan con el anillo en el borde superior de la barra:
+  // su banda exterior cae sobre el borde (color-border, 2,66) y la interior sobre la superficie.
+  // Coste medido, la misma vecindad que el grupo 6 del anillo contra vecinos; exacto.
+  const edgeCost = (opcion) => `opción ${opcion}: 36/36 · exterior 2.66 #b3ac98 · interior ≥ 3`
   expect(
-    'ListBox a 320 y 200 % (teclado): el anillo de cada opción se pinta entero con sus dos bandas ≥ 3:1 (✗ declarado F2: con la inyección, la barra sticky tapa los 4 px inferiores del anillo de las opciones que quedan en su borde; propuesta en 7.6, DESIGN.md Pendientes)',
-    keyed.map((r) => ({ [label(r)]: r.anillo.filter((s) => s.pintado.split('/')[0] !== s.pintado.split('/')[1] || s.pintado === '0/0' || s.minimo < 3).map((s) => `opción ${s.opcion}: ${s.pintado}`) })),
-    keyed.map((r) => ({ [label(r)]: [] })),
+    'ListBox a 320 y 200 % (teclado): el anillo de cada opción se pinta entero; con sus dos bandas ≥ 3:1 salvo, con la inyección, las opciones 7–10, con la banda exterior sobre el borde de la barra (coste medido, F2, 7.6)',
+    keyed.map((r) => ({
+      [label(r)]: {
+        sinPintarEntero: r.anillo.filter((s) => s.pintado.split('/')[0] !== s.pintado.split('/')[1] || s.pintado === '0/0').map((s) => `opción ${s.opcion}: ${s.pintado}`),
+        bajoTres: r.anillo.filter((s) => s.minimo < 3).map((s) => `opción ${s.opcion}: ${s.pintado} · exterior ${s.exterior.min} ${s.exterior.color} · interior ${s.interior.min >= 3 ? '≥ 3' : s.interior.min}`),
+      },
+    })),
+    keyed.map((r) => ({ [label(r)]: { sinPintarEntero: [], bajoTres: r.metodo === 'inyección' ? [7, 8, 9, 10].map(edgeCost) : [] } })),
   )
   expect(
     'ListBox a 320 y 200 % (teclado): Fin e Inicio dejan la opción enfocada dentro del viewport (F1, corregido en 7.6: SlotList evita la acción por defecto)',
