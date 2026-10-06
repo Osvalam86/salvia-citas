@@ -425,6 +425,20 @@ export default function Search() {
     if (sheet === 'lost') document.getElementById(MAIN_TITLE_ID)?.focus({ preventScroll: true })
   }, [sheet])
 
+  // Recuento congelado mientras la hoja está abierta (7.6). Al aplicar, la URL
+  // se pinta con flushSync antes de close() para que el disparador reciba el
+  // foco con su nombre nuevo; si la región cambiara en ese mismo commit, lo
+  // haría con la página inert bajo el modal y no se anunciaría. Congelada, se
+  // suelta con setSheet('closed'), fuera del flushSync y con el diálogo ya
+  // cerrado: cambia entonces y se oye después del nombre. Con «Cerrar» o
+  // Escape no cambia de texto; al cruzar lg ('lost'), también se suelta.
+  const [heldCount, setHeldCount] = useState<string | null>(null)
+  const countShown = searching ? 'Buscando…' : countText(total)
+  const openSheet = () => {
+    setHeldCount(countShown)
+    setSheet('open')
+  }
+
   // Foco (o foco o región viva, diseño §4.6). Al llegar los datos, el foco va
   // al nombre de una tarjeta: la primera nueva tras «Ver más»; la primera tras
   // cambiar de página, tras los enlaces del vacío (state.focus) y tras
@@ -494,9 +508,9 @@ export default function Search() {
         {isDesktop && <SearchFilters params={params} />}
         <div className="o-stack o-stack--gap-5">
           <div className={isDesktop ? 'c-results-header' : 'c-results-header c-results-header--trigger'}>
-            {!isDesktop && <FilterTrigger count={filterCount(filtersOf(params))} onClick={() => setSheet('open')} ref={trigger} />}
+            {!isDesktop && <FilterTrigger count={filterCount(filtersOf(params))} onClick={openSheet} ref={trigger} />}
             <p className="c-results-header__count" role="status">
-              {searching ? 'Buscando…' : countText(total)}
+              {sheet === 'open' && heldCount !== null ? heldCount : countShown}
             </p>
             {isDesktop && !empty && (
               <FieldSelect

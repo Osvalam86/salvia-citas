@@ -1,6 +1,7 @@
 // 4.6 Fecha y hora: Day Chip (DayStrip), Calendar y Calendar Day, Time Slot
 // (SlotList) y Booking Bar. Todo en /kit/fecha-hora. Las cifras de geometría
 // son las de Figma: maestros y pantallas 02.1, 02.2, 02.5 y 02.7.
+import { monthCells } from './calendario.mjs'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { clientNavigation, pixelDiff, viewport, viewRest } from './navegacion.mjs'
@@ -49,7 +50,7 @@ const contrast = `(a, b) => {
   const [h, l] = [lum(a), lum(b)].sort((x, y) => y - x)
   return Math.round(((h + 0.05) / (l + 0.05)) * 100) / 100
 }`
-const role = (name) => `(() => { const p = document.createElement('div'); p.style.backgroundColor = 'var(${name})'; document.body.append(p); const c = getComputedStyle(p).backgroundColor; p.remove(); return c })()`
+const role = (name) =>`(() => { const p = document.createElement('div'); p.style.backgroundColor = 'var(${name})'; document.body.append(p); const c = getComputedStyle(p).backgroundColor; p.remove(); return c })()`
 
 export default async function run(b, expect) {
   await b.forcedColors(false)
@@ -388,6 +389,38 @@ export default async function run(b, expect) {
     ],
     seleccion: 'lunes 23 de abril de 2029, hoy, sin horarios, seleccionado',
   })
+
+  // Celdas nuevas al cambiar de mes (7.6 · lote 7): el cuerpo de la rejilla
+  // lleva el mes como key. Hipótesis sobre Firefox con NVDA, que anunciaba en
+  // mayo el estado que la celda tenía en abril. Cada td se marca antes de cada
+  // paso; al cambiar de mes, ninguno del cuerpo nuevo lleva la marca, y el foco
+  // sigue en un día de la rejilla en cada paso. Contraprueba (sin la key): 35.
+  await b.metrics(1440, 900, 1)
+  await b.go(PAGE)
+  const cellSteps = await monthCells(b, CAL, [
+    ['Mes siguiente', async () => { await b.tabTo(`${CAL}.querySelector('[aria-label="Mes siguiente"]')`); await b.enter(); await sleep(200) }],
+    ['Tab', () => b.tab()],
+    ...Array.from({ length: 6 }, () => ['↑', () => up(b)]),
+    ['Fin', () => key(b, 'End', 'End', 35)],
+    ...Array.from({ length: 5 }, () => ['↓', () => down(b)]),
+  ])
+  await b.metrics(375, 900, 1)
+  expect('Calendar en línea (1440): un cuerpo nuevo al cambiar de mes, con el botón y con las flechas hacia abril y hacia junio (0 celdas reutilizadas); el foco en un día de la rejilla en cada paso; Fin, al domingo', cellSteps, [
+    'Mes siguiente: BUTTON Mes siguiente · Mayo 2029 · 0 reutilizadas',
+    'Tab: rejilla DIV jueves 24 de mayo de 2029',
+    '↑: rejilla DIV jueves 17 de mayo de 2029',
+    '↑: rejilla DIV jueves 10 de mayo de 2029',
+    '↑: rejilla DIV jueves 3 de mayo de 2029',
+    '↑: rejilla DIV jueves 26 de abril de 2029 · Abril 2029 · 0 reutilizadas',
+    '↑: rejilla DIV lunes 23 de abril de 2029',
+    '↑: rejilla DIV lunes 23 de abril de 2029',
+    'Fin: rejilla DIV domingo 29 de abril de 2029',
+    '↓: rejilla DIV domingo 6 de mayo de 2029 · Mayo 2029 · 0 reutilizadas',
+    '↓: rejilla DIV domingo 13 de mayo de 2029',
+    '↓: rejilla DIV domingo 20 de mayo de 2029',
+    '↓: rejilla DIV domingo 27 de mayo de 2029',
+    '↓: rejilla DIV domingo 3 de junio de 2029 · Junio 2029 · 0 reutilizadas',
+  ])
 
   // --- Estilos ----------------------------------------------------------------------------------------------
   await b.go(PAGE)

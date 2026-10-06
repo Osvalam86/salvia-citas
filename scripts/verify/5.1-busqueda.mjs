@@ -991,10 +991,28 @@ async function sheetTriggerName(b, expect) {
   await clickAt(b, `${SHEET}.querySelector('input[value="videoconsulta"]').closest('label')`)
   await sleep(100)
   await b.ev(`window.__nombres = []; document.addEventListener('focusin', (e) => { if (e.target.classList?.contains('c-filter-trigger')) window.__nombres.push(e.target.textContent) }, true), true`)
+  // 7.6 · lote 7: la región del recuento, leída dentro de close() y en el
+  // focusin. El modal de un MutationObserver no sirve (la entrega es posterior).
+  await b.ev(`(() => {
+    const count = () => document.querySelector('.c-results-header__count').textContent
+    const close = HTMLDialogElement.prototype.close
+    window.__orden = { alCerrar: null, enElFocusin: null }
+    HTMLDialogElement.prototype.close = function (...args) { window.__orden.alCerrar ??= count(); return close.apply(this, args) }
+    document.addEventListener('focusin', (e) => { if (e.target.classList?.contains('c-filter-trigger')) window.__orden.enElFocusin ??= { region: count(), nombre: e.target.textContent } }, true)
+    return true
+  })()`)
   await b.ev(`${SHEET}.querySelector('.c-sheet__fill').focus(), true`)
   await b.enter()
   await until(b, `!${SHEET}`)
   await settled(b)
+  expect('«Ver N resultados» con Intro: la región del recuento sigue en 34 dentro de close() y en el focusin del disparador, y cambia a 11 después, con el diálogo cerrado (los dos mensajes, nombre y recuento)', {
+    ...(await b.ev('window.__orden')),
+    final: await b.ev("document.querySelector('.c-results-header__count').textContent"),
+  }, {
+    alCerrar: '34 resultados',
+    enElFocusin: { region: '34 resultados', nombre: 'Filtrar y ordenar, 2 filtros aplicados2' },
+    final: '11 resultados',
+  })
   expect('«Ver N resultados» con Intro: el disparador recibe el foco ya con su nombre nuevo (2 filtros aplicados), una sola vez; la región del recuento dice el total', {
     nombresAlRecibirElFoco: await b.ev('window.__nombres'),
     foco: await b.ev("document.activeElement.classList.contains('c-filter-trigger')"),

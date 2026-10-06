@@ -11,6 +11,7 @@
 // BookingDetails y el respaldo de foco (hoy useFocusFallback) de Specialist.tsx. `previewFlows`
 // repite los flujos de foco contra pnpm preview (sin StrictMode): pnpm verify
 // 5.2 --preview.
+import { monthCells } from './calendario.mjs'
 import { sleep } from './cdp.mjs'
 import { overflow, splitWords, text200 } from './checks.mjs'
 import { clientNavigation, pixelDelta, resampleNote, viewport, viewRest } from './navegacion.mjs'
@@ -734,6 +735,35 @@ async function monthRegion(b, expect, full) {
     siguiente: false,
     focoEnJulio: true,
   })
+  // Celdas nuevas al cambiar de mes en la hoja (7.6 · lote 7; calendario.mjs),
+  // con la región del mes en cada cambio: «mayo de 2029» con el botón, '' con
+  // las flechas. Contraprueba (sin la key): 35.
+  await b.go(P021)
+  await openSheet(b)
+  const sheetCal = `document.querySelector('dialog.c-sheet')`
+  const cellSteps = await monthCells(b, sheetCal, [
+    ['Mes siguiente', () => pressMonth(b, 'Mes siguiente')],
+    ['Tab', () => b.tab()],
+    ...Array.from({ length: 6 }, () => ['↑', () => arrow(b, 'ArrowUp', 38)]),
+    ['Fin', () => arrow(b, 'End', 35)],
+    ...Array.from({ length: 5 }, () => ['↓', () => arrow(b, 'ArrowDown', 40)]),
+  ], async () => ` · región «${await b.ev(`${MONTH_REGION}.textContent`)}»`)
+  expect('hoja del calendario (375): un cuerpo nuevo al cambiar de mes, con el botón y con las flechas hacia abril y hacia junio (0 celdas reutilizadas); el foco en un día de la rejilla en cada paso; Fin, al domingo; la región, «mayo de 2029» con el botón y vacía con las flechas', cellSteps, [
+    'Mes siguiente: BUTTON Mes siguiente · Mayo 2029 · 0 reutilizadas · región «mayo de 2029»',
+    'Tab: rejilla DIV jueves 24 de mayo de 2029',
+    '↑: rejilla DIV jueves 17 de mayo de 2029',
+    '↑: rejilla DIV jueves 10 de mayo de 2029',
+    '↑: rejilla DIV jueves 3 de mayo de 2029',
+    '↑: rejilla DIV jueves 26 de abril de 2029 · Abril 2029 · 0 reutilizadas · región «»',
+    '↑: rejilla DIV lunes 23 de abril de 2029',
+    '↑: rejilla DIV lunes 23 de abril de 2029',
+    'Fin: rejilla DIV domingo 29 de abril de 2029',
+    '↓: rejilla DIV domingo 6 de mayo de 2029 · Mayo 2029 · 0 reutilizadas · región «»',
+    '↓: rejilla DIV domingo 13 de mayo de 2029',
+    '↓: rejilla DIV domingo 20 de mayo de 2029',
+    '↓: rejilla DIV domingo 27 de mayo de 2029',
+    '↓: rejilla DIV domingo 3 de junio de 2029 · Junio 2029 · 0 reutilizadas · región «»',
+  ])
   if (full) {
     await b.metrics(1440, 900)
     await b.go(P021)

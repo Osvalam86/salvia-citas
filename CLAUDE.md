@@ -154,8 +154,13 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   del anillo en `_mixins.scss`, `inset: -1px` en el radio del Day Chip; coste
   del anillo en el borde de la barra como grupo 6) y el 6 (anillo del kit:
   `c-kit__nav-item` de 109 en la demo del Nav Item y halo `box-shadow` del
-  salto al contenido solo sin header, desviación declarada). Queda la tanda de
-  NVDA, la pasada contra producción y un commit `docs`.
+  salto al contenido solo sin header, desviación declarada) y el 7, tras la
+  tanda de NVDA (`nvda.txt`): el recuento de la búsqueda congelado mientras la
+  hoja de filtros está abierta y soltado al cerrar (regresión del lote 3,
+  `heldCount` en `Search.tsx`), y un cuerpo de rejilla por mes en `Calendar`
+  (`key` en `CalendarGridBody`; estado arrastrado en Firefox, hipótesis),
+  con `scripts/verify/calendario.mjs`. Queda oír A y B tras el deploy, la
+  pasada contra producción y un commit `docs`.
 
 Siguiente en la fase 7: terminar 7.6 (las filas «7 · 7.6» que siguen abiertas en
 DESIGN.md, Pendientes) y 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.

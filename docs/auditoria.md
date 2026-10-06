@@ -21,7 +21,8 @@ en 7.4», nunca ✓.
   expectativa en 7.3): 29/32. Lote 5 (F2 y el Day Chip): 31/33, 2 ✗ declarados con 3 defectos;
   coste medido del anillo, 68. Lote 6 (anillo del kit): 32/33, 1 ✗ declarado con 1 defecto (el
   resto de pintado de `/kit`); coste medido 68 (se predijo 70: las dos «A Mis citas» del Nav Item
-  suelto pasan a cumplir la regla).
+  suelto pasan a cumplir la regla). Lote 7 (recuento al cerrar la hoja de filtros y celdas nuevas
+  por mes en el calendario, sin expectativa en 7.3): 32/33, idéntica.
 
 ## Método
 
@@ -210,7 +211,8 @@ En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Cal
 
 | Hallazgo de 7.4 | Criterio | Literal o cifra | Decisión |
 |---|---|---|---|
-| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). De oído, tras el deploy |
+| El disparador de filtros se anuncia con el recuento anterior al aplicar | Regla del proyecto (los dos mensajes al aplicar), no WCAG: el nombre se corrige y el recuento llega por la región de estado | «Filtrar y ordenar, 1 filtro aplicado» tras aplicar 2; NVDA+Tab después, «2 filtros aplicados» (N1.11, NF y NC). `Sheet.tsx` devuelve el foco antes de `onSubmit()` | ✓ 7.6 en el arnés (lote 3): `onSubmit()` antes de `close()` y `flushSync` en la hoja de filtros; 5.1 mide el nombre en el `focusin` («2 filtros aplicados»). La tanda tras el deploy del lote 6 oyó el nombre nuevo pero no «11 resultados»: regresión del lote 3 (el `flushSync` cambiaba también la región con la página inert). ✓ 7.6 en el arnés (lote 7): la región, congelada mientras la hoja está abierta, se suelta al cerrar; 5.1 la lee en 34 dentro de `close()` y en el `focusin`, y en 11 después. De oído, tras el deploy |
+| Estado arrastrado en las celdas del calendario (tanda de 7.6, no de 7.4) | Regla del proyecto (el nombre y el estado de la celda enfocada, §4.5), sin criterio WCAG decidido: hipótesis sobre Firefox | En la hoja, con → del 24 al 29 de mayo: «botón no disponible» en el 24–27 y «seleccionado» en el 29 con el 25 seleccionado (Firefox 157 + NVDA 2026.2, 6 oct 2026; `scripts/verify/out/7.6/nvda.txt`, paso 3). En Chrome 154, ninguno. RAC reutiliza las celdas por posición: las de mayo son los nodos de abril | ✓ 7.6 en el arnés (lote 7): `key` por mes en el cuerpo de la rejilla; 4.6 y 5.2 miden 0 celdas reutilizadas en cada cambio de mes y el foco en la rejilla. De oído, tras el deploy |
 | «entrada inválida» antes del primer envío | Regla del proyecto (validación al enviar, diseño §3.4), no WCAG | El select de motivo y la casilla de privacidad, en Firefox y Chrome; el fieldset, solo en Firefox (N2.1, bloque del hallazgo). Es la validez nativa de `required`, expuesta pese a `noValidate`; `aria-invalid="false"` no la anula en Firefox | ✓ 7.6 en el arnés (lote 4): `aria-required` en vez de `required` y el correo como text con `inputMode="email"`; 5.3 mide `form :invalid` vacío al cargar y ningún obligatorio inválido en el árbol AX. De oído, tras el deploy |
 | Anunciador de React Aria inerte en la hoja | 4.1.3 (✗ declarado en 7.3) | No se oye «mayo de 2029» en la hoja (N3.8b, dos pasadas); en línea, sí (N3.8) | Confirmado de oído; 7.6, ya con fila |
 
@@ -244,8 +246,9 @@ en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2
 ## Limitaciones conocidas
 
 - De los seis defectos de § Hallazgos, F1 (lote 1), el anunciador inerte (lote 2, en el arnés) y
-  F2 (lote 5) se cerraron en 7.6; los dos hallazgos de 7.4, en el arnés (lotes 3 y 4). También los
-  dos del kit (1b y 4, lote 6). Sigue abierto el resto de pintado de `/kit` (declarado, sin medir
+  F2 (lote 5) se cerraron en 7.6; los dos hallazgos de 7.4, en el arnés (lotes 3 y 4; el 3, con
+  su regresión corregida en el lote 7). También los dos del kit (1b y 4, lote 6), y el estado
+  arrastrado de las celdas del calendario en Firefox, en el arnés (lote 7, hipótesis hasta oírlo). Sigue abierto el resto de pintado de `/kit` (declarado, sin medir
   en Chrome real en 7.4).
 - Lo automático, solo Chromium (Edge headless). 7.4 añadió NVDA con Firefox 157 (y con Chrome
   154 solo para los hallazgos), teclado en Firefox, un Android con Chrome 153 y Google Calendar,
