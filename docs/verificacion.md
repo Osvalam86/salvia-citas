@@ -23,8 +23,12 @@ leen `public/_redirects` ni `netlify.toml`. 7.3 audita el build: se niega sin
 `VERIFY_BASE` o con :5173 (StrictMode y el cliente de Vite), y no tiene
 `--preview`: la base la da `VERIFY_BASE`.
 
-Requisitos: Node ≥ 20 (usa el `WebSocket` y el `fetch` de Node) y Microsoft
-Edge. El arnés no tiene dependencias; 7.3 usa `axe-core` (devDependency exacta,
+Requisitos: Node ≥ 22.18, el del proyecto (`engines`), y Microsoft Edge. El
+arnés usa el `WebSocket` y el `fetch` globales de Node: `WebSocket` funciona sin
+flag desde Node 22.0 (en 20.10 y 21 solo con `--experimental-websocket`; con
+`--no-experimental-websocket`, `typeof WebSocket` da `undefined`, medido en 7.7).
+`pnpm verify 5.0` lanza además `check-data --contrapruebas`, que importa el TS de
+`src/data/` sin compilar (22.18). El arnés no tiene dependencias; 7.3 usa `axe-core` (devDependency exacta,
 4.13.0), que inyecta en la página por CDP. La ruta de Edge es la de Windows; en
 otro sistema, `EDGE_PATH=/ruta/a/edge`. Otro servidor: `VERIFY_BASE=http://…`.
 

@@ -532,7 +532,8 @@ Figma.
 conmutador no cambie de etiqueta. Aquí cambia («Avisarme» → «Te avisaremos»,
 con `aria-pressed`) porque las dos se leen coherentes con su estado: «Te
 avisaremos, presionado» y «Avisarme, no presionado»; el caso que la APG evita
-es «Silenciar» leído como «presionado». Pendiente de la fase 7 con lector.
+es «Silenciar» leído como «presionado». Con NVDA y Firefox (7.4, N1.5): anuncia
+el estado y la etiqueta nueva, «pulsado», «Te avisaremos».
 
 **Load More: o foco o región viva.** Al terminar, el foco va al nombre de la
 primera tarjeta nueva; el recuento de Load More no es región viva y el de la
@@ -891,8 +892,9 @@ el tipo email semántico. El teclado de correo y el autocompletado se conservan
 con `inputMode` y `autoComplete`. Medido en `pnpm verify 5.3`: con la carga
 completa nada es `:invalid`, ningún obligatorio es inválido en el árbol AX y
 los textbox son requeridos (CDP no lista `required` en el combobox ni en el
-checkbox, tampoco con el nativo: ahí se comprueba `aria-required`). Lo que oye
-NVDA, tras el deploy.
+checkbox, tampoco con el nativo: ahí se comprueba `aria-required`). De oído en
+7.6, con Firefox y con Chrome: «requerido» sin «entrada inválida» antes de enviar
+(Pendientes).
 
 **Resumen de errores** (`ErrorSummary.tsx` ↔ `c-error-summary`). Un div sin
 rol; el foco va a su h2 (`tabIndex -1`, anillo de destino programático: con
@@ -1659,8 +1661,9 @@ accesibilidad 96, buenas prácticas 100 y SEO 100, FCP y LCP 1,9 s; antes de 7.2
 (b4c3274, incógnito, una pasada), móvil el 29 sep a las 18:07, 98 / 96 / 100 / 100,
 FCP y LCP 1,9 s, y escritorio el 29 sep a las 18:08, 100 / 100 / 100 / 100. El
 96 de accesibilidad: Lighthouse marca «objetivos táctiles» (2.5.8) en «Ver
-horarios» y en la barra inferior. Hipótesis sin medir: falso positivo por la
-barra fija; se mide en 7.3.
+horarios» y en la barra inferior. Medido en 7.3: falso positivo de posición, los
+objetivos están bajo la barra inferior arriba y dan 0 al final y sin la barra
+(docs/auditoria.md).
 
 ---
 
@@ -1733,7 +1736,7 @@ barra fija; se mide en 7.3.
 | 7 · sin dispositivo | **Foco devuelto al disparador tras `close()` en Safari.** Sin Mac ni iPhone en 7.4 |
 | 7 · 7.4 ✓ | **`alertdialog` con NVDA. Cerrado en 7.4** (1 oct 2026; NVDA 2026.2 + Firefox 157.0, Windows 11 26H2; docs/auditoria-manual.md, N2.3): «¿Cancelar esta cita? diálogo Martes 8 de mayo, 17:00, con el Dr. Andrés Molina Paz. Esta acción no se puede deshacer.» · «Mantener mi cita botón»; el foco inicial no corta el anuncio. Dato: NVDA dice «diálogo», no «diálogo de alerta». NVDA + Chrome, sin medir en 7.4 |
 | 7 · sin dispositivo | **`alertdialog` con VoiceOver.** Sin Mac ni iPhone en 7.4 |
-| 7 · 7.4 ✓ | **Calendario y horas con NVDA. Cerrado en 7.4** (1 oct 2026; NVDA 2026.2 + Firefox 157.0, Windows 11 26H2; docs/auditoria-manual.md, N3.1–N3.4, N3.7 y N3.8): el `h2` oculto de RAC no sale con H porque la raíz del calendario lleva `role="application"` (contraprueba: sin el rol, «abril de 2029 encabezado nivel 2»), y el rótulo se oye al entrar con Tab («abril de 2029 tabla»); «seleccionado» una vez; hoy se anuncia dos veces («hoy» del nombre y «fecha actual» de `aria-current="date"`: redundante, dato a decidir en 7.6); el mes se anuncia al navegar en línea («mayo de 2029»); en la hoja, no (fila de 7.6 del anunciador). La hora llena se lee «no disponible» y el grupo «Tarde» al cruzar con ↓ (spike-rac § 4) |
+| 7 · 7.4 ✓ | **Calendario y horas con NVDA. Cerrado en 7.4** (1 oct 2026; NVDA 2026.2 + Firefox 157.0, Windows 11 26H2; docs/auditoria-manual.md, N3.1–N3.4, N3.7 y N3.8): el `h2` oculto de RAC no sale con H porque la raíz del calendario lleva `role="application"` (contraprueba: sin el rol, «abril de 2029 encabezado nivel 2»), y el rótulo se oye al entrar con Tab («abril de 2029 tabla»); «seleccionado» una vez; hoy se anuncia dos veces («hoy» del nombre y «fecha actual» de `aria-current="date"`: redundante; se queda como dato, sin cambio en 7.6); el mes se anuncia al navegar en línea («mayo de 2029»); en la hoja, no (fila de 7.6 del anunciador). La hora llena se lee «no disponible» y el grupo «Tarde» al cruzar con ↓ (spike-rac § 4) |
 | 7 | **Calendario con lector: lo que 7.4 no midió** (recorte): las celdas en blanco con las órdenes de tabla (spike-rac § 4.3, N3.5), los botones de mes (§ 4.6, N3.6) y la rejilla del ListBox en Firefox (§ 4.7, K.8; ✓ en Chromium en 7.3) |
 | 7 · sin dispositivo | **Calendario y horas con VoiceOver, con el botón «Siguiente» oculto de RAC por gestos.** Sin Mac ni iPhone en 7.4; TalkBack (A.6), sin medir |
 | 7 ✓ | **Carga diferida por ruta. Cerrado en 7.2 con división estática por librería, no con carga diferida** (D18). Ningún chunk pasa de 500 kB y desaparece el aviso (antes, 677,05 kB en un solo `index`). La carga diferida, medida en HTTP/2 frente a producción: +291 / +317 ms hasta el h1 en `/`, +622 / +647 en el perfil (sin límite de CPU / ×4) y de +627 a +1234 ms en la primera visita en cliente; descartada. La división estática: +29 ms como máximo, dentro del umbral de +50. «Menos JS en `/`» no alcanzado. `pnpm verify` 4.1–4.7 y 5.0–5.4 en dev y 5.0–5.4 en `--preview`, iguales a la línea base de b4c3274. En producción (fdc8337): `pnpm verify 7.0` 14/14 y `--preview` 8/8, 16/16, 6/6, 5/5 y 12/12 (D18) |

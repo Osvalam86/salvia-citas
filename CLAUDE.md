@@ -10,7 +10,7 @@ demuestra es el sistema de tokens, los componentes con estados, la
 accesibilidad implementada y el responsive. El diseño está cerrado en Figma
 (archivo `sVVjX11h3CrCOFNybb7gL1`, accesible por MCP).
 
-Estado actual: fases 1 a 5 cerradas (la 6, absorbida en la 5).
+Estado actual: fases 1 a 7 cerradas (la 6, absorbida en la 5).
 Existen las capas `01-settings` a `07-utilities`, los objetos de layout
 (`o-wrapper`, `o-layout`, `o-stack`, `o-cluster`), el shell `AppLayout`
 (`c-app-layout`), React Router y el catálogo `/kit` y `/kit/layout`
@@ -36,7 +36,7 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   en `src/data/clock.ts` (`TODAY`, `NOW`, `MAX_DATE`) con lint contra el reloj
   real; `I18nProvider` es-MX en la raíz; `Button` acepta `form`; demo en
   `/kit/fecha-hora`. Resto de pintado tras navegar en cliente desde `/kit`
-  desplazado: ✗ declarado en `pnpm verify 4.6`, seguimiento en la fase 7
+  desplazado: ✗ declarado en `pnpm verify 4.6`, abierto al cierre
   (DESIGN.md, Pendientes).
 - 4.7 Citas y diálogos: `AppointmentCard` (el `li` es el contenedor; Row
   desde 40rem) y `Dialog` (`<dialog>` nativo con `showModal()`, el elemento es
@@ -165,7 +165,16 @@ Existen las capas `01-settings` a `07-utilities`, los objetos de layout
   del lote 3; el recuento al cerrar la hoja de filtros no se oye en Firefox
   (fila «7 · 7.6 · declarado», causa sin aislar).
 
-Siguiente en la fase 7: 7.7 (cierre y README). Quedan 7 filas «7» sin medir en 7.4.
+- Fase 7 · 7.7: README en español (demo, qué demuestra, stack, accesibilidad
+  medida y abierta, verificación, scripts, estructura, documentación y
+  licencias); comentario de `Calendar.tsx` con N3.9; requisito de Node del arnés
+  en docs/verificacion.md; pasada final y `pnpm verify` 7.0 y 7.3 contra
+  producción; vista previa de LinkedIn (docs/auditoria.md).
+
+Proyecto cerrado. Abiertos (DESIGN.md, Pendientes): el ✗ declarado del resto de
+pintado de `/kit`, la fila «7 · 7.6 · declarado» del recuento al aplicar
+filtros, 6 filas «7» sin medir del recorte de 7.4 y las filas «7 · sin
+dispositivo».
 
 ## Comandos
 

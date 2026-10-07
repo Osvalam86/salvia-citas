@@ -158,8 +158,9 @@ export default function Calendar({ value, onChange, today, maxValue, freeSlots, 
           {/* Un cuerpo nuevo por mes visible (7.6): sin la key, RAC reutiliza
               cada celda por posición y Firefox con NVDA anunció en mayo el
               estado que la celda tenía en abril («no disponible»,
-              «seleccionado»). Hipótesis sobre Firefox, a confirmar de oído;
-              la tabla, su nombre y la región del mes no cambian de nodo. */}
+              «seleccionado»). Con la key, ya no (de oído, una pasada;
+              docs/auditoria-manual.md, N3.9). La tabla, su nombre y la región
+              del mes no cambian de nodo. */}
           <CalendarGridBody key={`${focusedValue.year}-${focusedValue.month}`}>
             {(date) => <CalendarDay date={date} today={today} free={freeSlots(date)} />}
           </CalendarGridBody>

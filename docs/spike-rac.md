@@ -247,5 +247,5 @@ encuentra con H: la raíz del calendario lleva `role="application"`
 rápidas en modo exploración. Contraprueba: sin el rol, H da «abril de 2029
 encabezado nivel 2» entre «Elige fecha» y «Elige hora». El calendario se alcanza
 con Tab y su rótulo se oye al entrar. Sin ✗. Dato: hoy se anuncia dos veces,
-«hoy» del nombre y «fecha actual» de `aria-current="date"` (N3.4), redundante,
-a decidir en 7.6.
+«hoy» del nombre y «fecha actual» de `aria-current="date"` (N3.4), redundante;
+se queda como dato, sin cambio en 7.6.

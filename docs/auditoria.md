@@ -27,6 +27,12 @@ en 7.4», nunca ✓.
   `index-0yonqpyD.css`; Edge 154.0.4258.37, Node 26.3.0): `pnpm verify 7.3` **32/33**, 1 ✗
   declarado con 1 defecto (el resto de pintado de `/kit`), salida idéntica a la de la preview del
   lote 7; `pnpm verify 7.0` 14/14; `--preview` 5.0–5.4: 8/8, 18/18, 10/10, 5/5 y 12/12.
+- **Cierre de 7.7, contra producción** (6 oct 2026, 18:42–18:53, medido en 2ea0093:
+  `index-BzYQhdO1.js` e `index-0yonqpyD.css`; Edge 154.0.4258.53, Node 26.3.0): `pnpm verify 7.0`
+  **14/14** y `pnpm verify 7.3` **32/33**, con el único ✗ declarado (el resto de pintado de
+  `/kit`); las dos salidas, iguales a las del cierre de 7.6 salvo el eco del comando. El commit de
+  cierre de 7.7 solo cambia docs y un comentario de `Calendar.tsx`: el bundle es idéntico byte a
+  byte (`cmp` de `index-*.js`, `index-*.css` y los cuatro chunks).
 
 ## Método
 
@@ -222,7 +228,7 @@ En Android, Atrás cierra la hoja de filtros sin bloquear la página. Google Cal
 
 **Datos sin fila.** El h2 oculto de RAC no sale con H porque la raíz del calendario lleva
 `role="application"` (N3.1, contraprueba quitando el rol). Hoy se anuncia dos veces, «hoy» del
-nombre y «fecha actual» de `aria-current="date"` (N3.4): redundante, a decidir en 7.6. El
+nombre y «fecha actual» de `aria-current="date"` (N3.4): redundante; se queda como dato, sin cambio en 7.6. El
 `alertdialog` se lee «diálogo» (N2.3). «lista procesando» al llegar el foco tras «Ver más», solo
 en Firefox (N1.7). Los cuerpos de los avisos con foco no se leen solos (N2.4, N2.4b).
 
@@ -241,7 +247,7 @@ en docs/auditoria-manual.md (N1.11, hallazgo tras N2.2, N3.8b y N3.9).
 
 - **best-practice de axe:** violaciones en 28 de 85 pasadas, sin incomplete. `region` (contenido
   fuera de landmarks) en 26: sobre todo `.c-app-layout__bar` con la Booking Bar o la Action Bar,
-  **candidata de baja prioridad para 7.6, sin decidir**; también en `/kit/fecha-hora` y
+  **dato de best-practice, sin cambio en 7.6**; también en `/kit/fecha-hora` y
   `/kit/layout`. `landmark-unique` en 2 (`/kit`, un `nav` sin nombre único).
 - **Pares fuera de F.3:** límite `error` / `surface` (8,31: botón destructivo y campo con error),
   límite `scrim` / `surface` (21: botones sin estilo de las demos del kit), texto `text-link` /
@@ -257,6 +263,17 @@ en docs/auditoria-manual.md (N1.11, hallazgo tras N2.2, N3.8b y N3.9).
   desplaza a la vista el input oculto de 1 × 1, no la caja visible.
 - **Anillo bajo la barra (F2), las 30 paradas:** en `out/7.3/auditoria-cd.json` y sus capturas
   (`foco-*.png`).
+- **Vista previa en LinkedIn (Post Inspector, 7.7).** Hecha por Osvaldo el 6 de octubre de 2026
+  a las 18:14 (hora de Ciudad de México) sobre `https://salvia-citas.netlify.app/`. Vista previa:
+  la imagen de portada, el título «Salvia · Plataforma de citas médicas» y el dominio
+  `salvia-citas.netlify.app`. URL information: Last scraped «a few seconds ago»; Fetched URL y
+  Canonical URL, `https://salvia-citas.netlify.app/`; Redirect trail, 1, «200 Success». Metadata:
+  Title «Salvia · Plataforma de citas médicas»; Type «Article»; Image servida desde
+  `media.licdn.com` (`articleshare-shrink_1280_800`); Description «Caso de estudio de
+  maquetación y accesibilidad WCAG 2.2 AA: una plataforma para agendar citas con especialistas
+  médicos.»; Author «Osvaldo Ocampo»; Publish date «No publication date found», en rojo. Dos datos,
+  sin cambio: LinkedIn muestra Type «Article» aunque `og:type` es `website`, y avisa de que no hay
+  fecha de publicación porque la página no lleva `article:published_time`.
 
 ## Limitaciones conocidas
 
