@@ -8,6 +8,8 @@ implementada y el comportamiento responsive.
 **Demo:** [salvia-citas.netlify.app](https://salvia-citas.netlify.app) · catálogo de componentes
 en [`/kit`](https://salvia-citas.netlify.app/kit)
 
+**Diseño:** [archivo de Figma](https://www.figma.com/design/sVVjX11h3CrCOFNybb7gL1/Salvia-%C2%B7-Plataforma-de-citas-m%C3%A9dicas) con las páginas Foundations, Components, Wireframes, Desktop y Mobile
+
 ![Portada de Salvia, plataforma de citas médicas: el selector de fecha y hora del perfil de la Dra. Elena Ruiz en escritorio y en móvil, con el martes 24 de abril a las 10:30 seleccionado. Osvaldo Ocampo · Maquetación BEMIT y accesibilidad WCAG 2.2 AA.](public/og-image.png)
 
 ---
